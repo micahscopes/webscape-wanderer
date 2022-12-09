@@ -31,16 +31,8 @@ const graph = ForceGraph3D()
 // Decrease repel intensity
 graph.d3Force('charge').strength(-15);
 
-const DAT_GARDEN_BASE_URL = "https://dat-ecosystem.org/dat-garden-rake/"
-const dataIndex = await fetch(`${DAT_GARDEN_BASE_URL}index.json`).then(x => x.json())
-const LATEST_DATA_BASE_URL = `${DAT_GARDEN_BASE_URL}${dataIndex.latest}`
-const [valueNetworkData, projectsData, organizationsData] = await Promise.all([
-  fetch(LATEST_DATA_BASE_URL + '/../valuenetwork.json').then(x => x.json()),
-  fetch(LATEST_DATA_BASE_URL + '/../projects.json').then(x => x.json()),
-  fetch(LATEST_DATA_BASE_URL + '/../organizations.json').then(x => x.json())
-])
-
-console.log(valueNetworkData, projectsData, organizationsData)
+const {valueNetworkData, projectsData, organizationsData} = await fetchData()
+console.log('valueNetworkData', valueNetworkData, 'projectsData', projectsData, 'organizationsData', organizationsData)
 
 const nodes = Object.entries(valueNetworkData).map(([project, {dependents, dependencies, owner}]) => ({
   project,
@@ -62,6 +54,13 @@ const dependentLinks = Object.entries(valueNetworkData).flatMap(([project, { dep
   }))
 ).filter(edge => edge)
 
+
+// import './data'
+import { buildGraph, engine, fetchData, getGraphData } from './data'
+console.log(engine)
+// console.log()
+await buildGraph()
+await getGraphData()
 
 
 console.log(nodes, "dependencies", dependencyLinks, "dependents", dependentLinks)
