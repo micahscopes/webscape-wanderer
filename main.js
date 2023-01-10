@@ -1,5 +1,4 @@
 import './style.css'
-// import * as dat from 'dat.gui';
 import ForceGraph3D from '3d-force-graph'
 import * as d3 from 'd3'
 import ColorHash from 'color-hash'
@@ -10,31 +9,79 @@ document.querySelector('#app').innerHTML = `
 const colorHash = new ColorHash({lightness: [0.35, 0.5, 0.65]});
 
 // graph config
-const NODE_REL_SIZE = 1;
+const nodeBaseSize = 1;
+const highlightedSizeFactor = 10;
+const highlightNodes = new Set();
+const highlightLinks = new Set();
+let highlightColor = null;
+let selectedNode = null;
+
 const graph = ForceGraph3D()
-  // .dagMode('td')
-  // .dagLevelDistance(200)
+  // .d3Force('collision', d3.forceCollide(node => Math.cbrt(node.size) * nodeBaseSize))
   .backgroundColor('#101020')
-  .linkColor(() => 'rgba(255,255,255,0.2)')
-  .nodeRelSize(NODE_REL_SIZE)
+  .nodeRelSize(nodeBaseSize)
   .nodeId('project')
-  .nodeVal('size')
-  .nodeColor(({owner}) => colorHash.hex(owner || ''))
+  .nodeVal(node => highlightNodes.has(node.project) || node === selectedNode ? node.size * highlightedSizeFactor : node.size)
+  .nodeColor(node => highlightNodes.has(node.project) ? node === selectedNode ? 'rgb(255,0,0,1)' : highlightColor : projectOrgColor(node))
   .nodeLabel('project')
   .nodeOpacity(0.9)
+  .linkColor(() => 'rgba(255,255,255,0.2)')
+  .linkWidth(link => highlightLinks.has(link) ? 4 : 1)
   .linkDirectionalParticles(2)
   .linkDirectionalParticleWidth(0.8)
   .linkDirectionalParticleSpeed(0.006)
-  .d3Force('collision', d3.forceCollide(node => Math.cbrt(node.size) * NODE_REL_SIZE))
   .d3VelocityDecay(0.3);
 
 // Decrease repel intensity
-graph.d3Force('charge').strength(-15);
+// graph.d3Force('charge').strength(-15);
+
+function projectOrgColor(node) {
+  return colorHash.hex(node.owner || '')
+}
+
+function updateHighlight() {
+  // trigger update of highlighted objects in scene
+  graph
+    .nodeColor(graph.nodeColor())
+    // .linkWidth(graph.linkWidth())
+    // .linkDirectionalParticles(graph.linkDirectionalParticles());
+}
+
+graph.onNodeClick(node => {
+  // no state change
+  if ((!node && !highlightNodes.size) || (node && selectedNode === node)) return;
+
+  highlightNodes.clear();
+  highlightLinks.clear();
+  // highlightColor = projectOrgColor(node);
+  highlightColor = 'yellow';
+  if (node) {
+    highlightNodes.add(node);
+    engine.queryBindings(downstreamDependentsQuery(node.project)).then($ => {
+      $.on('data', data => {
+        if (node !== selectedNode) $.destroy();
+        const dependent = data.get('dependent').value
+        highlightNodes.add(dependent)
+        updateHighlight();
+      })
+      console.log('clicked on', node)
+      $.on('end', () => {
+        // updateHighlight();
+        // console.log(highlightNodes)
+      })
+    })
+    // node.neighbors.forEach(neighbor => highlightNodes.add(neighbor));
+    // node.links.forEach(link => highlightLinks.add(link));
+  }
+
+  selectedNode = node || null;
+
+})
 
 const {valueNetworkData, projectsData, organizationsData} = await fetchData()
 console.log('valueNetworkData', valueNetworkData, 'projectsData', projectsData, 'organizationsData', organizationsData)
 
-const nodes = Object.entries(valueNetworkData).map(([project, {dependents, dependencies, owner}]) => ({
+const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, dependencies, owner}]) => ({
   project,
   owner,
   size: (2*dependents?.length)**2
@@ -56,14 +103,13 @@ const dependentLinks = Object.entries(valueNetworkData).flatMap(([project, { dep
 
 
 // import './data'
-import { buildGraph, engine, fetchData, getGraphData } from './data'
-console.log(engine)
-// console.log()
+import { store, df, fetchData, getGraphData, buildGraph, OWNS, engine, downstreamDependentsQuery } from './data'
+// console.log(db)
 await buildGraph()
-await getGraphData()
+console.log('graph data', getGraphData({predicate: OWNS}))
 
 
-console.log(nodes, "dependencies", dependencyLinks, "dependents", dependentLinks)
+// console.log(nodes, "dependencies", dependencyLinks, "dependents", dependentLinks)
 
 graph(document.getElementById('graph-viz'))
   .graphData({ nodes, links: dependentLinks });

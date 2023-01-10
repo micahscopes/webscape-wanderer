@@ -11,8 +11,8 @@ export async function fetchData() {
     return {valueNetworkData, projectsData, organizationsData}
 }
 
-export const DEPENDS_ON = 'http://localhost#dependson'
-export const OWNS = 'http://localhost#owns'
+export const DEPENDS_ON = 'http://dat-ecosystem.org#dependson'
+export const OWNS = 'http://dat-ecosystem.org#owns'
 
 import { MemoryLevel } from 'memory-level';
 import { DataFactory } from 'rdf-data-factory';
@@ -21,7 +21,7 @@ import { Engine } from 'quadstore-comunica';
 
 const backend = new MemoryLevel();
 const df = new DataFactory();
-const store = new Quadstore({backend, dataFactory: df});
+const store = new Quadstore({ backend, dataFactory: df });
 const engine = new Engine(store);
 
 await store.open();
@@ -30,7 +30,7 @@ export async function buildGraph() {
   // await store.open();
   const {valueNetworkData, projectsData, organizationsData} = await fetchData()
   
-  const quads = Object.entries(valueNetworkData)
+  const valueNetworkQuads = Object.entries(valueNetworkData)
     .flatMap(([project, { dependents, dependencies, owner }]) => [
       owner &&
         project &&
@@ -63,29 +63,96 @@ export async function buildGraph() {
     ])
     .filter((x) => x);
 
-  const moreQuads = 
-      [...Object.entries(organizationsData).flatMap(([org, info]) =>
+    const organizationsQuads = [...Object.entries(organizationsData).flatMap(([org, info]) =>
         Object.entries(info).flatMap(([key, value]) =>
           value && df.quad(df.namedNode(org), df.namedNode(key), df.literal(value))
         ).filter(x => x)
-      ),
-      ...Object.entries(projectsData).flatMap(([org, info]) =>
+      )]
+    const projectsQuads = [...Object.entries(projectsData).flatMap(([org, info]) =>
         Object.entries(info).flatMap(([key, value]) =>
           value && df.quad(df.namedNode(org), df.namedNode(key), df.literal(value))
         ).filter(x => x)
       )]
     
-  await store.multiPut(
-    [...quads, ...moreQuads]
-  )
+  const entries = [...valueNetworkQuads, ...organizationsQuads, ...projectsQuads]
+  
+  await store.multiPut(entries)
+  console.log('inserted', entries)
 }
 
-export function getGraphData(queryParams={}) {
-  return store.get(queryParams)
+export async function getGraphDataDirect() {
+  return await store.get({predicate: df.namedNode(DEPENDS_ON)})
 }
+
+export async function getGraphData() {
+  let results = []
+  return engine.queryBindings(`
+    SELECT ?subject ?object
+    WHERE {
+        ?subject <http://dat-ecosystem.org#dependson> ?object .
+    }
+  `).then(bindings => {
+      bindings.on('data', data => {
+        // console.log(data.get('subject'))
+        results.push({
+            subject: data.get('subject').value,
+            object: data.get('object').value
+        });
+      });
+      bindings.on('end', () => console.log('done', results));
+  });
+}
+
+
+export const downstreamDependentsQuery = startProject => `
+  PREFIX dependson: <http://dat-ecosystem.org#dependson>
+  SELECT DISTINCT ?dependent WHERE {
+    <${startProject}> dependson:* ?dependent .
+  }
+`
+export const directDependentsQuery = startProject => `
+  PREFIX dependson: <http://dat-ecosystem.org#dependson>
+  SELECT DISTINCT ?dependent
+  WHERE {
+      <${startProject}> dependson: ?dependent
+  }
+`
+
+// looking good
+export async function getDownstreamDependents(startProject) {
+  const query = downstreamDependentsQuery(startProject)
+  let results = []
+  let bindings = await engine.queryBindings(query)
+  return new Promise((resolve, reject) => {
+      bindings.on('data', data => {
+          results.push(data.get('dependent').value);
+      });
+      bindings.on('end', () => resolve(results));
+      bindings.on('error', (error) => reject(error))
+  });
+}
+
+export async function getDirectDependents(startProject) {
+  const query = directDependentsQuery(startProject)
+  let results = []
+  let bindings = await engine.queryBindings(query)
+  return new Promise((resolve, reject) => {
+      bindings.on('data', data => {
+          results.push({
+              directDependents: data.get('dependent').value
+          });
+      });
+      bindings.on('end', () => resolve(results));
+      bindings.on('error', (error) => reject(error))
+  });
+}
+window.getDirectDependents = getDirectDependents
 
 window.getGraphData = getGraphData
-window.df = df
+window.getGraphDataDirect = getGraphDataDirect
+window.getDownstreamDependents = getDownstreamDependents
 window.store = store
-window.engine = engine
-export { backend, df, store, engine }
+window.df = df
+window.OWNS = OWNS
+window.DEPENDS_ON = DEPENDS_ON
+export { backend, store, df, engine }
