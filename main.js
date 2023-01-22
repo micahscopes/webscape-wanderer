@@ -1,5 +1,5 @@
 import './style.css'
-import ForceGraph3D from '3d-force-graph'
+import ForceGraph3D from '3d-force-graph-vr'
 import * as d3 from 'd3'
 import ColorHash from 'color-hash'
 
@@ -7,6 +7,8 @@ document.querySelector('#app').innerHTML = `
   <div id='graph-viz'></div>
 `
 const colorHash = new ColorHash({lightness: [0.35, 0.5, 0.65]});
+
+import { buildGraphDb, doQuery  } from './data'
 
 // graph config
 const nodeBaseSize = 1;
@@ -39,13 +41,19 @@ function projectOrgColor(node) {
   return colorHash.hex(node.owner || '')
 }
 
-function updateHighlight() {
+
+const updateHighlight = 
+debounce(
+  () => {
   // trigger update of highlighted objects in scene
   graph
     .nodeColor(graph.nodeColor())
     // .linkWidth(graph.linkWidth())
     // .linkDirectionalParticles(graph.linkDirectionalParticles());
 }
+, 5)
+
+// import { queryBindings} from './data'
 
 graph.onNodeClick(node => {
   // no state change
@@ -57,19 +65,37 @@ graph.onNodeClick(node => {
   highlightColor = 'yellow';
   if (node) {
     highlightNodes.add(node);
-    engine.queryBindings(downstreamDependentsQuery(node.project)).then($ => {
-      $.on('data', data => {
-        if (node !== selectedNode) $.destroy();
-        const dependent = data.get('dependent').value
-        highlightNodes.add(dependent)
-        updateHighlight();
+    doQuery(
+      downstreamDependentsQuery(node.project),
+      // proxy(data => {}),
+      proxy((data, get) => {
+        // console.log('data', data)
+        if (node !== selectedNode) return;
+        get('dependent').then(dependent => {
+          console.log('dependent', dependent)
+          highlightNodes.add(dependent.value)
+          updateHighlight();
+        })
+      }),
+      proxy(() => {
+        console.log('query ended')
       })
-      console.log('clicked on', node)
-      $.on('end', () => {
-        // updateHighlight();
-        // console.log(highlightNodes)
-      })
-    })
+      // onEnd: proxy(() => {
+      // })
+    )
+    // queryBindings(downstreamDependentsQuery(node.project)).then($ => {
+    //   $.on('data', data => {
+    //     if (node !== selectedNode) $.destroy();
+    //     const dependent = data.get('dependent').value
+    //     highlightNodes.add(dependent)
+    //     updateHighlight();
+    //   })
+    //   console.log('clicked on', node)
+    //   $.on('end', () => {
+    //     // updateHighlight();
+    //     // console.log(highlightNodes)
+    //   })
+    // })
     // node.neighbors.forEach(neighbor => highlightNodes.add(neighbor));
     // node.links.forEach(link => highlightLinks.add(link));
   }
@@ -78,7 +104,10 @@ graph.onNodeClick(node => {
 
 })
 
-const {valueNetworkData, projectsData, organizationsData} = await fetchData()
+import { downstreamDependentsQuery } from './query-helpers'
+import { proxy } from 'comlink'
+import { debounce } from 'lodash-es'
+const {valueNetworkData, projectsData, organizationsData} = await buildGraphDb()
 console.log('valueNetworkData', valueNetworkData, 'projectsData', projectsData, 'organizationsData', organizationsData)
 
 const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, dependencies, owner}]) => ({
@@ -101,15 +130,6 @@ const dependentLinks = Object.entries(valueNetworkData).flatMap(([project, { dep
   }))
 ).filter(edge => edge)
 
-
-// import './data'
-import { store, df, fetchData, getGraphData, buildGraph, OWNS, engine, downstreamDependentsQuery } from './data'
-// console.log(db)
-await buildGraph()
-console.log('graph data', getGraphData({predicate: OWNS}))
-
-
-// console.log(nodes, "dependencies", dependencyLinks, "dependents", dependentLinks)
 
 graph(document.getElementById('graph-viz'))
   .graphData({ nodes, links: dependentLinks });
