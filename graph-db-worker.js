@@ -13,8 +13,6 @@ const df = new DataFactory();
 const store = new Quadstore({ backend, dataFactory: df });
 const engine = new Engine(store);
 
-await store.open();
-
 async function buildGraph(data) {
   // await store.open();
   const {valueNetworkData, projectsData, organizationsData} = data
@@ -65,6 +63,7 @@ async function buildGraph(data) {
     
   const entries = [...valueNetworkQuads, ...organizationsQuads, ...projectsQuads]
   
+  await store.open();
   await store.multiPut(entries)
   console.log('inserted', entries.length, 'entries')
 }
