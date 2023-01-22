@@ -18,5 +18,6 @@ export default defineConfig({
   ],
   worker: {
     format: "esm",
-  }
+  },
+  base: "/dat-garden-visualization/",
 });
