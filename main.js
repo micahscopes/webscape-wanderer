@@ -40,7 +40,7 @@ const animateNodeToState = (id, { selected, highlighted }) => {
       mesh?.scale.set(targetSize, targetSize, targetSize);
       mesh?.material.color.set(
         selected
-          ? "rgb(255,0,0,1)"
+          ? nodeSelectedColor
           : highlighted
           ? nodeHighlightColor
           : projectOrgColor({ owner: id })
@@ -51,7 +51,7 @@ const animateNodeToState = (id, { selected, highlighted }) => {
       const mesh = nodeGeometries[id];
       mesh?.material.color.set(
         selected
-          ? "rgb(255,0,0,1)"
+          ? nodeSelectedColor
           : highlighted
           ? nodeHighlightColor
           : projectOrgColor({ owner: id })
@@ -79,8 +79,7 @@ const animateLinkToState = (id, { highlighted }) => {
       mesh?.material.color.set(
         highlighted ? linkHighlightColor : "rgba(255,255,255)"
       );
-      console.log(mesh?.material);
-      mesh.material.opacity = highlighted ? t : 0.1;
+      mesh.material.opacity = highlighted ? t*0.5 : 0.1;
     },
     onStart: () => {
       if (currentAnimation) currentAnimation.stop();
@@ -104,6 +103,7 @@ const nodeBaseSize = 1;
 const highlightedSizeFactor = 2;
 const highlightNodes = new Set();
 const highlightLinks = new Set();
+let nodeSelectedColor = null
 let nodeHighlightColor = null;
 let linkHighlightColor = null;
 let selectedNode = null;
@@ -121,7 +121,7 @@ const graph = ForceGraph3D()
   .nodeColor((node) =>
     highlightNodes.has(node.project)
       ? node === selectedNode
-        ? "rgb(255,0,0,1)"
+        ? nodeSelectedColor
         : nodeHighlightColor
       : projectOrgColor(node)
   )
@@ -133,7 +133,7 @@ const graph = ForceGraph3D()
     const geometry = new THREE.SphereGeometry(node.size, 32, 32);
     const mesh = new THREE.Mesh(
       geometry,
-      new THREE.MeshBasicMaterial({ color: projectOrgColor(node) })
+      new THREE.MeshPhongMaterial({ color: projectOrgColor(node) })
     );
 
     // save a reference to the node geometry
@@ -162,13 +162,6 @@ const graph = ForceGraph3D()
   })
   .linkColor(() => "rgba(255,255,255,0.2)")
   .linkWidth((link) => (highlightLinks.has(link) ? 4 : 1))
-  .linkDirectionalParticles((link) => {
-    // console.log('link', link)
-    return Math.round(highlightLinks.has(makeLinkIndex(link)) ? 0.1 * link.__lineObj.scale.z : 0.01 * link.__lineObj.scale.z)
-  })
-  .linkDirectionalParticleWidth(link => highlightLinks.has(makeLinkIndex(link)) ? 5 : 0.5)
-  .linkDirectionalParticleSpeed(link => highlightLinks.has(makeLinkIndex(link)) ? 0.005 : 0.0005)
-  .linkDirectionalParticleColor(link => highlightLinks.has(makeLinkIndex(link)) ? linkHighlightColor : "rgba(255,255,255,0.1)")
   .d3VelocityDecay(0.3);
 
 // Decrease repel intensity
@@ -177,10 +170,6 @@ const graph = ForceGraph3D()
 function projectOrgColor(node) {
   return colorHash.hex(node.owner || "");
 }
-
-const updateHighlight = debounce(() => {
-  graph.linkDirectionalParticles(graph.linkDirectionalParticles());
-}, 10);
 
 // import { queryBindings} from './data'
 
@@ -192,7 +181,8 @@ graph.onNodeClick((node) => {
   highlightNodes.clear();
   highlightLinks.clear();
   // highlightColor = projectOrgColor(node);
-  nodeHighlightColor = "yellow";
+  nodeSelectedColor = "deeppink";
+  nodeHighlightColor = "teal";
   linkHighlightColor = "aquamarine";
   if (node) {
     highlightNodes.add(node);
@@ -212,10 +202,9 @@ graph.onNodeClick((node) => {
       proxy((data, get) => {
         if (node !== selectedNode) return;
         get(["dependent", "dependency"]).then(({ dependent, dependency }) => {
+          const linkId = makeLinkIndex({ source: dependent.value, target: dependency.value })
           highlightNodes.add(dependency.value);
-          highlightLinks.add(
-            makeLinkIndex({ source: dependent.value, target: dependency.value })
-          );
+          highlightLinks.add(linkId);
           animateNodeToState(dependent.value, {
             selected: dependent.value === node.project,
             highlighted: true,
@@ -225,13 +214,9 @@ graph.onNodeClick((node) => {
             highlighted: true,
           });
           animateLinkToState(
-            makeLinkIndex({
-              source: dependent.value,
-              target: dependency.value,
-            }),
+            linkId,
             { highlighted: true }
           );
-          updateHighlight();
         });
       }),
       proxy(() => {
