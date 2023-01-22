@@ -65,63 +65,10 @@ async function buildGraph(data) {
   const entries = [...valueNetworkQuads, ...organizationsQuads, ...projectsQuads]
   
   await store.multiPut(entries)
-  console.log('inserted', entries)
+  console.log('inserted', entries.length, 'entries')
 }
 
-
-// export async function getGraphDataDirect() {
-//   return await store.get({predicate: df.namedNode(DEPENDS_ON)})
-// }
-
-async function getGraphData() {
-  let results = []
-  return engine.queryBindings(`
-    SELECT ?subject ?object
-    WHERE {
-        ?subject <http://dat-ecosystem.org#dependson> ?object .
-    }
-  `).then(bindings => {
-      bindings.on('data', data => {
-        // console.log(data.get('subject'))
-        results.push({
-            subject: data.get('subject').value,
-            object: data.get('object').value
-        });
-      });
-      bindings.on('end', () => console.log('done', results));
-  });
-}
-
-
-// looking good
-async function getDownstreamDependents(startProject) {
-  const query = downstreamDependentsQuery(startProject)
-  let results = []
-  let bindings = await engine.queryBindings(query)
-  return new Promise((resolve, reject) => {
-      bindings.on('data', data => {
-          results.push(data.get('dependent').value);
-      });
-      bindings.on('end', () => resolve(results));
-      bindings.on('error', (error) => reject(error))
-  });
-}
-
-async function getDirectDependents(startProject) {
-  const query = directDependentsQuery(startProject)
-  let results = []
-  let bindings = await engine.queryBindings(query)
-  return new Promise((resolve, reject) => {
-      bindings.on('data', data => {
-          results.push({
-              directDependents: data.get('dependent').value
-          });
-      });
-      bindings.on('end', () => resolve(results));
-      bindings.on('error', (error) => reject(error))
-  });
-}
-
+// Execute a query and the provided callbacks for each result in the stream.
 const doQuery = async (
   query, onData, onEnd, onError
 ) => {
@@ -134,8 +81,5 @@ const doQuery = async (
 
 expose({
   buildGraph,
-  getGraphData,
-  getDownstreamDependents,
-  getDirectDependents,
   doQuery,
 })

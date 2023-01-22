@@ -8,7 +8,7 @@ document.querySelector('#app').innerHTML = `
 `
 const colorHash = new ColorHash({lightness: [0.35, 0.5, 0.65]});
 
-import { buildGraphDb, doQuery  } from './data'
+import { prepareGraphDBWorker, doQuery, prepareVisualizerData  } from './data'
 
 // graph config
 const nodeBaseSize = 1;
@@ -45,13 +45,10 @@ function projectOrgColor(node) {
 const updateHighlight = 
 debounce(
   () => {
-  // trigger update of highlighted objects in scene
-  graph
-    .nodeColor(graph.nodeColor())
-    // .linkWidth(graph.linkWidth())
-    // .linkDirectionalParticles(graph.linkDirectionalParticles());
-}
-, 5)
+    graph
+      .nodeColor(graph.nodeColor())
+  }
+, 20)
 
 // import { queryBindings} from './data'
 
@@ -65,39 +62,23 @@ graph.onNodeClick(node => {
   highlightColor = 'yellow';
   if (node) {
     highlightNodes.add(node);
+    const query = downstreamDependentsQuery(node.project) 
     doQuery(
-      downstreamDependentsQuery(node.project),
+      query,
       // proxy(data => {}),
       proxy((data, get) => {
         // console.log('data', data)
         if (node !== selectedNode) return;
         get('dependent').then(dependent => {
-          console.log('dependent', dependent)
+          // console.log('dependent', dependent)
           highlightNodes.add(dependent.value)
           updateHighlight();
         })
       }),
       proxy(() => {
-        console.log('query ended')
+        console.log('query ended:', query)
       })
-      // onEnd: proxy(() => {
-      // })
     )
-    // queryBindings(downstreamDependentsQuery(node.project)).then($ => {
-    //   $.on('data', data => {
-    //     if (node !== selectedNode) $.destroy();
-    //     const dependent = data.get('dependent').value
-    //     highlightNodes.add(dependent)
-    //     updateHighlight();
-    //   })
-    //   console.log('clicked on', node)
-    //   $.on('end', () => {
-    //     // updateHighlight();
-    //     // console.log(highlightNodes)
-    //   })
-    // })
-    // node.neighbors.forEach(neighbor => highlightNodes.add(neighbor));
-    // node.links.forEach(link => highlightLinks.add(link));
   }
 
   selectedNode = node || null;
@@ -107,29 +88,9 @@ graph.onNodeClick(node => {
 import { downstreamDependentsQuery } from './query-helpers'
 import { proxy } from 'comlink'
 import { debounce } from 'lodash-es'
-const {valueNetworkData, projectsData, organizationsData} = await buildGraphDb()
-console.log('valueNetworkData', valueNetworkData, 'projectsData', projectsData, 'organizationsData', organizationsData)
 
-const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, dependencies, owner}]) => ({
-  project,
-  owner,
-  size: (2*dependents?.length)**2
-}))
-
-const dependencyLinks = Object.entries(valueNetworkData).flatMap(([project, { dependencies }]) =>
-  dependencies.map(dependency => ({
-    source: project,
-    target: dependency
-  }))
-)
-
-const dependentLinks = Object.entries(valueNetworkData).flatMap(([project, { dependents }]) =>
-  dependents?.map(dependent => ({
-    source: project,
-    target: dependent
-  }))
-).filter(edge => edge)
+prepareGraphDBWorker()
 
 
 graph(document.getElementById('graph-viz'))
-  .graphData({ nodes, links: dependentLinks });
+  .graphData(await prepareVisualizerData());
