@@ -19,19 +19,20 @@ const fetchData =
 export const graphData = moize.promise(fetchData)
 export const graphWorker = wrap(new GraphDbWorker())
 
+export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*dependents?.length**1.2), 2)
 
 export const prepareVisualizerData = async () => {
   const { valueNetworkData } = await graphData()
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}]) => ({
     project,
     owner,
-    size: (2*dependents?.length)**2
+    size: nodeScaleFn(dependents),
   }))
 
   const links = Object.entries(valueNetworkData).flatMap(([project, { dependents }]) =>
     dependents?.map(dependent => ({
-      source: project,
-      target: dependent
+      source: dependent,
+      target: project
     }))
   ).filter(edge => edge)
   

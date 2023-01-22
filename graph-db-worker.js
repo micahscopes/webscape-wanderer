@@ -6,6 +6,7 @@ import { expose, proxy } from 'comlink'
 import { downstreamDependentsQuery, directDependentsQuery } from './query-helpers';
 
 import { OWNS, DEPENDS_ON} from './query-helpers';
+import { fromPairs } from 'lodash-es';
 
 const backend = new MemoryLevel();
 const df = new DataFactory();
@@ -32,9 +33,9 @@ async function buildGraph(data) {
         .filter((x) => x)
         .map((dependent) =>
           df.quad(
-            df.namedNode(project),
-            df.namedNode(DEPENDS_ON),
             df.namedNode(dependent),
+            df.namedNode(DEPENDS_ON),
+            df.namedNode(project),
             df.defaultGraph()
           )
         ),
@@ -42,9 +43,9 @@ async function buildGraph(data) {
         .filter((x) => x)
         .map((dependency) =>
           df.quad(
-            df.namedNode(dependency),
-            df.namedNode(DEPENDS_ON),
             df.namedNode(project),
+            df.namedNode(DEPENDS_ON),
+            df.namedNode(dependency),
             df.defaultGraph()
           )
         ),
@@ -68,12 +69,16 @@ async function buildGraph(data) {
   console.log('inserted', entries.length, 'entries')
 }
 
+const getProps = data => (props => {
+  return fromPairs([props].flat().map(prop => [prop, data.get(prop)]))
+}).bind(data)
+
 // Execute a query and the provided callbacks for each result in the stream.
 const doQuery = async (
   query, onData, onEnd, onError
 ) => {
   await engine.queryBindings(query).then($ => {
-    onData && $.on('data', data => onData(data, proxy(data.get.bind(data))))
+    onData && $.on('data', data => onData(data, proxy(getProps(data))))
     onEnd && $.on('end', data => onEnd(data, data && proxy(data.get.bind(data))))
     onError && $.on('error', data => onError(data, data && proxy(data.get.bind(data))))
   })
