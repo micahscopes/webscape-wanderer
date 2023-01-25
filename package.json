@@ -1,17 +1,17 @@
 {
-  "name": "dat-garden-visualization",
+  "name": "ecosystem-visualization",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "src/ecosystem-visualization.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "budo page/index.js:bundle.js --live --open -- -p esmify",
+    "build": "browserify page/index.js -p esmify > bundle.js"
   },
   "devDependencies": {
-    "vite": "^3.2.3",
-    "vite-plugin-node-polyfills": "^0.5.0",
-    "vite-plugin-top-level-await": "^1.2.1"
+    "browserify": "^17.0.0",
+    "budo": "^11.8.4",
+    "esmify": "^2.1.1"
   },
   "dependencies": {
     "3d-force-graph": "^1.70.17",
@@ -36,6 +36,8 @@
     "quadstore": "^11.0.7",
     "quadstore-comunica": "^3.0.8",
     "rdf-data-factory": "^1.1.1",
-    "tiny-spring": "^1.0.0"
+    "three": "^0.148.0",
+    "tiny-spring": "^1.0.0",
+    "webworkify": "^1.5.0"
   }
 }
