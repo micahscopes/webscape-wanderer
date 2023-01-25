@@ -17,7 +17,10 @@ export default defineConfig({
     }),
   ],
   worker: {
-    format: "esm",
+    format: "es",
   },
   base: "/dat-garden-visualization/",
+  esbuild:{
+    target:"es2018"
+  }
 });

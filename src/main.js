@@ -1,4 +1,4 @@
-import "./style.css";
+import "../style.css";
 import ForceGraph3D from "3d-force-graph";
 import * as THREE from "three";
 import * as d3 from "d3";
