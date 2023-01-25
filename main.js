@@ -3,8 +3,10 @@ import ForceGraph3D from "3d-force-graph";
 import * as THREE from "three";
 import * as d3 from "d3";
 import ColorHash from "color-hash";
-import { gsap } from "gsap";
 import { animate } from "popmotion";
+
+// a function that takes two values and interpolates between them based on a third value
+const interpolate = (a, b, t) => a + (b - a) * t;
 
 document.querySelector("#app").innerHTML = `
   <div id='graph-viz'></div>
@@ -74,22 +76,23 @@ const animateLinkToState = (id, { highlighted }) => {
       const mesh = linkGeometries[id];
       state.latest = t;
       // the target scale should go from 1 to highlightedSizeFactor
-      const targetSize = 1 + (highlightedSizeFactor - 1) * t;
+      const targetSize = interpolate(1, highlightedSizeFactor, t)
       mesh?.scale.set(targetSize, targetSize, 1);
-      mesh?.material.color.set(
-        highlighted ? linkHighlightColor : "rgba(255,255,255)"
-      );
-      mesh.material.opacity = highlighted ? t*0.5 : 0.1;
+      // mesh?.material.color.set(
+      //   highlighted ? linkHighlightColor : "rgba(255,255,255)"
+      // );
+      
+      mesh.material.opacity = interpolate(0.1, 1, t)
     },
     onStart: () => {
       if (currentAnimation) currentAnimation.stop();
       const mesh = linkGeometries[id];
-      mesh?.material.color.set(
-        highlighted ? linkHighlightColor : "rgba(255,255,255)"
-      );
-      mesh?.material.opacity.set(
-        highlighted ? 1 : 0.1
-      );
+      // mesh?.material.color.set(
+      //   highlighted ? linkHighlightColor : "rgba(255,255,255)"
+      // );
+      // mesh?.material.opacity.set(
+      //   highlighted ? 1 : 0.1
+      // );
       // mesh?.material.transparent.set(
       //   false
       // );
