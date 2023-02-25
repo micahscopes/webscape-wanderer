@@ -1,6 +1,7 @@
 import moize from 'moize'
 import GraphDbWorker from './graph-db-worker.js?worker'
 import { wrap } from 'comlink'
+import { fromPairs } from 'lodash-es'
 
 const fetchData =
   async () => {
@@ -23,20 +24,27 @@ export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*dependents?.len
 
 export const prepareVisualizerData = async () => {
   const { valueNetworkData } = await graphData()
-  const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}]) => ({
+  const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
+    index,
     project,
     owner,
     size: nodeScaleFn(dependents),
   }))
+  
+  const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
 
   const links = Object.entries(valueNetworkData).flatMap(([project, { dependents }]) =>
     dependents?.map(dependent => ({
       source: dependent,
-      target: project
+      sourceNode: nodesByProject[dependent],
+      sourceIndex: nodes.findIndex(node => node.project === dependent),
+      target: project,
+      targetNode: nodesByProject[project],
+      targetIndex: nodes.findIndex(node => node.project === project),
     }))
   ).filter(edge => edge)
   
-  return { nodes, links }
+  return { nodes, links, nodesByProject }
 }
 
 export const prepareGraphDBWorker = async () => {
