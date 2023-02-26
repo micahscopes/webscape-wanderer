@@ -37,6 +37,7 @@
     "quadstore": "^11.0.7",
     "quadstore-comunica": "^3.0.8",
     "rdf-data-factory": "^1.1.1",
+    "three-bas": "github:zadvorsky/three.bas",
     "three-forcegraph": "^1.41.4",
     "tiny-spring": "^1.0.0"
   }
