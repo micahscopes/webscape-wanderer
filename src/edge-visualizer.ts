@@ -3,14 +3,15 @@ import {InstancedBufferAttribute} from 'three';
 import * as BAS from 'three-bas';
 import { ForceGraphEdge, ForceGraphNode } from '../lib/fdg-wasm/fdg-wasm';
 
+ 
 export default function EdgeVisualizer(edges: ForceGraphEdge[]) {
   // node locations
     // the geometry that will be used by the PrefabBufferGeometry
     // any Geometry will do, but more complex ones can be repeated less often
-    var prefabGeometry = new THREE.CylinderGeometry(0.01, 0.01, 1.0, 3);
-    prefabGeometry.translate(0, 0.5, 0);
-    prefabGeometry.rotateY(-Math.PI / 2);
-    prefabGeometry.rotateX(-Math.PI / 2);
+    var prefabGeometry = new THREE.CylinderGeometry(1, 1, 10, 3);
+    // prefabGeometry.rotateY(-Math.PI / 2);
+    // prefabGeometry.translate(0, 0, 0);
+    // prefabGeometry.rotateX(-Math.PI / 2);
   
     // the number of times the prefabGeometry will be repeated
     var prefabCount = edges.length;
@@ -65,11 +66,12 @@ export default function EdgeVisualizer(edges: ForceGraphEdge[]) {
     this.updatePositions = (source, target) => {
     //   console.log('updating positions for ', geometry)
       for (i = 0; i < prefabCount; i++) {
-        aStartPosition
+        // aStartPosition
         geometry.setPrefabData(aStartPosition, i, source[i]);
         geometry.setPrefabData(aEndPosition, i, target[i]);
       }
       aStartPosition.needsUpdate = true;
+      aEndPosition.needsUpdate = true;
     }
 
     // the axis and angle will be used to calculate the rotation of the prefab using a Quaternion
@@ -142,7 +144,6 @@ export default function EdgeVisualizer(edges: ForceGraphEdge[]) {
         'tProgress = easeCubicInOut(tProgress);',
         // calculate a quaternion based on the vertex axis and the angle
         // the angle is multiplied by the progress to create the rotation animation
-        'vec4 tQuat = quatFromAxisAngle(normalize(aEndPosition - aStartPosition), 1.0);'
       ],
       // this chunk is injected before all default normal calculations
       vertexNormal: [
@@ -153,19 +154,25 @@ export default function EdgeVisualizer(edges: ForceGraphEdge[]) {
       ],
       // this chunk is injected before all default position calculations (including the model matrix multiplication)
       vertexPosition: [
-        // calculate a scale based on tProgress
-        // here an easing function is used with the (t, b, c, d) signature (see easing example)
-        'float scl = easeQuadOut(tProgress, 0.5, 1.5, 1.0);',
-        // 'transformed' is the vertex position modified throughout the THREE.js vertex shader
-        // it contains the position of each vertex in model space
-        // scaling it can be done by simple multiplication
-        'transformed *= length(aEndPosition - aStartPosition);',
-        // rotate the vector by the quaternion calculated in vertexInit
-        'transformed = rotateVector(tQuat, transformed);',
+        'vec3 unit = vec3(0,1, 0);',
+        `vec4 tQuat = quatFromAxisAngle(
+            cross(unit, normalize(aEndPosition - aStartPosition)),
+            acos(dot(unit, normalize(aEndPosition - aStartPosition)))
+            // -PI/3.0
+        );`,
+        'float length = abs(length(aEndPosition - aStartPosition));',
+        'vec3 lookAt = rotateVector(tQuat, unit);',
+        // 'transformed -= rotateVector(tQuat, vec3(0, 1, 0)) * length / 2.0;',
+        // 'transformed += unit/2.0;',
+        // 'transformed.y *= length;',
+        // 'transformed = rotateVector(tQuat, transformed);',
+        'transformed += aStartPosition + length*lookAt;',
+        // 'transformed -= rotateVector(tQuat, vec3(0, 1, 0)) * length / 2.0;',
+        
+        
         // linearly interpolate between the start and end position based on tProgress
         // and add the value as a delta
         // 'transformed += mix(aStartPosition, aEndPosition, tProgress);'
-        'transformed += aStartPosition;'
       ],
     });
   

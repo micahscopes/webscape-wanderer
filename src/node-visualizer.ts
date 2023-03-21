@@ -68,6 +68,15 @@ export default function NodeVisualizer(nodes: ForceGraphNode[]) {
       }
       aStartPosition.needsUpdate = true;
     }
+
+    this.updatePositionsFromBuffer = (locations) => {
+      // console.log('updating positions for ', geometry)
+      for (i = 0; i < prefabCount; i+=3) {
+        aStartPosition
+        geometry.setPrefabData(aStartPosition, i, [locations[i], locations[i+1], locations[i+2]]);
+      }
+      aStartPosition.needsUpdate = true;
+    }
   
     // the axis and angle will be used to calculate the rotation of the prefab using a Quaternion
     // we use quaternions instead of (rotation) matrices because the quaternion is more compact (4 floats instead of 16)
@@ -158,7 +167,7 @@ export default function NodeVisualizer(nodes: ForceGraphNode[]) {
         // scaling it can be done by simple multiplication
         'transformed *= scl;',
         // rotate the vector by the quaternion calculated in vertexInit
-        'transformed = rotateVector(tQuat, transformed);',
+        // 'transformed = rotateVector(tQuat, transformed);',
         // linearly interpolate between the start and end position based on tProgress
         // and add the value as a delta
         // 'transformed += mix(aStartPosition, aEndPosition, tProgress);'

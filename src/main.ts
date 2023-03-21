@@ -8,15 +8,31 @@ import * as THREE from "three";
 import NodeVisualizer from "./node-visualizer";
 import EdgeVisualizer from "./edge-visualizer.js";
 import SimpleEdgeVisualizer from "./simple-edge-visualizer.js";
+import { uniq, uniqBy } from "lodash-es";
+
+
+
 
 const makeForceGraphSimulator = async () => {
-  await init();
+  const wasm = await init();
+
+  const locationsFromPointer = (ptr, length) => {
+    const locations = new Float32Array(wasm.memory.buffer, ptr, length);
+    return locations
+  }
+
   let forceGraphSimulator = new ForceGraphSimulator();
   forceGraphSimulator.setDimensions(3);
   const graphData = await prepareVisualizerData();
+
+  graphData.links = graphData.links.slice(0, 5);
+  graphData.nodes = uniq(graphData.links.flatMap(({ sourceNode, targetNode }) => ([sourceNode, targetNode])));
+
+  // console.log(graphData)
   const nodeIndices = {};
-  graphData.nodes.map((node) => forceGraphSimulator.addNode(node.project, 1000));
-  graphData.links.map((link) =>
+  graphData.nodes.forEach((node) => 
+    forceGraphSimulator.addNode(node.project, 1000));
+  graphData.links.forEach((link) =>
     forceGraphSimulator.addEdge(link.source, link.target, 0.01)
   );
   
@@ -24,10 +40,10 @@ const makeForceGraphSimulator = async () => {
     nodeIndices[node.project] = i;
   });
 
-  console.log(forceGraphSimulator.nodes, forceGraphSimulator.edges);
+  // console.log(forceGraphSimulator, forceGraphSimulator.nodes, forceGraphSimulator.edges);
 
   forceGraphSimulator.resetNodePlacement();
-  return { forceGraphSimulator, graphData, nodeIndices };
+  return { forceGraphSimulator, graphData, nodeIndices, locationsFromPointer };
 };
 
 window.onload = async () => {
@@ -41,7 +57,7 @@ window.onload = async () => {
   root.renderer.setClearColor(0x888888);
   root.camera.position.set(0, 0, 400);
 
-  const { forceGraphSimulator, graphData, nodeIndices } = await makeForceGraphSimulator();
+  const { forceGraphSimulator, graphData, nodeIndices, locationsFromPointer } = await makeForceGraphSimulator();
   
   // add lights
   var light = new THREE.DirectionalLight(0xff00ff);
@@ -53,24 +69,35 @@ window.onload = async () => {
 
   // Animation extends THREE.Mesh
   var nodeVisualizer = new NodeVisualizer(forceGraphSimulator.nodes);
-  var edgeVisualizer = new SimpleEdgeVisualizer(forceGraphSimulator.edges);
   root.add(nodeVisualizer.mesh);
-  edgeVisualizer.addToScene(root.scene);
+  
+  var edgeVisualizer = new EdgeVisualizer(forceGraphSimulator.edges);
+  root.add(edgeVisualizer.mesh);
+  // var edgeVisualizer = new SimpleEdgeVisualizer(forceGraphSimulator.edges);
+  // edgeVisualizer.addToScene(root.scene);
   
   root.scene.fog = new THREE.Fog(0x2244aa, 100, 1000);
   
   nodeVisualizer.duration = 0.5;
+  
+  const links = forceGraphSimulator.edges.map(({source, target}) => ({sourceIndex: nodeIndices[source.name], targetIndex: nodeIndices[target.name]}))
 
   const animate = () => {
     forceGraphSimulator.update(0.015);
     
     const nodeLocations = forceGraphSimulator.nodes.map((node) => node.location)
-    // console.log(positions[0])
     nodeVisualizer.updatePositions(nodeLocations);
+    // console.log(positions[0])
+    // nodeVisualizer.updatePositionsFromBuffer(locationsFromPointer(forceGraphSimulator.locations_ptr(), forceGraphSimulator.nodes.length * 3));
 
-    const sourceLocations = graphData.links.map((link) => nodeLocations[nodeIndices[link.source]])
-    const targetLocations = graphData.links.map((link) => nodeLocations[nodeIndices[link.target]])
+    // const sourceLocations = graphData.links.map((link) => nodeLocations[nodeIndices[link.source]])
+    // const targetLocations = graphData.links.map((link) => nodeLocations[nodeIndices[link.target]])
+    const sourceLocations = links.map((link) => nodeLocations[link.sourceIndex])
+    const targetLocations = links.map((link) => nodeLocations[link.targetIndex])
+    // console.log(sourceLocations, targetLocations)
     edgeVisualizer.updatePositions(sourceLocations, targetLocations);
+    
+    // console.log(locationsFromPointer(forceGraphSimulator.locations_ptr(), forceGraphSimulator.nodes.length * 3))
 
     requestAnimationFrame(animate);
   };
