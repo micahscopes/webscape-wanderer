@@ -1,10 +1,12 @@
 import topLevelAwait from "vite-plugin-top-level-await";
 import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import glsl from 'vite-plugin-glsl';
 import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   plugins: [
+    glsl(),
     wasm(), 
     topLevelAwait({
       // The export name of top-level await promise for each chunk module

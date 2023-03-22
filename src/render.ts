@@ -9,8 +9,8 @@ export const getApp = moize.infinite(() => {
   return PicoGL.createApp(canvas)
 })
 
-import updatePositionsFs from './shaders/updatePositions.fs.glsl'
-import updatePositionsVs from './shaders/updatePositions.vs.glsl'
+import updatePositionsFs from './shaders/update-positions.fs'
+import updatePositionsVs from './shaders/update-positions.vs'
 
 export const updatePositionsProgram = moize.infinite(() => {
   const app = getApp()
