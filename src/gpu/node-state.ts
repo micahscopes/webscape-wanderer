@@ -2,8 +2,8 @@ import PicoGL from 'picogl'
 import { VertexBuffer } from 'picogl'
 import moize from 'moize'
 
-import interpolationVs from './shaders/interpolation.vs'
-import interpolationFs from './shaders/interpolation.fs'
+import interpolationVs from '../shaders/interpolation.vs'
+import interpolationFs from '../shaders/interpolation.fs'
 import { getPicoApp } from './rendering'
 
 class InterpolationBuffers {
@@ -15,6 +15,7 @@ class InterpolationBuffers {
   
   protected _itemSize: number
   protected _type: GLenum
+  protected _uniformType: GLenum
 
   constructor(type: GLenum, itemSize: number, data: ArrayBufferView | number) {
     this._type = type
@@ -23,9 +24,10 @@ class InterpolationBuffers {
   }
 
   // this will only rebuild the buffers if the length changes
-  makeBuffer = moize((numItems, tag: string) => {
+  makeBuffer = moize.infinite((numItems, tag: string) => {
+    console.log('making buffer', tag, numItems, this._itemSize)
     const app = getPicoApp()
-    return app.createVertexBuffer(this._type, this._itemSize, numItems)
+    return app.createVertexBuffer(this._type, this._itemSize, numItems*this._itemSize)
   })
   
   // set target data, rebuilding buffers if necessary
@@ -37,9 +39,10 @@ class InterpolationBuffers {
     if (offset > 0) {
       // if the user provides an offset, use the existing buffer (which is memoized by length)
       length = this._target.numItems 
+      // console.log('using existing buffer', length, this._itemSize)
     } else {
       // otherwise, we need to figure out if the length has changed
-      length = ArrayBuffer.isView(data) ? data.byteLength / this._itemSize : data
+      length = ArrayBuffer.isView(data) ? data.byteLength / this._itemSize / 4 : data
     }
     this._currentA = this.makeBuffer(length, 'currentA')
     this._currentB = this.makeBuffer(length, 'currentB')
@@ -61,7 +64,7 @@ class InterpolationBuffers {
   get current() {
     return this.positionSwap ? this._currentA : this._currentB
   }
-
+  
   get updated() {
     return this.positionSwap ? this._currentB : this._currentA
   }
@@ -96,7 +99,8 @@ export const getInterpolationProgram = moize.infinite(() => {
     interpolationVs,
     interpolationFs,
     {
-      transformFeedbackVaryings: ['vUpdatedPositions', 'vUpdatedColors', 'vUpdatedRadii']
+      transformFeedbackVaryings: ['vUpdatedPositions', 'vUpdatedColors', 'vUpdatedRadii'],
+      transformFeedbackMode: PicoGL.SEPARATE_ATTRIBS,
     }
   )
 })
@@ -122,20 +126,25 @@ const getInterpolationOutputTransformFeedback = moize.infinite(() => {
 })
 
 export const loadInterpolationOutputTransformFeedback = () => {
+  // console.log('loading output transform feedback')
   return getInterpolationOutputTransformFeedback()
     .feedbackBuffer(0, getPositionBuffers().updated)
     .feedbackBuffer(1, getColorBuffers().updated)
     .feedbackBuffer(2, getRadiusBuffers().updated)
 }
 
-export const getInterpolationDrawCall = moize.infinite(() => {
+export const getInterpolationDrawCall = () => {
   const app = getPicoApp()
   const program = getInterpolationProgram()
   const inputVertexArray = loadInterpolationInputVertexArray()
   const outputTransformFeedback = loadInterpolationOutputTransformFeedback()
-  console.log(
-    inputVertexArray,
-    outputTransformFeedback,
-  )
-  return app.createDrawCall(program, inputVertexArray).transformFeedback(outputTransformFeedback)
-})
+  // console.log(
+  //   inputVertexArray.numElements,
+  //   outputTransformFeedback,
+  // )
+  const drawCall = app.createDrawCall(program, inputVertexArray)
+    .transformFeedback(outputTransformFeedback)
+    .primitive(PicoGL.POINTS)
+  // console.log('draw call created')
+  return drawCall
+}

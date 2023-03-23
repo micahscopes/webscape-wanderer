@@ -11,8 +11,10 @@ out vec3 vUpdatedPositions;
 out vec4 vUpdatedColors;
 out float vUpdatedRadii;
 
+uniform float uMixRatio;
+
 void main() {
-  vUpdatedRadii = mix(currentRadii, targetRadii, 0.5);
-  vUpdatedPositions = mix(currentPositions, targetPositions, 0.5);
-  vUpdatedColors = mix(currentColors, targetColors, 0.5);
+  vUpdatedRadii = mix(currentRadii, targetRadii, uMixRatio);
+  vUpdatedPositions = mix(currentPositions, targetPositions, uMixRatio);
+  vUpdatedColors = mix(currentColors, targetColors, uMixRatio);
 }
