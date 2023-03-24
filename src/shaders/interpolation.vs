@@ -13,9 +13,18 @@ out vec4 vUpdatedColors;
 out float vUpdatedRadii;
 
 uniform float uMixRatio;
+uniform vec2 mousePosition;
+
+float bump(float x, float q, float w) {
+  float clamped_x = clamp(x/w, -0.5, 0.5);
+  float y = pow(exp(1.0 - 1.0 / (1.0 - pow(2.0*clamped_x, 2.0))), q);
+  return y;
+}
 
 void main() {
-  vUpdatedRadii = mix(currentRadii, targetRadii, uMixRatio);
-  vUpdatedPositions = mix(currentPositions, targetPositions, uMixRatio);
-  vUpdatedColors = mix(currentColors, targetColors, uMixRatio);
+  float nearness = bump(length(mousePosition - currentPositions.xy), 100.0, 20.0);
+  float mixRatio = 1.0-nearness;
+  vUpdatedRadii = mix(currentRadii, targetRadii, mixRatio);
+  vUpdatedPositions = mix(currentPositions, targetPositions, mixRatio);
+  vUpdatedColors = mix(currentColors, targetColors, mixRatio);
 }

@@ -4,7 +4,7 @@ import moize from 'moize'
 
 import interpolationVs from '../shaders/interpolation.vs'
 import interpolationFs from '../shaders/interpolation.fs'
-import { getPicoApp } from './rendering'
+import { getMousePosition, getPicoApp } from './rendering'
 
 class InterpolationBuffers {
   protected positionSwap = false
@@ -25,7 +25,7 @@ class InterpolationBuffers {
 
   // this will only rebuild the buffers if the length changes
   makeBuffer = moize.infinite((numItems, tag: string) => {
-    console.log('making buffer', tag, numItems, this._itemSize)
+    // console.log('making buffer', tag, numItems, this._itemSize)
     const app = getPicoApp()
     return app.createVertexBuffer(this._type, this._itemSize, numItems*this._itemSize)
   })
@@ -145,6 +145,7 @@ export const getInterpolationDrawCall = () => {
   const drawCall = app.createDrawCall(program, inputVertexArray)
     .transformFeedback(outputTransformFeedback)
     .primitive(PicoGL.POINTS)
+    .uniform('mousePosition', getMousePosition())
   // console.log('draw call created')
   return drawCall
 }

@@ -10,9 +10,13 @@ layout(location=2) in float nodeRadius;
 // layout(location=3) in vec3 vertexPosition;
 
 out vec4 color;
+out float radius;
+
+
 
 void main() {
   color = nodeColor;
+  radius = nodeRadius;
   // gl_PointSize = nodeRadius;
   gl_Position = vec4(nodePosition, 1.0);
 }

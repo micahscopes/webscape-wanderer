@@ -1,26 +1,16 @@
 import PicoGL from "picogl";
 import { getColorBuffers, getInterpolationDrawCall, getInterpolationProgram, getPositionBuffers, getRadiusBuffers, loadInterpolationInputVertexArray, swapInterpolationBuffers } from "./gpu/animation";
-import { getPicoApp } from './gpu/rendering';
+import { animateGraph, fillCanvasToWindow, getPicoApp } from './gpu/rendering';
 import WebGP from '../lib/webgp'
-import { getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodeVisualizerDrawCall, loadEdgeVertexArray } from "./gpu/graph-visualization";
+import { getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodeVisualizerDrawCall, loadEdgeVertexArray, setEdgeIndices } from "./gpu/graph-visualization";
 
 const app = getPicoApp();
-app.clearColor(0.1, 0.1, 0.2, 1.0);
+app.clearColor(0.5, 0.5, 0.5, 1.0);
 app.clear();
-
-const fillCanvasToWindow = () => {
-    app.resize(window.innerWidth, window.innerHeight)
-    const canvas = app.canvas as HTMLCanvasElement;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = 'absolute';
-    canvas.style.top = '0px';
-    canvas.style.left = '0px';
-}
 
 const gl = app.gl
 
-const N = 100000
+const N = 20000
 const E = 10000
 
 let positionTargets = new Float32Array(3*N)
@@ -33,29 +23,14 @@ let radiusTargets = new Float32Array(1*N)
 getRadiusBuffers().targetData(radiusTargets, { immediate: true })
 
 
-const nodeVisualizer = getNodeVisualizerDrawCall();
 
 let edgeIndices = new Uint16Array(E).map(() => Math.floor(Math.random()*(N-1)))
+setEdgeIndices(edgeIndices)
 
 // edgeIndices = edgeIndices.map((_,i) => (i%2)*Math.floor(Math.random()*(N-1)))
 // edgeIndices = edgeIndices.map((idx, j) => j%2 ? idx : edgeIndices[j-1])
 
-const edgeVisualizer = getEdgeVisualizerDrawCall(edgeIndices);
 
-const animate = () => {
-    app.clear();
-    fillCanvasToWindow();
-
-    const interpolation = getInterpolationDrawCall().uniform('uMixRatio', 0.02)
-    interpolation.draw();
-    swapInterpolationBuffers();
-    
-    app.clear();
-    getMostRecentEdgeVertexArray(edgeIndices);
-    edgeVisualizer.draw();
-    nodeVisualizer.draw();
-    requestAnimationFrame(animate);
-}
 
 const scrambleColors = (immediate = false) => {
     const newColors = colorTargets.map((_,i) => i%4 === 3 ? Math.random() : Math.random())
@@ -77,7 +52,7 @@ const scramblePositions = (immediate = false) => {
 }
 
 const scrambleRadii = (immediate = false) => {
-    getRadiusBuffers().targetData(radiusTargets.map(() => Math.random()*10), { immediate });
+    getRadiusBuffers().targetData(radiusTargets.map(() => Math.random()*5), { immediate });
 }
 
 const scramble = (immediate = false) => {
@@ -89,6 +64,6 @@ const scramble = (immediate = false) => {
 randomizePositions();
 scramble(true);
 
-setInterval(scramble, 4000)
+setInterval(scramble, 100)
 
-animate();
+animateGraph();
