@@ -1,4 +1,5 @@
 #version 300 es
+precision lowp float;
 
 layout(location=0) in vec3 currentPositions;
 layout(location=1) in vec4 currentColors;

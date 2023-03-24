@@ -1,4 +1,5 @@
 #version 300 es
+precision lowp float;
 
 // a shader that visualizes nodes as spheres with position, color and radius
 

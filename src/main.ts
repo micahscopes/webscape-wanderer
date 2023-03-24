@@ -2,10 +2,10 @@ import PicoGL from "picogl";
 import { getColorBuffers, getInterpolationDrawCall, getInterpolationProgram, getPositionBuffers, getRadiusBuffers, loadInterpolationInputVertexArray, swapInterpolationBuffers } from "./gpu/node-state";
 import { getPicoApp } from './gpu/rendering';
 import WebGP from '../lib/webgp'
-import { getEdgeVisualizerDrawCall, getNodeVisualizerDrawCall } from "./gpu/graph";
+import { getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodeVisualizerDrawCall, loadEdgeVertexArray } from "./gpu/graph";
 
 const app = getPicoApp();
-app.clearColor(0, 0, 0, 1);
+app.clearColor(0.1, 0.1, 0.2, 1.0);
 app.clear();
 
 const fillCanvasToWindow = () => {
@@ -21,24 +21,25 @@ const fillCanvasToWindow = () => {
 const gl = app.gl
 console.log(gl.getParameter(gl.MAX_TEXTURE_SIZE))
 
-const N = 2000
-const E = N/4
+const N = 5000
+const E = 200
 
-const positionTargets = new Float32Array(3*N)
+let positionTargets = new Float32Array(3*N)
 getPositionBuffers().targetData(positionTargets, { immediate: true })
 
-const colorTargets = new Float32Array(4*N)
+let colorTargets = new Float32Array(4*N)
 getColorBuffers().targetData(colorTargets, { immediate: true })
 
-const radiusTargets = new Float32Array(1*N)
+let radiusTargets = new Float32Array(1*N)
 getRadiusBuffers().targetData(radiusTargets, { immediate: true })
 
 
 const nodeVisualizer = getNodeVisualizerDrawCall();
 
-let edgeIndices = new Uint16Array(E)
+let edgeIndices = new Uint16Array(E).map(() => Math.floor(Math.random()*(N-1)))
 
-edgeIndices = edgeIndices.map((_,i) => Math.floor(Math.random()*N))
+// edgeIndices = edgeIndices.map((_,i) => (i%2)*Math.floor(Math.random()*(N-1)))
+// edgeIndices = edgeIndices.map((idx, j) => j%2 ? idx : edgeIndices[j-1])
 
 const edgeVisualizer = getEdgeVisualizerDrawCall(edgeIndices);
 
@@ -50,8 +51,10 @@ const animate = () => {
     interpolation.draw();
     swapInterpolationBuffers();
     
-    nodeVisualizer.draw();
+    app.clear();
+    getMostRecentEdgeVertexArray(edgeIndices);
     edgeVisualizer.draw();
+    nodeVisualizer.draw();
     requestAnimationFrame(animate);
 }
 
@@ -60,21 +63,33 @@ const scrambleColors = (immediate = false) => {
     getColorBuffers().targetData(newColors, { immediate });
 }
 
+const randomizePositions = (immediate = true) => {
+    positionTargets = positionTargets.map(() => 1.5*(Math.random()-0.5))
+    getPositionBuffers().targetData(positionTargets, { immediate });
+}
+
 const scramblePositions = (immediate = false) => {
-    getPositionBuffers().targetData(positionTargets.map(() => 2*(Math.random()-0.5)), { immediate });
+    positionTargets = positionTargets.map((x) => {
+    // ensure that the positions are within the clipping volume
+        const d = 0.4*(Math.random()-0.5)
+        return Math.abs(x + d) > 1.0 ? x - d : x + d
+    })
+    getPositionBuffers().targetData(positionTargets, { immediate });
 }
 
 const scrambleRadii = (immediate = false) => {
-    getRadiusBuffers().targetData(radiusTargets.map(() => Math.random()*20), { immediate });
+    getRadiusBuffers().targetData(radiusTargets.map(() => Math.random()*50), { immediate });
 }
+
 const scramble = (immediate = false) => {
     scrambleColors(immediate);
     scramblePositions(immediate);
     scrambleRadii(immediate);
 }
 
+randomizePositions();
 scramble(true);
 
-setInterval(scramble, 2000)
+setInterval(scramble, 4000)
 
 animate();

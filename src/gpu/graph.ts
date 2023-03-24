@@ -35,9 +35,12 @@ const getNodeVertexArray = moize.infinite(() => {
     4, 0, 3, 4, 3, 7,
     3, 2, 6, 3, 6, 7,
   ]))
+  
+  const pointVertexBuffer = getPicoApp().createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([0,0,0]));
 
   return getPicoApp().createVertexArray()
-    .vertexAttributeBuffer(3, cubeBuffer)
+    .vertexAttributeBuffer(0, pointVertexBuffer)
+    // .vertexAttributeBuffer(3, cubeBuffer)
     // .indexBuffer(cubeIndexBuffer)
 });
 
@@ -48,12 +51,12 @@ const loadNodeVertexArray = () => {
   const radiusBuffer = getRadiusBuffers().current;
 
   return vertexArray
-    .vertexAttributeBuffer(0, positionBuffer)
-    .vertexAttributeBuffer(1, colorBuffer)
-    .vertexAttributeBuffer(2, radiusBuffer)
-    // .instanceAttributeBuffer(0, positionBuffer)
-    // .instanceAttributeBuffer(1, colorBuffer)
-    // .instanceAttributeBuffer(2, radiusBuffer)
+    // .vertexAttributeBuffer(0, positionBuffer)
+    // .vertexAttributeBuffer(1, colorBuffer)
+    // .vertexAttributeBuffer(2, radiusBuffer)
+    .instanceAttributeBuffer(0, positionBuffer)
+    .instanceAttributeBuffer(1, colorBuffer)
+    .instanceAttributeBuffer(2, radiusBuffer)
 };
 
 export const getNodeVisualizerDrawCall = moize.infinite((data?: number | ArrayBufferView) => {
@@ -77,19 +80,31 @@ const getEdgeVertexArray = moize.infinite(() =>
   getPicoApp().createVertexArray()
 );
 
-const loadEdgeVertexArray = (data: ArrayBufferView) => {
+export const loadEdgeVertexArray = moize.infinite((
+  edgeData: ArrayBufferView,
+  positionBuffers,
+  colorBuffers,
+  radiusBuffers,
+) => {
   const vertexArray = getEdgeVertexArray();
-  const indexBuffer = getEdgeIndexBuffer(data);
+  const indexBuffer = getEdgeIndexBuffer(edgeData);
   return vertexArray
-    .vertexAttributeBuffer(0, getPositionBuffers().current)
-    .vertexAttributeBuffer(1, getColorBuffers().current)
-    .vertexAttributeBuffer(2, getRadiusBuffers().current)
+    .vertexAttributeBuffer(0, positionBuffers)
+    .vertexAttributeBuffer(1, colorBuffers)
+    .vertexAttributeBuffer(2, radiusBuffers)
     .indexBuffer(indexBuffer)
-};
+});
+
+export const getMostRecentEdgeVertexArray = (edgeData) => {
+  const positionBuffers = getPositionBuffers().current;
+  const colorBuffers = getColorBuffers().current;
+  const radiusBuffers = getRadiusBuffers().current;
+  return loadEdgeVertexArray(edgeData, positionBuffers, colorBuffers, radiusBuffers);
+}
 
 export const getEdgeVisualizerDrawCall = moize.infinite((data: ArrayBufferView) => {
   const program = getEdgeVisualizerProgram();
-  const vertexArray = loadEdgeVertexArray(data);
+  const vertexArray = getMostRecentEdgeVertexArray(data);
   return getPicoApp().createDrawCall(program, vertexArray)
     .primitive(PicoGL.LINES)
 });
