@@ -1,8 +1,8 @@
 import PicoGL from "picogl";
-import { getColorBuffers, getInterpolationDrawCall, getInterpolationProgram, getPositionBuffers, getRadiusBuffers, loadInterpolationInputVertexArray, swapInterpolationBuffers } from "./gpu/node-state";
+import { getColorBuffers, getInterpolationDrawCall, getInterpolationProgram, getPositionBuffers, getRadiusBuffers, loadInterpolationInputVertexArray, swapInterpolationBuffers } from "./gpu/animation";
 import { getPicoApp } from './gpu/rendering';
 import WebGP from '../lib/webgp'
-import { getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodeVisualizerDrawCall, loadEdgeVertexArray } from "./gpu/graph";
+import { getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodeVisualizerDrawCall, loadEdgeVertexArray } from "./gpu/graph-visualization";
 
 const app = getPicoApp();
 app.clearColor(0.1, 0.1, 0.2, 1.0);
@@ -19,10 +19,9 @@ const fillCanvasToWindow = () => {
 }
 
 const gl = app.gl
-console.log(gl.getParameter(gl.MAX_TEXTURE_SIZE))
 
-const N = 5000
-const E = 200
+const N = 100000
+const E = 10000
 
 let positionTargets = new Float32Array(3*N)
 getPositionBuffers().targetData(positionTargets, { immediate: true })
@@ -59,7 +58,7 @@ const animate = () => {
 }
 
 const scrambleColors = (immediate = false) => {
-    const newColors = colorTargets.map((_,i) => i%4 === 3 ? 1 : Math.random())
+    const newColors = colorTargets.map((_,i) => i%4 === 3 ? Math.random() : Math.random())
     getColorBuffers().targetData(newColors, { immediate });
 }
 
@@ -78,7 +77,7 @@ const scramblePositions = (immediate = false) => {
 }
 
 const scrambleRadii = (immediate = false) => {
-    getRadiusBuffers().targetData(radiusTargets.map(() => Math.random()*50), { immediate });
+    getRadiusBuffers().targetData(radiusTargets.map(() => Math.random()*10), { immediate });
 }
 
 const scramble = (immediate = false) => {

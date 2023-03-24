@@ -14,6 +14,7 @@ void main() {
 
   fragColor = color; // set the color
   fragColor.xyz *= 3.0*smoothstep(radius - 0.5, radius + 0.5, z); // fade out the edges of the sphere
+  fragColor.a *= smoothstep(radius - 0.2, radius + 0.2, z); // fade out the edges of the sphere
 
   // fragColor = color;
 }

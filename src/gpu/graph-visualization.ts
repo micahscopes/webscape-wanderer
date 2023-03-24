@@ -8,7 +8,7 @@ import nodeVs from "../shaders/node.vs";
 import nodeFs from "../shaders/node.fs";
 
 import { getPicoApp } from "./rendering";
-import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./node-state";
+import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./animation";
 
 const getNodeVisualizerProgram = moize(() => {
   return getPicoApp().createProgram(nodeVs, nodeFs)
