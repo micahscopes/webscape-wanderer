@@ -5,6 +5,13 @@ import { wrap, proxy } from 'comlink'
 import { fromPairs } from 'lodash-es'
 import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
 import { getPositionBuffers } from './gpu/animation'
+import ColorHash from 'color-hash'
+
+const colorHash = new ColorHash({ lightness: [0.35, 0.5, 0.65] });
+
+function projectOrgColor(node) {
+  return colorHash.rgb(node.owner || "");
+}
 
 const fetchData =
   async () => {
@@ -33,6 +40,7 @@ export const prepareVisualizerData = async () => {
     project,
     id: project,
     owner,
+    color: [...colorHash.rgb(project || String(index)).map(x => x/255), 1],
     size: nodeScaleFn(dependents),
   }))
   
@@ -60,6 +68,7 @@ export const randomGraph = (numNodes, numEdges) => {
     index,
     id: index,
     size: 1,
+    color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
   }))
   
   const links = [...Array(numEdges).keys()].map(() => {
@@ -92,11 +101,18 @@ export const randomTrees = (trunks, numLevels, minChildren, maxChildren, maxNode
       Math.random(), 
       Math.random(),
     ]
-    .map(x => x/100)
+    .map(x => x/3)
     .map((x, i) => x + offset[i])
-    nodes.push({ index, size, id: index, x,y,z })
+    nodes.push({ index, size, id: index, x,y,z,
+      color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
+    })
     if (parentIndex !== undefined) {
-      links.push({ sourceIndex: parentIndex, targetIndex: index, source: nodes[parentIndex], target: nodes[index] })
+      links.push({
+        sourceIndex: parentIndex,
+        targetIndex: index,
+        source: nodes[parentIndex],
+        target: nodes[index],
+      });
       linkIndexPairs.push([parentIndex, index])
     }
     if (level < numLevels && nodes.length < maxNodes) {
@@ -121,15 +137,11 @@ export const prepareGraphDBWorker = async () => {
   return await graphWorker.buildGraph(data)
 }
 
-export const prepareGraphLayoutWorker = async (data) => {
-  return await graphLayoutWorker.useFDGSimulator(
+export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3ForceSimulator) => {
+  return await sim(
     data, 
     proxy(positions => getPositionBuffers()?.targetData(positions))
   )
-  // return await graphLayoutWorker.useD3ForceSimulator(
-  //   data, 
-  //   proxy(positions => getPositionBuffers()?.targetData(positions))
-  // )
 }
 
 export const { doQuery, buildGraph } = graphWorker

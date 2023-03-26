@@ -39,6 +39,8 @@
     "memdown": "^6.1.1",
     "memory-level": "^1.0.0",
     "moize": "^6.1.5",
+    "ngraph.forcelayout": "^3.3.1",
+    "ngraph.graph": "^20.0.1",
     "picogl": "github:micahscopes/picogl.js#base-vertex-base-instance-build",
     "popmotion": "^9.4.2",
     "quadstore": "^11.0.7",

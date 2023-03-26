@@ -20,7 +20,7 @@ void main() {
   float nearness = bump(length(mousePosition - nodePosition.xy), 100.0, 20.0);
   color = nodeColor;
   color.xyz = normalize(color.xyz);
-  color.a *= nearness;
+  color.a *= nearness * 0.4;
   // color = nodeColor;
   radius = nodeRadius;
   gl_Position = vec4(nodePosition, 1.0);

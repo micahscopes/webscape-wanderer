@@ -1,30 +1,37 @@
 import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./gpu/animation";
 import { animateGraph, getPicoApp } from './gpu/rendering';
 import { setEdgeIndices } from "./gpu/graph-visualization";
-import { prepareVisualizerData, prepareGraphLayoutWorker, randomGraph, randomTrees } from "./data";
+import { prepareVisualizerData, prepareGraphLayoutWorker, randomGraph, randomTrees, graphLayoutWorker } from "./data";
 import { trackFPS } from "./fps";
+import ColorHash from "color-hash";
 
 const app = getPicoApp();
 app.clear();
 
-const graphData = await prepareVisualizerData();
-// const graphData = randomGraph(100000, 1000);
-// const graphData = randomTrees(1, 10, 5,10, 50000)
+let graphData
+// graphData = await prepareVisualizerData();
+// graphData = randomGraph(100000, 100000);
+graphData = randomTrees(50, 3, 5,10, 30000)
 const { nodes, linkIndices } = graphData;
 
-const layoutSim = await prepareGraphLayoutWorker(graphData);
-console.log(layoutSim)
+const layoutSim = await prepareGraphLayoutWorker(graphData,
+    // graphLayoutWorker.useNgraphForceSimulator
+    graphLayoutWorker.useFDGSimulator
+);
+// console.log(layoutSim)
 
 setEdgeIndices(linkIndices);
 
 const nodeColors = new Float32Array(nodes.length * 4);
-// fill with random colors
-for (let i = 0; i < nodeColors.length; i += 4) {
-    nodeColors[i] = Math.random();
-    nodeColors[i + 1] = Math.random();
-    nodeColors[i + 2] = Math.random();
-    nodeColors[i + 3] = 1;
+// use node colors
+for (let i = 0; i < nodes.length; i+=4) {
+    nodeColors[i] = nodes[i].color[0];
+    nodeColors[i+1] = nodes[i].color[1];
+    nodeColors[i+2] = nodes[i].color[2];
+    nodeColors[i+3] = nodes[i].color[3];
 }
+
+// console.log(nodeColors)
 
 getColorBuffers().targetData(nodeColors)
 
