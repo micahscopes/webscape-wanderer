@@ -15,7 +15,7 @@ const getNodeVisualizerProgram = moize(() => {
 });
 
 const getNodeIndexBuffer = moize.infinite((data) =>
-  getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_SHORT, data)
+  getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_INT, data)
 );
 const getNodeVertexArray = moize.infinite(() => {
 
@@ -28,14 +28,14 @@ const getNodeVertexArray = moize.infinite(() => {
     1, -1, 1,
   ]));
   
-  const cubeIndexBuffer = getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_SHORT, new Uint16Array([
+  const cubeIndexBuffer = getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_INT, new Uint32Array([
     0, 1, 2, 0, 2, 3,
     1, 5, 6, 1, 6, 2,
     5, 4, 7, 5, 7, 6,
     4, 0, 3, 4, 3, 7,
     3, 2, 6, 3, 6, 7,
   ]))
-  
+
   const pointVertexBuffer = getPicoApp().createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([0,0,0]));
 
   return getPicoApp().createVertexArray()
@@ -74,7 +74,7 @@ const getEdgeVisualizerProgram = moize(() =>
 );
 
 const getEdgeIndexBuffer = moize.infinite((data) =>
-  getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_SHORT, data)
+  getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_INT, data)
 );
 const getEdgeVertexArray = moize.infinite(() =>
   getPicoApp().createVertexArray()
@@ -95,8 +95,8 @@ export const loadEdgeVertexArray = moize.infinite((
     .indexBuffer(indexBuffer)
 });
 
-let edgeData: Uint16Array = new Uint16Array([]);
-export const setEdgeIndices = (indices: Uint16Array) => {
+let edgeData: Uint32Array = new Uint32Array([]);
+export const setEdgeIndices = (indices: Uint32Array) => {
   edgeData = indices;
 }
 

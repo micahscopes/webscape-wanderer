@@ -1,7 +1,10 @@
 import moize from 'moize'
 import GraphDbWorker from './graph-db-worker.js?worker'
-import { wrap } from 'comlink'
+import GraphLayoutWorker from './graph-layout-worker.js?worker'
+import { wrap, proxy } from 'comlink'
 import { fromPairs } from 'lodash-es'
+import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
+import { getPositionBuffers } from './gpu/animation'
 
 const fetchData =
   async () => {
@@ -19,6 +22,7 @@ const fetchData =
 
 export const graphData = moize.promise(fetchData)
 export const graphWorker = wrap(new GraphDbWorker())
+export const graphLayoutWorker = wrap(new GraphLayoutWorker())
 
 export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*dependents?.length**1.2), 2)
 
@@ -27,6 +31,7 @@ export const prepareVisualizerData = async () => {
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
     index,
     project,
+    id: project,
     owner,
     size: nodeScaleFn(dependents),
   }))
@@ -44,12 +49,87 @@ export const prepareVisualizerData = async () => {
     }))
   ).filter(edge => edge)
   
-  return { nodes, links, nodesByProject }
+  const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
+  const linkIndices = new Uint32Array(linkIndexPairs.flat())
+  
+  return { nodes, links, linkIndices, nodesByProject }
 }
+
+export const randomGraph = (numNodes, numEdges) => {
+  const nodes = [...Array(numNodes).keys()].map(index => ({
+    index,
+    id: index,
+    size: 1,
+  }))
+  
+  const links = [...Array(numEdges).keys()].map(() => {
+    const sourceIndex = Math.floor(Math.random() * numNodes)
+    const targetIndex = Math.floor(Math.random() * numNodes)
+    return {
+      sourceIndex,
+      targetIndex,
+      source: nodes[sourceIndex],
+      target: nodes[targetIndex],
+    }
+  })
+  
+  const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
+  const linkIndices = new Uint32Array(linkIndexPairs.flat())
+  
+  return { nodes, links, linkIndices }
+}
+
+export const randomTrees = (trunks, numLevels, minChildren, maxChildren, maxNodes) => {
+  const nodes = []
+  const links = []
+  const linkIndexPairs = []
+
+  const addNode = (parentIndex, level, offset=[0,0,0]) => {
+    const index = nodes.length
+    const size = 1
+    const [x,y,z] = [
+      Math.random(),
+      Math.random(), 
+      Math.random(),
+    ]
+    .map(x => x/100)
+    .map((x, i) => x + offset[i])
+    nodes.push({ index, size, id: index, x,y,z })
+    if (parentIndex !== undefined) {
+      links.push({ sourceIndex: parentIndex, targetIndex: index, source: nodes[parentIndex], target: nodes[index] })
+      linkIndexPairs.push([parentIndex, index])
+    }
+    if (level < numLevels && nodes.length < maxNodes) {
+      const numChildren = Math.floor(Math.random() * (maxChildren - minChildren)) + minChildren
+      for (let i = 0; i < numChildren; i++) {
+        addNode(index, level + 1, [x,y,z])
+      }
+    }
+  }
+
+  for (let i = 0; i < trunks; i++) {
+    addNode(undefined, 0, [Math.random(), Math.random(), Math.random()].map(x => x * 2 - 1))
+  }
+  
+  console.log(nodes)
+  return { nodes, links, linkIndices: new Uint32Array(linkIndexPairs.flat()) }
+}
+
 
 export const prepareGraphDBWorker = async () => {
   const data = await graphData()
   return await graphWorker.buildGraph(data)
+}
+
+export const prepareGraphLayoutWorker = async (data) => {
+  return await graphLayoutWorker.useFDGSimulator(
+    data, 
+    proxy(positions => getPositionBuffers()?.targetData(positions))
+  )
+  // return await graphLayoutWorker.useD3ForceSimulator(
+  //   data, 
+  //   proxy(positions => getPositionBuffers()?.targetData(positions))
+  // )
 }
 
 export const { doQuery, buildGraph } = graphWorker

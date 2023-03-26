@@ -1,69 +1,64 @@
-import PicoGL from "picogl";
-import { getColorBuffers, getInterpolationDrawCall, getInterpolationProgram, getPositionBuffers, getRadiusBuffers, loadInterpolationInputVertexArray, swapInterpolationBuffers } from "./gpu/animation";
-import { animateGraph, fillCanvasToWindow, getPicoApp } from './gpu/rendering';
-import WebGP from '../lib/webgp'
-import { getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodeVisualizerDrawCall, loadEdgeVertexArray, setEdgeIndices } from "./gpu/graph-visualization";
+import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./gpu/animation";
+import { animateGraph, getPicoApp } from './gpu/rendering';
+import { setEdgeIndices } from "./gpu/graph-visualization";
+import { prepareVisualizerData, prepareGraphLayoutWorker, randomGraph, randomTrees } from "./data";
+import { trackFPS } from "./fps";
 
 const app = getPicoApp();
-app.clearColor(0.5, 0.5, 0.5, 1.0);
 app.clear();
 
-const gl = app.gl
+const graphData = await prepareVisualizerData();
+// const graphData = randomGraph(100000, 1000);
+// const graphData = randomTrees(1, 10, 5,10, 50000)
+const { nodes, linkIndices } = graphData;
 
-const N = 20000
-const E = 10000
+const layoutSim = await prepareGraphLayoutWorker(graphData);
+console.log(layoutSim)
 
-let positionTargets = new Float32Array(3*N)
-getPositionBuffers().targetData(positionTargets, { immediate: true })
+setEdgeIndices(linkIndices);
 
-let colorTargets = new Float32Array(4*N)
-getColorBuffers().targetData(colorTargets, { immediate: true })
-
-let radiusTargets = new Float32Array(1*N)
-getRadiusBuffers().targetData(radiusTargets, { immediate: true })
-
-
-
-let edgeIndices = new Uint16Array(E).map(() => Math.floor(Math.random()*(N-1)))
-setEdgeIndices(edgeIndices)
-
-// edgeIndices = edgeIndices.map((_,i) => (i%2)*Math.floor(Math.random()*(N-1)))
-// edgeIndices = edgeIndices.map((idx, j) => j%2 ? idx : edgeIndices[j-1])
-
-
-
-const scrambleColors = (immediate = false) => {
-    const newColors = colorTargets.map((_,i) => i%4 === 3 ? Math.random() : Math.random())
-    getColorBuffers().targetData(newColors, { immediate });
+const nodeColors = new Float32Array(nodes.length * 4);
+// fill with random colors
+for (let i = 0; i < nodeColors.length; i += 4) {
+    nodeColors[i] = Math.random();
+    nodeColors[i + 1] = Math.random();
+    nodeColors[i + 2] = Math.random();
+    nodeColors[i + 3] = 1;
 }
 
-const randomizePositions = (immediate = true) => {
-    positionTargets = positionTargets.map(() => 1.5*(Math.random()-0.5))
-    getPositionBuffers().targetData(positionTargets, { immediate });
+getColorBuffers().targetData(nodeColors)
+
+const nodeRadii = new Float32Array(nodes.length);
+// fill with random radii
+// for (let i = 0; i < nodeRadii.length; i++) {
+//     nodeRadii[i] = Math.random() * 100;
+// }
+// radii from node sizes
+for (let i = 0; i < nodeRadii.length; i++) {
+    nodeRadii[i] = Math.sqrt(nodes[i].size) * 10;
 }
+getRadiusBuffers().targetData(nodeRadii)
 
-const scramblePositions = (immediate = false) => {
-    positionTargets = positionTargets.map((x) => {
-    // ensure that the positions are within the clipping volume
-        const d = 0.4*(Math.random()-0.5)
-        return Math.abs(x + d) > 1.0 ? x - d : x + d
-    })
-    getPositionBuffers().targetData(positionTargets, { immediate });
-}
+// initialize random node positions
+const randomPoint = () => [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1].map(x => x * 0.001);
+// const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
+const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint))
+getPositionBuffers().targetData(initialNodePositions);
 
-const scrambleRadii = (immediate = false) => {
-    getRadiusBuffers().targetData(radiusTargets.map(() => Math.random()*5), { immediate });
-}
+// display the graph stats in a panel
+const statsPanel = document.createElement('div');
+statsPanel.style.position = 'absolute';
+statsPanel.style.top = '0';
+statsPanel.style.right = '0';
+statsPanel.style.color = 'white';
 
-const scramble = (immediate = false) => {
-    scrambleColors(immediate);
-    scramblePositions(immediate);
-    scrambleRadii(immediate);
-}
+document.body.appendChild(statsPanel);
 
-randomizePositions();
-scramble(true);
-
-setInterval(scramble, 100)
+statsPanel.innerHTML = `
+    <div>Nodes: ${nodes.length}</div>
+    <div>Edges: ${linkIndices.length}</div>
+`;
 
 animateGraph();
+trackFPS();
+

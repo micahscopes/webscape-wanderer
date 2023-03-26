@@ -12,6 +12,7 @@ export const getPicoApp = moize.infinite(() => {
     .enable(PicoGL.DEPTH_TEST)
     .enable(PicoGL.BLEND)
     .blendFunc(PicoGL.SRC_ALPHA, PicoGL.ONE_MINUS_SRC_ALPHA)
+    .clearColor(0.1, 0.1, 0.1, 1.0)
 });
 
 const mousePosition = {x: 0, y: 0}
@@ -39,16 +40,18 @@ export const animateGraph = () => {
     fillCanvasToWindow();
 
     const interpolation = getInterpolationDrawCall()
-      .uniform('uMixRatio', 0.01)
+      .uniform('uMixRatio', 0.05)
     interpolation.draw();
     swapInterpolationBuffers();
     
     app.clear();
     getMostRecentEdgeVertexArray();
+    getEdgeVisualizerDrawCall()
+      .uniform('mousePosition', getMousePosition())
+      .draw();
     getNodeVisualizerDrawCall()
       // get mouse position from the canvas
       .uniform('mousePosition', getMousePosition())
       .draw();
-    getEdgeVisualizerDrawCall().draw();
     requestAnimationFrame(animateGraph);
 }

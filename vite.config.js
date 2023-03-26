@@ -6,14 +6,14 @@ import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   plugins: [
-    glsl(),
-    wasm(), 
     topLevelAwait({
       // The export name of top-level await promise for each chunk module
       promiseExportName: "__tla",
       // The function to generate import names of top-level await promise in each chunk module
       promiseImportName: i => `__tla_${i}`
     }),
+    glsl(),
+    wasm(), 
     nodePolyfills({
       // Whether to polyfill `node:` protocol imports.
       protocolImports: true,
@@ -23,7 +23,4 @@ export default defineConfig({
     format: "es",
   },
   base: "/dat-garden-visualization/",
-  esbuild:{
-    target:"es2018"
-  }
 });

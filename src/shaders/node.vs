@@ -26,6 +26,7 @@ void main() {
   color.xyz = normalize(color.xyz);
   color.a *= nearness;
   position = nodePosition;
-  gl_PointSize = nodeRadius + 20.0*nearness; // * bump(length(mousePosition - nodePosition.xy));
+  // gl_PointSize = nodeRadius + 20.0*nearness; // * bump(length(mousePosition - nodePosition.xy));
+  gl_PointSize = nodeRadius;
   gl_Position = vec4(nodePosition+vertexPosition, 1.0);
 }
