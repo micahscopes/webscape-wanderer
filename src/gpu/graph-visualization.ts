@@ -10,6 +10,9 @@ import nodeFs from "../shaders/node.fs";
 import { getPicoApp } from "./rendering";
 import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./animation";
 
+import bunny from 'bunny'
+import angleNormals from 'angle-normals'
+
 const getNodeVisualizerProgram = moize(() => {
   return getPicoApp().createProgram(nodeVs, nodeFs)
 });
@@ -18,30 +21,16 @@ const getNodeIndexBuffer = moize.infinite((data) =>
   getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_INT, data)
 );
 const getNodeVertexArray = moize.infinite(() => {
-
-  const cubeBuffer = getPicoApp().createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([
-    -1, -1, -1,
-    1, -1, -1,
-    1, 1, -1,
-    -1, 1, -1,
-    -1, -1, 1,
-    1, -1, 1,
-  ]));
-  
-  const cubeIndexBuffer = getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_INT, new Uint32Array([
-    0, 1, 2, 0, 2, 3,
-    1, 5, 6, 1, 6, 2,
-    5, 4, 7, 5, 7, 6,
-    4, 0, 3, 4, 3, 7,
-    3, 2, 6, 3, 6, 7,
-  ]))
-
-  const pointVertexBuffer = getPicoApp().createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([0,0,0]));
+  const bunnyBuffer = getPicoApp().createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(bunny.positions.flat()))
+  const bunnyIndexBuffer = getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_SHORT, new Uint16Array(bunny.cells.flat()))
+  // console.log(angleNormals(bunny.cells, bunny.positions))
+  const bunnyNormals = getPicoApp().createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(angleNormals(bunny.cells, bunny.positions).flat()))
 
   return getPicoApp().createVertexArray()
-    .vertexAttributeBuffer(0, pointVertexBuffer)
-    // .vertexAttributeBuffer(3, cubeBuffer)
-    // .indexBuffer(cubeIndexBuffer)
+    // .vertexAttributeBuffer(0, pointVertexBuffer)
+    .vertexAttributeBuffer(3, bunnyBuffer)
+    .vertexAttributeBuffer(4, bunnyNormals)
+    .indexBuffer(bunnyIndexBuffer)
 });
 
 const loadNodeVertexArray = () => {
@@ -51,9 +40,6 @@ const loadNodeVertexArray = () => {
   const radiusBuffer = getRadiusBuffers().current;
 
   return vertexArray
-    // .vertexAttributeBuffer(0, positionBuffer)
-    // .vertexAttributeBuffer(1, colorBuffer)
-    // .vertexAttributeBuffer(2, radiusBuffer)
     .instanceAttributeBuffer(0, positionBuffer)
     .instanceAttributeBuffer(1, colorBuffer)
     .instanceAttributeBuffer(2, radiusBuffer)
@@ -66,7 +52,8 @@ export const getNodeVisualizerDrawCall = moize.infinite(() => {
     // .indexBuffer(getNodeIndexBuffer(data));
 
   return getPicoApp().createDrawCall(program, vertexArray)
-    .primitive(PicoGL.POINTS)
+    // .primitive(PicoGL.POINTS)
+    .primitive(PicoGL.TRIANGLES)
 });
 
 const getEdgeVisualizerProgram = moize(() =>

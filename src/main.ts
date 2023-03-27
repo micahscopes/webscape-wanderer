@@ -1,39 +1,40 @@
 import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./gpu/animation";
 import { animateGraph, getPicoApp } from './gpu/rendering';
 import { setEdgeIndices } from "./gpu/graph-visualization";
-import { prepareVisualizerData, prepareGraphLayoutWorker, randomGraph, randomTrees, graphLayoutWorker } from "./data";
+import { prepareVisualizerData, prepareGraphLayoutWorker, randomGraph, randomTrees, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator } from "./data";
 import { trackFPS } from "./fps";
 import ColorHash from "color-hash";
+import { setupCameraInteraction } from "./gpu/camera";
+import { proxy } from "comlink";
 
 const app = getPicoApp();
 app.clear();
 
+setupCameraInteraction();
+
 let graphData
-// graphData = await prepareVisualizerData();
+graphData = await prepareVisualizerData();
 // graphData = randomGraph(100000, 100000);
-graphData = randomTrees(50, 3, 5,10, 30000)
+// graphData = randomTrees(50, 3, 5,10, 300)
 const { nodes, linkIndices } = graphData;
 
-const layoutSim = await prepareGraphLayoutWorker(graphData,
-    // graphLayoutWorker.useNgraphForceSimulator
-    graphLayoutWorker.useFDGSimulator
-);
-// console.log(layoutSim)
+const visualizers = [useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator]
+
+const pickRandomVisualizer = async () => {
+    // pick a random visualizer
+    const visualizer = visualizers[Math.floor(Math.random() * visualizers.length)];
+    await visualizer();
+}
+
+await pickRandomVisualizer();
+
+setInterval(pickRandomVisualizer, 10000)
 
 setEdgeIndices(linkIndices);
 
-const nodeColors = new Float32Array(nodes.length * 4);
 // use node colors
-for (let i = 0; i < nodes.length; i+=4) {
-    nodeColors[i] = nodes[i].color[0];
-    nodeColors[i+1] = nodes[i].color[1];
-    nodeColors[i+2] = nodes[i].color[2];
-    nodeColors[i+3] = nodes[i].color[3];
-}
-
-// console.log(nodeColors)
-
-getColorBuffers().targetData(nodeColors)
+const colors = new Float32Array(nodes.flatMap(({ color }) => color));
+getColorBuffers().targetData(colors)
 
 const nodeRadii = new Float32Array(nodes.length);
 // fill with random radii

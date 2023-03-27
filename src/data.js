@@ -40,7 +40,9 @@ export const prepareVisualizerData = async () => {
     project,
     id: project,
     owner,
-    color: [...colorHash.rgb(project || String(index)).map(x => x/255), 1],
+    // color: [...colorHash.rgb(project || String(index)).map(x => x/255), 1],
+    color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
+    // color: [1,0,0,1],
     size: nodeScaleFn(dependents),
   }))
   
@@ -143,5 +145,9 @@ export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3
     proxy(positions => getPositionBuffers()?.targetData(positions))
   )
 }
+
+export const useD3ForceSimulator = async () => await prepareGraphLayoutWorker(await prepareVisualizerData(), graphLayoutWorker.useD3ForceSimulator)
+export const useFDGSimulator = async () => await prepareGraphLayoutWorker(await prepareVisualizerData(), graphLayoutWorker.useFDGSimulator)
+export const useNgraphForceSimulator = async () => await prepareGraphLayoutWorker(await prepareVisualizerData(), graphLayoutWorker.useNgraphForceSimulator)
 
 export const { doQuery, buildGraph } = graphWorker

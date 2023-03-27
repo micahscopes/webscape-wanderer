@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "angle-normals": "^1.0.0",
+    "bunny": "^1.0.1",
     "normalized-interaction-events": "^2.0.1",
     "vite": "^3.2.3",
     "vite-plugin-glsl": "^1.1.2",

@@ -23,15 +23,15 @@ float bump(float x, float q, float w) {
 
 void main() {
   float nearness = bump(length(mousePosition - currentPositions.xy), 100.0, 20.0);
-  // float mixRatio = 1.0-nearness;
   float mixRatio = uMixRatio;
   vUpdatedRadii = mix(currentRadii, targetRadii, mixRatio);
+
   // increment the position toward the target by a constant amount
   vec3 delta = targetPositions - currentPositions;
   float distance = length(delta);
-  // vec3 delta = distance / length(distance);
+
   vUpdatedPositions = currentPositions + normalize(delta)*min(0.005, distance/200.0);
-  // vUpdatedPositions = targetPositions;
-  // vUpdatedPositions = mix(currentPositions, targetPositions, mixRatio);
-  vUpdatedColors = mix(currentColors, targetColors, mixRatio);
+  vUpdatedPositions = mix(currentPositions, targetPositions, mixRatio);
+  // vUpdatedColors = mix(currentColors, targetColors, mixRatio);
+  vUpdatedColors = targetColors;
 }
