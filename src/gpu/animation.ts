@@ -4,7 +4,8 @@ import moize from 'moize'
 
 import interpolationVs from '../shaders/interpolation.vs'
 import interpolationFs from '../shaders/interpolation.fs'
-import { getMousePosition, getPicoApp } from './rendering'
+import { getPicoApp } from './rendering'
+import { getPointerPositionClip } from '../interaction'
 
 class InterpolationBuffers {
   protected positionSwap = false
@@ -84,13 +85,13 @@ export const swapInterpolationBuffers = () => {
   getColorBuffers().swap()
 }
 
-export const setInterpolationTargets = (positions: ArrayBufferView, colors: ArrayBufferView, radii: ArrayBufferView, opts : {
+export const setInterpolationTargets = (positions: ArrayBufferView, colors: ArrayBufferView, sizes: ArrayBufferView, opts : {
   offset?: number,
   immediate?: boolean,
 }) => {
   getPositionBuffers().targetData(positions, opts)
   getColorBuffers().targetData(colors, opts)
-  getRadiusBuffers().targetData(radii, opts)
+  getRadiusBuffers().targetData(sizes, opts)
 }
 
 export const getInterpolationProgram = moize.infinite(() => {
@@ -99,7 +100,7 @@ export const getInterpolationProgram = moize.infinite(() => {
     interpolationVs,
     interpolationFs,
     {
-      transformFeedbackVaryings: ['vUpdatedPositions', 'vUpdatedColors', 'vUpdatedRadii'],
+      transformFeedbackVaryings: ['vUpdatedPositions', 'vUpdatedColors', 'vUpdatedSizes'],
       transformFeedbackMode: PicoGL.SEPARATE_ATTRIBS,
     }
   )
@@ -145,7 +146,7 @@ export const getInterpolationDrawCall = () => {
   const drawCall = app.createDrawCall(program, inputVertexArray)
     .transformFeedback(outputTransformFeedback)
     .primitive(PicoGL.POINTS)
-    .uniform('mousePosition', getMousePosition())
+    .uniform('mousePosition', getPointerPositionClip())
   // console.log('draw call created')
   return drawCall
 }

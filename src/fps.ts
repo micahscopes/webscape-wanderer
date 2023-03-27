@@ -1,6 +1,7 @@
 const fpsIndicator = document.createElement('div');
 document.body.appendChild(fpsIndicator);
 fpsIndicator.id = 'fps-indicator';
+fpsIndicator.style.zIndex = '1000';
 fpsIndicator.innerHTML = `
 <p class="value">FPS: 0</p>
 <canvas width="100" height="50" class="graph"></canvas>

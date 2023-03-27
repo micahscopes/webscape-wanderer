@@ -5,7 +5,7 @@ precision lowp float;
 
 layout(location=0) in vec3 nodePosition;
 layout(location=1) in vec4 nodeColor;
-layout(location=2) in float nodeRadius;
+layout(location=2) in float nodeSize;
 
 layout(location=3) in vec3 vertexPosition;
 layout(location=4) in vec3 vertexNormal;
@@ -15,6 +15,7 @@ uniform vec2 mousePosition;
 // camera matrices
 uniform mat4 view;
 uniform mat4 projection;
+uniform int selectedIndex;
 
 flat out vec4 color;
 out vec3 position;
@@ -27,7 +28,7 @@ float bump(float x, float q, float w) {
 }
 
 void main() {
-  position = nodePosition + vertexPosition/20.0*nodeRadius;
+  position = nodePosition + vertexPosition/20.0*nodeSize;
   // apply the camera matrices
   vec4 clipPosition = projection * view * vec4(position, 1.0);
   
@@ -35,7 +36,9 @@ void main() {
 
   // compute the nearness of the node to the mouse position
   float nearness = bump(distance, 100.0, 20.0);
-  color = nodeColor;
+
+  vec4 selectedColor = vec4(1.0, 1.0, 1.0, 1.0);
+  color = mix(nodeColor, selectedColor, float(gl_InstanceID == selectedIndex));
   // color.xyz = normalize(color.xyz);
 
   // apply the camera matrices to the normal
@@ -44,6 +47,6 @@ void main() {
   gl_Position = clipPosition;
 
   // color.a *= nearness;
-  // gl_PointSize = nodeRadius + 20.0*nearness; // * bump(length(mousePosition - nodePosition.xy));
-  // gl_PointSize = nodeRadius;
+  // gl_PointSize = nodeSize + 20.0*nearness; // * bump(length(mousePosition - nodePosition.xy));
+  // gl_PointSize = nodeSize;
 }

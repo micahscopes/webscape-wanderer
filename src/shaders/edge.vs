@@ -3,7 +3,7 @@ precision lowp float;
 
 layout(location=0) in vec3 nodePosition;
 layout(location=1) in vec4 nodeColor;
-layout(location=2) in float nodeRadius;
+layout(location=2) in float nodeSize;
 
 out vec4 color;
 out float radius;
@@ -30,6 +30,6 @@ void main() {
   // color.xyz = normalize(color.xyz);
   // color.a *= nearness * 0.4;
   // color = nodeColor;
-  radius = nodeRadius;
+  radius = nodeSize;
   gl_Position = clipPosition;
 }

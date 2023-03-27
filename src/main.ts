@@ -3,14 +3,14 @@ import { animateGraph, getPicoApp } from './gpu/rendering';
 import { setEdgeIndices } from "./gpu/graph-visualization";
 import { prepareVisualizerData, prepareGraphLayoutWorker, randomGraph, randomTrees, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator } from "./data";
 import { trackFPS } from "./fps";
-import ColorHash from "color-hash";
 import { setupCameraInteraction } from "./gpu/camera";
-import { proxy } from "comlink";
+import { setupSelection } from "./interaction";
 
 const app = getPicoApp();
 app.clear();
 
 setupCameraInteraction();
+setupSelection();
 
 let graphData
 graphData = await prepareVisualizerData();
@@ -18,7 +18,11 @@ graphData = await prepareVisualizerData();
 // graphData = randomTrees(50, 3, 5,10, 300)
 const { nodes, linkIndices } = graphData;
 
-const visualizers = [useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator]
+const visualizers = [
+    useD3ForceSimulator,
+    // useNgraphForceSimulator,
+    // useFDGSimulator
+]
 
 const pickRandomVisualizer = async () => {
     // pick a random visualizer
@@ -28,7 +32,8 @@ const pickRandomVisualizer = async () => {
 
 await pickRandomVisualizer();
 
-setInterval(pickRandomVisualizer, 10000)
+// try out different visualizers:
+// setInterval(pickRandomVisualizer, 10000)
 
 setEdgeIndices(linkIndices);
 
@@ -36,16 +41,16 @@ setEdgeIndices(linkIndices);
 const colors = new Float32Array(nodes.flatMap(({ color }) => color));
 getColorBuffers().targetData(colors)
 
-const nodeRadii = new Float32Array(nodes.length);
-// fill with random radii
-// for (let i = 0; i < nodeRadii.length; i++) {
-//     nodeRadii[i] = Math.random() * 100;
+const nodeSizes = new Float32Array(nodes.length);
+// fill with random sizes
+// for (let i = 0; i < nodeSizes.length; i++) {
+//     nodeSizes[i] = Math.random() * 100;
 // }
-// radii from node sizes
-for (let i = 0; i < nodeRadii.length; i++) {
-    nodeRadii[i] = Math.sqrt(nodes[i].size) * 10;
+// sizes from node sizes
+for (let i = 0; i < nodeSizes.length; i++) {
+    nodeSizes[i] = Math.sqrt(nodes[i].size) * 10;
 }
-getRadiusBuffers().targetData(nodeRadii)
+getRadiusBuffers().targetData(nodeSizes)
 
 // initialize random node positions
 const randomPoint = () => [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1].map(x => x * 0.001);

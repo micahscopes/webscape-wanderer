@@ -7,6 +7,9 @@ import edgeFs from "../shaders/edge.fs";
 import nodeVs from "../shaders/node.vs";
 import nodeFs from "../shaders/node.fs";
 
+import nodePickerVs from "../shaders/node-picker.vs";
+import nodePickerFs from "../shaders/node-picker.fs";
+
 import { getPicoApp } from "./rendering";
 import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./animation";
 
@@ -15,6 +18,10 @@ import angleNormals from 'angle-normals'
 
 const getNodeVisualizerProgram = moize(() => {
   return getPicoApp().createProgram(nodeVs, nodeFs)
+});
+
+const getNodePickerProgram = moize(() => {
+  return getPicoApp().createProgram(nodePickerVs, nodePickerFs)
 });
 
 const getNodeIndexBuffer = moize.infinite((data) =>
@@ -45,14 +52,36 @@ const loadNodeVertexArray = () => {
     .instanceAttributeBuffer(2, radiusBuffer)
 };
 
+
+export const getNodePickerBuffer = moize.infinite(() => {
+  const app = getPicoApp();
+  // get device pixel ratio: 
+  // const devicePixelRatio = window.devicePixelRatio || 1;
+  // const width = app.width/devicePixelRatio;
+  // const height = app.height/devicePixelRatio;
+  const width = app.width;
+  const height = app.height;
+  let pickColorTarget = app.createTexture2D(width, height);
+  let pickDepthTarget = app.createRenderbuffer(width, height, PicoGL.DEPTH_COMPONENT16);
+
+  return app.createFramebuffer().colorTarget(0, pickColorTarget).depthTarget(pickDepthTarget);
+})
+
+export const getNodePickerDrawCall = moize.infinite(() => {
+  const program = getNodePickerProgram();
+
+  const vertexArray = loadNodeVertexArray()
+
+  return getPicoApp().createDrawCall(program, vertexArray)
+    .primitive(PicoGL.TRIANGLES)
+})
+
 export const getNodeVisualizerDrawCall = moize.infinite(() => {
   const program = getNodeVisualizerProgram();
 
   const vertexArray = loadNodeVertexArray()
-    // .indexBuffer(getNodeIndexBuffer(data));
 
   return getPicoApp().createDrawCall(program, vertexArray)
-    // .primitive(PicoGL.POINTS)
     .primitive(PicoGL.TRIANGLES)
 });
 
