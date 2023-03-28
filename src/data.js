@@ -60,15 +60,14 @@ export const prepareVisualizerData = async () => {
   ).filter(edge => edge)
   
   const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
-  const linkIndices = new Uint32Array(linkIndexPairs.flat())
   
-  return { nodes, links, linkIndices, nodesByProject }
+  return { nodes, links, linkIndexPairs, nodesByProject }
 }
 
 export const randomGraph = (numNodes, numEdges) => {
   const nodes = [...Array(numNodes).keys()].map(index => ({
     index,
-    id: index,
+    id: String(index),
     size: 1,
     color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
   }))
@@ -85,9 +84,8 @@ export const randomGraph = (numNodes, numEdges) => {
   })
   
   const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
-  const linkIndices = new Uint32Array(linkIndexPairs.flat())
   
-  return { nodes, links, linkIndices }
+  return { nodes, links, linkIndexPairs }
 }
 
 export const randomTrees = (trunks, numLevels, minChildren, maxChildren, maxNodes) => {
@@ -105,7 +103,7 @@ export const randomTrees = (trunks, numLevels, minChildren, maxChildren, maxNode
     ]
     .map(x => x/3)
     .map((x, i) => x + offset[i])
-    nodes.push({ index, size, id: index, x,y,z,
+    nodes.push({ index, size, id: String(index), x,y,z,
       color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
     })
     if (parentIndex !== undefined) {
@@ -130,7 +128,7 @@ export const randomTrees = (trunks, numLevels, minChildren, maxChildren, maxNode
   }
   
   console.log(nodes)
-  return { nodes, links, linkIndices: new Uint32Array(linkIndexPairs.flat()) }
+  return { nodes, links, linkIndexPairs }
 }
 
 
@@ -146,8 +144,8 @@ export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3
   )
 }
 
-export const useD3ForceSimulator = async () => await prepareGraphLayoutWorker(await prepareVisualizerData(), graphLayoutWorker.useD3ForceSimulator)
-export const useFDGSimulator = async () => await prepareGraphLayoutWorker(await prepareVisualizerData(), graphLayoutWorker.useFDGSimulator)
-export const useNgraphForceSimulator = async () => await prepareGraphLayoutWorker(await prepareVisualizerData(), graphLayoutWorker.useNgraphForceSimulator)
+export const useD3ForceSimulator = async (data) => await prepareGraphLayoutWorker(data || await prepareVisualizerData(), graphLayoutWorker.useD3ForceSimulator)
+export const useFDGSimulator = async (data) => await prepareGraphLayoutWorker(data || await prepareVisualizerData(), graphLayoutWorker.useFDGSimulator)
+export const useNgraphForceSimulator = async (data) => await prepareGraphLayoutWorker(data || await prepareVisualizerData(), graphLayoutWorker.useNgraphForceSimulator)
 
 export const { doQuery, buildGraph } = graphWorker

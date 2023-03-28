@@ -28,7 +28,7 @@ float bump(float x, float q, float w) {
 }
 
 void main() {
-  position = nodePosition + vertexPosition/20.0*nodeSize;
+  position = nodePosition + vertexPosition*nodeSize;
   // apply the camera matrices
   vec4 clipPosition = projection * view * vec4(position, 1.0);
   

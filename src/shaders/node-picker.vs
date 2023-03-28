@@ -29,7 +29,7 @@ void main() {
   pickerColor = instanceIdToColor();
 
   // vec4 pickerColor = vec4(1.0, 0.0, 0.0, 1.0);
-  vec3 position = nodePosition + vertexPosition/20.0*nodeSize;
+  vec3 position = nodePosition + vertexPosition*nodeSize;
   vec4 clipPosition = projection * view * vec4(position, 1.0);
   gl_Position = clipPosition;
 }

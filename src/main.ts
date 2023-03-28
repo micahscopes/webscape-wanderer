@@ -14,9 +14,10 @@ setupSelection();
 
 let graphData
 graphData = await prepareVisualizerData();
-// graphData = randomGraph(100000, 100000);
-// graphData = randomTrees(50, 3, 5,10, 300)
-const { nodes, linkIndices } = graphData;
+// graphData = randomGraph(5000, 100);
+// graphData = randomTrees(1, 10, 2,2, 1000)
+const { nodes, linkIndexPairs } = graphData;
+console.log('nodes', nodes)
 
 const visualizers = [
     useD3ForceSimulator,
@@ -27,7 +28,7 @@ const visualizers = [
 const pickRandomVisualizer = async () => {
     // pick a random visualizer
     const visualizer = visualizers[Math.floor(Math.random() * visualizers.length)];
-    await visualizer();
+    await visualizer(graphData);
 }
 
 await pickRandomVisualizer();
@@ -35,7 +36,7 @@ await pickRandomVisualizer();
 // try out different visualizers:
 // setInterval(pickRandomVisualizer, 10000)
 
-setEdgeIndices(linkIndices);
+setEdgeIndices(linkIndexPairs.slice(0, 1000))
 
 // use node colors
 const colors = new Float32Array(nodes.flatMap(({ color }) => color));
@@ -53,7 +54,8 @@ for (let i = 0; i < nodeSizes.length; i++) {
 getRadiusBuffers().targetData(nodeSizes)
 
 // initialize random node positions
-const randomPoint = () => [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1].map(x => x * 0.001);
+const scale = 40;
+const randomPoint = () => [Math.random() * scale - 1, Math.random() * scale - 1, Math.random() * scale - 1];
 // const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
 const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint))
 getPositionBuffers().targetData(initialNodePositions);
@@ -69,7 +71,7 @@ document.body.appendChild(statsPanel);
 
 statsPanel.innerHTML = `
     <div>Nodes: ${nodes.length}</div>
-    <div>Edges: ${linkIndices.length}</div>
+    <div>Edges: ${linkIndexPairs.length}</div>
 `;
 
 animateGraph();
