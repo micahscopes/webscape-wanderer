@@ -9,8 +9,9 @@ layout(location=3) in vec3 targetPosition;
 layout(location=4) in vec4 targetColor;
 layout(location=5) in float targetSize;
 
-// layout(location=6) in uint vertexPosition;
+layout(location=6) in uint vertexPosition;
 
+out vec3 vTargetPosition;
 out vec3 vUpdatedPosition;
 out vec4 vUpdatedColor;
 out float vUpdatedSize;
@@ -29,6 +30,7 @@ float bump(float x, float q, float w) {
 }
 
 void main() {
+  vTargetPosition = targetPosition;
   float nearness = bump(length(mousePosition - currentPosition.xy), 100.0, 20.0);
   float mixRatio = uMixRatio;
   vUpdatedSize = mix(currentSize, targetSize, mixRatio);
@@ -40,19 +42,23 @@ void main() {
   vUpdatedPosition = currentPosition + normalize(delta)*min(0.005, distance/200.0);
   vUpdatedPosition = mix(currentPosition, targetPosition, mixRatio);
   vUpdatedColor = mix(currentColor, targetColor, mixRatio);
-  // vUpdatedColor = targetColor;
-  // vUpdatedColor = vec4(1,0,0,1);
-  
-  // uint v = vertexPosition;
-  uint v = uint(gl_VertexID);
 
+  uint v = uint(gl_VertexID);
+  // uint v = vertexPosition;
+  vertexID = int(v);
+  
   uv = vec2(
     float(int(v) % int(bufferDimensions.x)),
     float(int(v) / int(bufferDimensions.x))
-  )/bufferDimensions;
+  );
   
-  vertexID = int(v);
-
-  gl_Position = vec4(uv*2.0 + vec2(-1), 0.0, 1.0);
+  uv = uv / float(bufferDimensions);
+  uv += vec2(0.5/bufferDimensions.x, 0.5/bufferDimensions.y);
+  
+  // flip the y axis
+  // uv.y = 1.0 - uv.y;
+  
+  gl_Position = vec4(uv*2.0 - 1.0, 0.0, 1.0);
   gl_PointSize = 1.0;
+  
 }

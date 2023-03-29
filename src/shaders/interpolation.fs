@@ -1,24 +1,28 @@
 #version 300 es
 precision highp float;
+precision highp int;
 
 in vec3 vUpdatedPosition;
+in vec3 vTargetPosition;
 in vec4 vUpdatedColor;
 in float vUpdatedSize;
 
-in vec2 vertexCoordinates;
+flat in int vertexID;
 
 // output to framebuffers
-layout(location = 1) out vec3 position;
+layout(location = 1) out vec4 position;
 layout(location = 2) out vec4 color;
-layout(location = 3) out float size;
+// layout(location = 3) out float size;
 
 uniform vec2 bufferDimensions;
 
-flat in vec2 uv;
-flat in int vertexID;
-
 void main() {
-  position = vUpdatedPosition;
+  position = vec4(vUpdatedPosition, 1.0);
+  
+  // if (vertexID == 0 || vertexID == int(bufferDimensions.x*bufferDimensions.x)-9) {
+  //   position = vec4(0,0.5,0.5,1);
+  // }
+
   color = vUpdatedColor;
-  size = vUpdatedSize;
+  // size = vUpdatedSize;
 }

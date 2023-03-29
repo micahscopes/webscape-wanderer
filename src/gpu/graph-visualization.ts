@@ -13,10 +13,9 @@ import nodePickerFs from "../shaders/node-picker.fs";
 import { getPicoApp } from "./rendering";
 import {
   getColorBuffers,
-  getEdgePositionTexture,
   getPositionBuffers,
   getRadiusBuffers,
-  loadEdgeFramebuffer,
+  // loadEdgeFramebuffer,
 } from "./animation";
 
 import bunny from "bunny";
@@ -31,10 +30,6 @@ const getNodePickerProgram = moize(() => {
   return getPicoApp().createProgram(nodePickerVs, nodePickerFs);
 });
 
-import simplify from 'mesh-simplify'
-const getNodeIndexBuffer = moize.infinite((data) =>
-  getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_INT, data.flat())
-);
 const getNodeVertexArray = moize.infinite(() => {
   // const geo = simplify(bunny.cells, bunny.positions)(1000)
   // const geo = bunny
@@ -82,7 +77,7 @@ const loadNodeVertexArray = () => {
     .instanceAttributeBuffer(2, radiusBuffer);
 };
 
-export const getNodePickerBuffer = moize.infinite(() => {
+export const getNodePickerBuffer = moize.infinite((tag) => {
   const app = getPicoApp();
   // get device pixel ratio:
   // const devicePixelRatio = window.devicePixelRatio || 1;
@@ -92,7 +87,8 @@ export const getNodePickerBuffer = moize.infinite(() => {
   const height = app.height;
   let pickColorTarget = app.createTexture2D(width, height, {
     internalFormat: PicoGL.RGBA8,
-    // type: PicoGL.FLOAT,
+    minFilter: PicoGL.NEAREST,
+    magFilter: PicoGL.NEAREST
   });
   let pickDepthTarget = app.createRenderbuffer(
     width,
@@ -104,6 +100,36 @@ export const getNodePickerBuffer = moize.infinite(() => {
     .createFramebuffer()
     .colorTarget(0, pickColorTarget)
     .depthTarget(pickDepthTarget);
+});
+
+class SwappableBuffer {
+  A; B; _current;
+
+  constructor(A, B) {
+    this.A = A;
+    this.B = B;
+    this._current = A;
+  }
+
+  swap() {
+    this._current = this.current === this.A ? this.B : this.A;
+  }
+  
+  get current() {
+    return this._current;
+  }
+  
+  get other() {
+    return this._current === this.A ? this.B : this.A;
+  }
+}
+
+export const getNodePickerSwappableBuffer = moize.infinite(() => {
+  const app = getPicoApp();
+  const bufferA = getNodePickerBuffer("A");
+  const bufferB = getNodePickerBuffer("B");
+
+  return new SwappableBuffer(bufferA, bufferB);
 });
 
 export const getNodePickerDrawCall = moize.infinite(() => {
@@ -179,6 +205,15 @@ const getSegmentOffsetBuffer = moize.infinite(() => {
   return segmentOffsetBuffer;
 });
 
+const getSegmentOffsetInterpolationBuffer = moize.infinite(() => {
+  const segmentOffsetInterpolationBuffer = getPicoApp().createVertexBuffer(
+    PicoGL.FLOAT,
+    1,
+    new Float32Array([0, 1, 1, 0, 1, 0])
+  );
+  return segmentOffsetInterpolationBuffer;
+});
+
 export const getEdgeVertexArray = moize.infinite(() => 
   getPicoApp()
     .createVertexArray()
@@ -189,9 +224,11 @@ export const loadEdgeVertexArray = moize.infinite(
     const vertexArray = getEdgeVertexArray();
     const indexBuffer = getEdgeIndexVertexBuffer(edgeData);
     const segmentOffsetBuffer = getSegmentOffsetBuffer();
+    const segmentInterpolationBuffer = getSegmentOffsetInterpolationBuffer();
     return vertexArray
-      .vertexAttributeBuffer(0, segmentOffsetBuffer)
-      .instanceAttributeBuffer(1, indexBuffer)
+      .instanceAttributeBuffer(0, indexBuffer)
+      .vertexAttributeBuffer(1, segmentOffsetBuffer)
+      .vertexAttributeBuffer(2, segmentInterpolationBuffer)
   }
 );
 
@@ -204,29 +241,16 @@ export const setEdgeIndices = (indices: Uint32Array) => {
 export const getEdgeIndices = () => edgeData;
 
 export const getMostRecentEdgeVertexArray = () => {
-  // const positionTexture = getEdgePositionTexture(edgeData.length)
-  const buffer = loadEdgeFramebuffer()
-  buffer.colorAttachments[0]
-  // console.log(positionTexture)
   return loadEdgeVertexArray(
     edgeData,
   );
 };
 
-const l = 3
 export const getEdgeVisualizerDrawCall = moize.infinite(() => {
   const program = getEdgeVisualizerProgram();
   const vertexArray = getMostRecentEdgeVertexArray();
-  const positionTexture = getEdgePositionTexture(edgeData.length)
   return getPicoApp()
     .createDrawCall(program, vertexArray)
-    .texture('positionTexture', loadEdgeFramebuffer().colorAttachments[0])
-    .uniform('textureDimensions', [positionTexture.width, positionTexture.height])
-    // .primitive(PicoGL.TRIANGLES)
     .primitive(PicoGL.TRIANGLES)
-    // .primitive(PicoGL.TRIANGLE_STRIP)
-    // .primitive(PicoGL.LINE_STRIP)
-    // only draw the first 6 vertices
-    // .drawRanges([[0, 1]])
 
 });

@@ -88,11 +88,12 @@ const setupD3ForceSimulator = moize.infinite(async (graphData) => {
     .force(
       "charge",
       forceManyBody()
-      // .distanceMax(0.005).distanceMin(0.000000)
+        // .distanceMax(0.3)
     )
     .force(
       "link",
       forceLink(graphData.links).id((d) => d.id)
+        // .distance(10)
     )
     .force("center", forceCenter());
 

@@ -14,8 +14,8 @@ setupSelection();
 
 let graphData
 graphData = await prepareVisualizerData();
-// graphData = randomGraph(5000, 100);
-// graphData = randomTrees(1, 10, 2,2, 1000)
+// graphData = randomGraph(50000, 30000);
+// graphData = randomTrees(1, 7, 5,8, 100000)
 const { nodes, linkIndexPairs } = graphData;
 console.log('nodes', nodes)
 
@@ -31,12 +31,19 @@ const pickRandomVisualizer = async () => {
     await visualizer(graphData);
 }
 
+window.setNodePositions = (positionsFn) => {
+    getPositionBuffers().targetData(new Float32Array(new Array(nodes.length*3).fill(0).flatMap(positionsFn)));
+}
+window.setNodeColors = (colorFn) => {
+    getColorBuffers().targetData(new Float32Array(new Array(nodes.length*4).fill(0).flatMap(colorFn)));
+}
 await pickRandomVisualizer();
 
 // try out different visualizers:
 // setInterval(pickRandomVisualizer, 10000)
 
-setEdgeIndices(linkIndexPairs.slice(0, 1000))
+setEdgeIndices(linkIndexPairs)
+// setEdgeIndices(linkIndexPairs.slice(0, 1000))
 
 // use node colors
 const colors = new Float32Array(nodes.flatMap(({ color }) => color));
@@ -49,7 +56,7 @@ const nodeSizes = new Float32Array(nodes.length);
 // }
 // sizes from node sizes
 for (let i = 0; i < nodeSizes.length; i++) {
-    nodeSizes[i] = Math.sqrt(nodes[i].size) * 10;
+    nodeSizes[i] = Math.sqrt(nodes[i].size)*5;
 }
 getRadiusBuffers().targetData(nodeSizes)
 

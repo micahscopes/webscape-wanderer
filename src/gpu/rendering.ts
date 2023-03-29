@@ -1,9 +1,16 @@
 import PicoGL from 'picogl';
 import moize from 'moize';
-import { getColorBuffers, getEdgeBakeDrawCall, getEdgePositionTexture, getInterpolationDrawCall, getInterpolationFramebuffer, getPositionBuffers, getRadiusBuffers, loadEdgeFramebuffer, loadInterpolationFramebuffer, swapInterpolationBuffers } from './animation';
-import { getEdgeIndexBuffer, getEdgeIndices, getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodePickerBuffer, getNodePickerDrawCall, getNodeVisualizerDrawCall } from './graph-visualization';
+import {
+  getColorBuffers,
+  getInterpolationDrawCall,
+  getPositionBuffers,
+  loadInterpolationFramebuffer,
+  swapInterpolationBuffers,
+} from './animation';
+import { getEdgeIndices, getEdgeVisualizerDrawCall, getNodePickerBuffer, getNodePickerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
 import { getCamera } from './camera';
-import { getPointerPositionCanvas, getPointerPositionClip, getPointerPositionInfo, getPointerPositionPicker } from '../interaction';
+import { getPointerPositionCanvas, getPointerPositionClip } from '../interaction';
+import { debugTexture, generateGradientTexture } from './debug-texture';
 
 export const PRIMITIVE_RESTART_INDEX = 65535;
 const getWidthAndHeight = () => {
@@ -17,20 +24,20 @@ const getWidthAndHeight = () => {
   // Calculate the actual size (in device pixels)
   const actualWidth = Math.floor(displayWidth * devicePixelRatio);
   const actualHeight = Math.floor(displayHeight * devicePixelRatio);
-  
-  return {width: actualWidth, height: actualHeight}
+
+  return { width: actualWidth, height: actualHeight }
 }
 
 export const getPicoApp = moize.infinite(() => {
   const canvas = document.createElement('canvas');
   canvas.getContext('webgl2')
   document.body.appendChild(canvas);
-  const {width, height} = getWidthAndHeight();
+  const { width, height } = getWidthAndHeight();
 
   return PicoGL.createApp(canvas,
-    { 
+    {
       antialias: false,
-      extensions: ['OES_texture_float', 'EXT_color_buffer_float'],
+      extensions: ['OES_texture_float', 'EXT_color_buffer_float', 'ANGLE_instanced_arrays'],
     }
   )
     .viewport(0, 0, width, height)
@@ -42,104 +49,34 @@ export const getPicoApp = moize.infinite(() => {
 
 const getNodeIndexFromPickerColor = (color: Uint8Array) => {
   const nodeIndex = color[0] + color[1] * 256 + color[2] * 256 * 256;
-  return nodeIndex;
+  // the offset makes it so the default selection is nothing
+  return nodeIndex-1;
 }
 
 export const fillCanvasToWindow = () => {
   const app = getPicoApp();
-  const {width, height} = getWidthAndHeight();
+  const { width, height } = getWidthAndHeight();
   app.resize(width, height);
   getCamera().resize(width / height);
   const canvas = app.canvas as HTMLCanvasElement;
   canvas.style.position = 'absolute';
   canvas.style.top = '0px';
   canvas.style.left = '0px';
-  canvas.style.width = "100vw";
+  // canvas.style.width = "100vw";
   canvas.style.height = "100vh";
   const camera = getCamera();
 }
 
 
-// a basic debug renderer for the edge bake texture
-const getEdgeBakeDebugProgram = moize(() =>
-  getPicoApp().createProgram(
-    `#version 300 es
-    precision highp float;
-    precision highp int;
-    precision highp sampler2D;
-    in vec2 position;
-    out vec2 uv;
-    void main() {
-      uv = position+0.5; // * 0.5 + 1.0;
-      uv.y = -uv.y;
-      gl_Position = vec4(position, 0.0, 1.0);
-    }
-    `,
-    `#version 300 es
-    precision highp float;
-    precision highp int;
-    precision highp sampler2D;
-    in vec2 uv;
-    out vec4 fragColor;
-    uniform sampler2D tex;
-    void main() {
-      fragColor = vec4(texture(tex, uv).xyz, 1.0);
-      // fragColor = vec4(1.0, 0.0, 0.0, 1.0);
-      // fragColor = texture(tex, uv);
-    }
-    `
-  )
-);
-
-const generateGradientTexture = (width: number, height: number) => {
-  const app = getPicoApp();
-  const texture = app.createTexture2D(width, height, {
-    internalFormat: PicoGL.RGBA32F,
-    type: PicoGL.FLOAT,
-  });
-  const buffer = new Float32Array(width * height * 4);
-  // the texture should be a gradient blending between black on the upper left to red,
-  // green, and blue on the remaining corners
-  for (let i = 0; i < width; i++) {
-    for (let j = 0; j < height; j++) {
-      const index = (i + j * width) * 4;
-      buffer[index] = i / width;
-      buffer[index + 1] = j / height;
-      buffer[index + 2] = 0;
-      buffer[index + 3] = 1;
-    }
-  }
-
-  texture.data(buffer)
-  return texture;
-}
-
-const randomTexure = generateGradientTexture(32,32);
-
-const getEdgeBakeDebugDrawCall = moize.infinite(() => {
-  const app = getPicoApp();
-  const program = getEdgeBakeDebugProgram();
-  const edgeBakeTexture = getEdgePositionTexture(getEdgeIndices().length);
-  const edgeBakeVertexArray = app.createVertexArray()
-  // full screen triangle to view the texture
-  edgeBakeVertexArray
-    .vertexAttributeBuffer(0, app.createVertexBuffer(PicoGL.FLOAT, 2, new Float32Array([-1, -1, 3, -1, -1, 3])))
-    .indexBuffer(app.createIndexBuffer(PicoGL.UNSIGNED_SHORT, 3, new Uint16Array([0, 1, 2])));
-  return app.createDrawCall(program, edgeBakeVertexArray)
-});
-
+const randomTexure = generateGradientTexture(32, 32);
 
 // no need to get the picker pixel every frame
 let pickerFrame = 0;
 let pickerSkip = 3;
 
-
-const getEdgeBakeLocalBuffer = moize.infinite((width, height) => {
-  const buffer = new Float32Array(width * height * 4);
-  return buffer;
-});
-
 const pickedColor = new Uint8Array(4);
+let lastSelectedIndex = -1;
+
 export const animateGraph = () => {
   const camera = getCamera();
   camera.resize(window.innerWidth / window.innerHeight);
@@ -155,64 +92,79 @@ export const animateGraph = () => {
   const interpolationFramebuffer = loadInterpolationFramebuffer()
   app
     .drawFramebuffer(interpolationFramebuffer)
+    .scissor(0, 0, interpolationFramebuffer.width, interpolationFramebuffer.height)
+    .enable(PicoGL.SCISSOR_TEST)
     .viewport(0, 0, interpolationFramebuffer.width, interpolationFramebuffer.height)
-    .clearColor(1,1,1,1)
-    .clear()
-
+    .clearColor(0, 0, 0, 1)
+    
   const interpolation = getInterpolationDrawCall()
-    .uniform('uMixRatio', 0.05)
+    .uniform('uMixRatio', 0.005)
+
   interpolation.draw();
-  swapInterpolationBuffers()
-
-  app.defaultDrawFramebuffer().defaultViewport().clearColor(0,0,0,1).clear();
-
   
-  if (pickerFrame === 0) {
-    const pickerBuffer = getNodePickerBuffer();
-    app.drawFramebuffer(pickerBuffer)
-      .enable(PicoGL.SCISSOR_TEST)
-      .scissor(...getPointerPositionCanvas(), 1, 1)
-      .clear();
 
-    getNodePickerDrawCall()
+    const pickerBuffers = getNodePickerSwappableBuffer();
+    const area = 100;
+    const scissorRegion : [number, number, number, number] = [getPointerPositionCanvas()[0] - area / 2, getPointerPositionCanvas()[1] - area / 2, area, area];
+    app.drawFramebuffer(pickerBuffers.current)
+      .enable(PicoGL.SCISSOR_TEST)
+      .scissor(...scissorRegion)
+
+    const pickerDrawCall = getNodePickerDrawCall()
       .uniform('projection', camera.state.projection)
       .uniform('view', camera.state.view)
       .draw();
     
-    app
-      .disable(PicoGL.SCISSOR_TEST)
-      .defaultDrawFramebuffer()
-      .readFramebuffer(pickerBuffer)
-      .readPixel(...getPointerPositionCanvas(), pickedColor) 
+      app.defaultViewport().clear();
+      pickerDrawCall.draw();
+
+    if (pickerFrame === 0 || true) {
+        app.readFramebuffer(pickerBuffers.current)
+          .readPixel(...getPointerPositionCanvas(), pickedColor)
+        lastSelectedIndex = getNodeIndexFromPickerColor(pickedColor);
+        pickerBuffers.swap();
+    }
+
+  app.defaultDrawFramebuffer().defaultViewport().clearColor(0, 0, 0, 1).disable(PicoGL.SCISSOR_TEST)
+
+  const nodeDrawCall = getNodeVisualizerDrawCall()
+    .uniform('mousePosition', getPointerPositionClip())
+    .uniform('projection', camera.state.projection)
+    .uniform('view', camera.state.view)
+    .uniform('selectedIndex', lastSelectedIndex)
+
+  const edgeDrawCall = getEdgeVisualizerDrawCall()
+    .texture('positionTexture', getPositionBuffers().texture)
+    .texture('colorTexture', getColorBuffers().texture)
+    .uniform('textureDimensions', [interpolationFramebuffer.width, interpolationFramebuffer.height])
+    .uniform('mousePosition', getPointerPositionClip())
+    .uniform('projection', camera.state.projection)
+    .uniform('view', camera.state.view)
     
-    // console.log(pickedColor, getNodeIndexFromPickerColor(pickedColor), getPointerPositionCanvas());
+  app.clear();
+  nodeDrawCall.draw();
+  edgeDrawCall.draw();
+
+  window.lolDrawThatThing = (thatThing: string) => {
+    if (thatThing === 'color') {
+      window.lolDrawThat = getColorBuffers().texture;
+    }
+    if (thatThing === 'position') {
+      window.lolDrawThat = getPositionBuffers().texture;
+    }
+    if (thatThing === 'picker') {
+      window.lolDrawThat = getNodePickerSwappableBuffer().other.colorAttachments[0];
+    }
+    else {
+      window.lolDrawThat = null;
+    }
+  }
+  if (window.lolDrawThat) {
+    debugTexture(window.lolDrawThat)
   }
 
-
-  // getMostRecentEdgeVertexArray();
-  app.defaultDrawFramebuffer().clear();
-  
-  getEdgeVisualizerDrawCall()
-    .texture('positionTexture', loadEdgeFramebuffer().colorAttachments[0])
-    .uniform('mousePosition', getPointerPositionClip())
-    .uniform('projection', camera.state.projection)
-    .uniform('view', camera.state.view)
-    .draw();
-
-  getNodeVisualizerDrawCall()
-    .uniform('mousePosition', getPointerPositionClip())
-    .uniform('projection', camera.state.projection)
-    .uniform('view', camera.state.view)
-    .uniform('selectedIndex', getNodeIndexFromPickerColor(pickedColor))
-    .draw();
-
-
-  getEdgeBakeDebugDrawCall()
-    // .texture('tex', getColorBuffers().texture)
-    // .texture('tex', randomTexure)
-    // .texture('tex', getNodePickerBuffer().colorAttachments[0])
-    // .draw();
-  
   pickerFrame = (pickerFrame + 1) % pickerSkip;
+  swapInterpolationBuffers()
+
   requestAnimationFrame(animateGraph);
 }

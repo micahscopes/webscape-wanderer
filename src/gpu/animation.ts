@@ -84,13 +84,19 @@ class InterpolationBuffers {
     const opts = {
         internalFormat: PicoGL.RGBA32F,
         // internalFormat: getTextureFormatFromTypeAndItemSize(this._type, this._itemSize),
-        // type: this._type,
+        type: this._type,
+        flipY: true,
+        minFilter: PicoGL.NEAREST,
+        magFilter: PicoGL.NEAREST,
+        premultiplyAlpha: true,    
+        wrapY: PicoGL.CLAMP_TO_EDGE,
+        wrapX: PicoGL.CLAMP_TO_EDGE,
       }
       
     console.log('making texture', Math.pow(size, 2), opts, this._type)    
     return app.createTexture2D(
       size, size,
-      // opts
+      opts
     )
   })
 
@@ -99,11 +105,6 @@ class InterpolationBuffers {
     const indices = new Uint32Array(numItems).map((_, i) => i)
     console.log('made texture indices', indices)
     return app.createVertexBuffer(PicoGL.UNSIGNED_INT, 1, indices)
-  })
-
-  makeFramebuffer = moize.infinite(() => {
-    const app = getPicoApp()
-    return app.createFramebuffer()
   })
 
   // set target data, rebuilding buffers if necessary
@@ -194,12 +195,10 @@ export const loadInterpolationFramebuffer = () => {
   
   // console.log('resizing framebuffer', positionTexture.width, positionTexture.height)
 
-  framebuffer
-    // .resize(positionTexture.width, positionTexture.height)
-    .colorTarget(1, positionTexture)
-    // .depthTarget(getDepthTarget(positionTexture.width))
-  // framebuffer.colorTarget(1, colorTexture)
-  // framebuffer.colorTarget(2, radiusTexture)
+  framebuffer.colorTarget(1, positionTexture)
+  framebuffer.colorTarget(2, colorTexture)
+  // framebuffer.colorTarget(3, radiusTexture)
+  // .depthTarget(getDepthTarget(positionTexture.width))
   
   return framebuffer
 }
@@ -239,7 +238,7 @@ export const loadInterpolationInputVertexArray = () => {
     .vertexAttributeBuffer(3, getPositionBuffers().target)
     .vertexAttributeBuffer(4, getColorBuffers().target)
     .vertexAttributeBuffer(5, getRadiusBuffers().target)
-    // .instanceAttributeBuffer(6, getPositionBuffers().texturePixelPositions)
+    .vertexAttributeBuffer(6, getPositionBuffers().texturePixelPositions)
 }
 
 const getInterpolationOutputTransformFeedback = moize.infinite(() => {
@@ -266,81 +265,4 @@ export const getInterpolationDrawCall = () => {
     .uniform('mousePosition', getPointerPositionClip())
     .uniform('bufferDimensions', [getInterpolationFramebuffer().width, getInterpolationFramebuffer().height])
   return drawCall
-}
-
-// bake edge attributes into framebuffer textures
-
-export const getEdgeBakeInputVertexArray = moize.infinite(() => {
-  const app = getPicoApp()
-  return app.createVertexArray()
-})
-
-export const loadEdgeBakeInputVertexArray = moize.infinite(() => {
-  const app = getPicoApp()
-  return getEdgeBakeInputVertexArray()
-    .vertexAttributeBuffer(0, getPositionBuffers().current)
-    .indexBuffer(getEdgeIndexBuffer(getEdgeIndices()))
-    // .vertexAttributeBuffer(2, getColorBuffers().current)
-    // .vertexAttributeBuffer(3, getRadiusBuffers().current)
-})
-
-const getEdgeFramebuffer = moize.infinite(() => {
-  console.log('generating a new edge framebuffer')
-  const app = getPicoApp()
-  return app.createFramebuffer()
-})
-
-const getEdgeTexture = moize.infinite((internalFormat, numEdges, tag) => {
-  const app = getPicoApp()
-  const w = Math.ceil(Math.sqrt(numEdges*2 + 1))
-  const size : [number, number] = [w, w]
-
-  // return app.createTexture2D(size, size, { internalFormat })
-  return app.createTexture2D(128,128,
-    { 
-      // internalFormat,
-      // type: PicoGL.FLOAT,
-      // itemSize: 3*4
-    }
-  )
-})
-
-export const getEdgePositionTexture = moize.infinite((numEdges) => {
-  console.log('generating a new edge position texture')
-  return getEdgeTexture(PicoGL.RGBA32F, numEdges, 'position')
-})
-
-const getDepthRenderbuffer = moize.infinite((numEdges) => {
-  const app = getPicoApp();
-  const w = Math.ceil(Math.sqrt(numEdges*2 + 1))
-  const size : [number, number] = [w, w]
-  return app.createRenderbuffer(PicoGL.DEPTH_COMPONENT16, ...size);
-});
-
-export const loadEdgeFramebuffer = () => {
-  const edges = getEdgeIndices()
-  return getEdgeFramebuffer()
-    .colorTarget(0, getEdgePositionTexture(edges.length))
-    // .colorTarget(2, getEdgeTexture(PicoGL.RGBA32F, edges.length, 'color'))
-    // .colorTarget(3, getEdgeTexture(PicoGL.R32F, edges.length, 'size'))
-    // .depthTarget(getDepthRenderbuffer(edges.length))
-}
-
-import edgeBakeVs from '../shaders/bake-edge-attributes.vs'
-import edgeBakeFs from '../shaders/bake-edge-attributes.fs'
-
-export const getEdgeBakeProgram = moize.infinite(() => {
-  const app = getPicoApp()
-  return app.createProgram(
-    edgeBakeVs,
-    edgeBakeFs,
-  )
-})
-
-export const getEdgeBakeDrawCall = () => {
-  const app = getPicoApp()
-  const program = getEdgeBakeProgram()
-  const inputVertexArray = loadEdgeBakeInputVertexArray()
-  return app.createDrawCall(program, inputVertexArray)
-    // .primitive(PicoGL.POINTS)
 }

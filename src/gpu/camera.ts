@@ -7,7 +7,7 @@ export const getCamera = moize.infinite(() => {
   const camera = createCamera({
     phi: 0.5,
     theta: 1,
-    distance: 20,  
+    distance: 2000,  
     center: [0, 4, 0],
   })
   return camera

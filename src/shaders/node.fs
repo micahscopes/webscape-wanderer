@@ -1,5 +1,5 @@
 #version 300 es
-precision lowp float;
+precision highp float;
 flat in vec4 color;
 in vec3 normal;
 

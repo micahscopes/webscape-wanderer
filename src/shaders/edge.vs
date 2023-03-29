@@ -1,11 +1,10 @@
 #version 300 es
 precision highp float;
+precision highp int;
 
-layout(location=0) in vec3 segmentOffset;
-layout(location=1) in ivec2 edgeIndices;
-// layout(location=1) in vec4 nodeColor;
-// layout(location=2) in float nodeSize;
-// layout(location=3) in vec3 vPosition;
+layout(location=0) in ivec2 edgeIndices;
+layout(location=1) in vec3 segmentOffset;
+layout(location=2) in float segmentInterpolation;
 
 out vec4 color;
 out float radius;
@@ -17,19 +16,19 @@ uniform vec2 mousePosition;
 uniform mat4 view;
 uniform mat4 projection;
 uniform sampler2D positionTexture;
-uniform int[2] textureDimensions;
+uniform sampler2D colorTexture;
+uniform ivec2 textureDimensions;
 
 // given an index, return the corresponding position
-vec3 getPosition(int index) {
+ivec2 getTextureIndex(int index) {
+  int textureLength = textureDimensions.x * textureDimensions.y;
+  // index = textureLength - index;
+
   // get the x and y coordinates of the pixel
-  int x = index % textureDimensions[0];
-  int y = index / textureDimensions[1];
-  // get the pixel value
-  vec4 pixel = texelFetch(positionTexture, ivec2(x, y), 0);
-  // vec4 pixel = vec4(0.0, 0.0, 0.0, 0.0);
-  // convert to a 3D position
-  return pixel.xyz;
-  // return vec3(float(x), float(y), 0.0);
+  int x = index % textureDimensions.x;
+  int y = index / textureDimensions.x;
+
+  return ivec2(x,y);
 }
 
 float bump(float x, float q, float w) {
@@ -40,26 +39,25 @@ float bump(float x, float q, float w) {
 
 void main() {
   vec3 position;
-  // Using gl_VertexID to determine which position attribute to use
-  
-  // color=vec4(float(gl_VertexID % 3 == 0), float(gl_VertexID % 3 == 1), float(gl_VertexID % 3 == 2), 1.0);
-  
-  position = segmentOffset*10.0;
-  position += getPosition(edgeIndices.x);
+  vec3 sourcePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.x), 0).xyz;
+  vec3 targetPosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.y), 0).xyz;
 
-
-  // use `nodePosition` for the first two triangles and `nodePositionShift` for the third
-  // vec3 position = mix(nodePosition, nodePositionShift, 1.0 - float(gl_VertexID % 3));
+  vec4 sourceColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.x), 0);
+  vec4 targetColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.y), 0);
   
-  //use `nodePosition` for the first vertex and `nodePositionShift` for the second
-  // vec3 position = mix(nodePosition, nodePositionShift, 1.0-float(gl_VertexID % 2));
-  
-  // vec3 position = nodePositionShift;
-  // position = nodePosition;
+  position = segmentOffset*5.0;
 
-  // vec3 position = nodePositionShift;
-  // vec3 offset = vec3(segmentOffset[gl_VertexID % 3], 0.0);
+  float isSource = clamp(segmentInterpolation, 0.0, 1.0);
+  float isTarget = clamp(1.0 - segmentInterpolation, 0.0, 1.0);
+
+  position += sourcePosition*isSource;
+  position += targetPosition*isTarget;
+
+  color += sourceColor*isSource;
+  color += targetColor*isTarget;
+
   vec4 clipPosition = projection * view * vec4(position, 1.0);
+  gl_Position = clipPosition;
 
   float distance = length(mousePosition - clipPosition.xy);
   float nearness = bump(distance, 100.0, 20.0);
@@ -69,9 +67,12 @@ void main() {
   // color.a *= nearness * 0.4;
   // color = nodeColor;
   // radius = nodeSize;
-  color = vec4(1.0, 1.0, 1.0, 1.0);
+  // color = vec4(0.5, 0.0, float(gl_InstanceID)/5.0, 1.0);
   radius = 1.0;
   // gl_Position = vec4(segmentOffset[gl_VertexID % 5]/10.0, 0.0, 1.0);
-  gl_Position = clipPosition;
-  // gl_Position = vec4(nodePosition, 1.0);
+
+  
+  // debug the source positions in clip space
+  // vec4 debugPosition = vec4(sourcePosition+0.1*segmentOffset, 1.0);
+  // gl_Position = debugPosition;
 }
