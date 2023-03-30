@@ -21,10 +21,11 @@ uniform cameras {
 
 uniform sampler2D positionTexture;
 uniform sampler2D colorTexture;
+uniform sampler2D radiusTexture;
 uniform ivec2 textureDimensions;
 
 // given an index, return the corresponding position
-ivec2 getTextureIndex(int index) {
+ivec2 getTextureIndex(int index, ivec2 textureDimensions) {
   int textureLength = textureDimensions.x * textureDimensions.y;
   // index = textureLength - index;
 
@@ -42,28 +43,47 @@ float bump(float x, float q, float w) {
 }
 
 void main() {
-  vec3 position;
-  vec3 sourcePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.x), 0).xyz;
-  vec3 targetPosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.y), 0).xyz;
-
-  vec4 sourceColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.x), 0);
-  vec4 targetColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.y), 0);
+  vec4 position = vec4(0);
+  vec3 sourcePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).xyz;
+  vec3 targetPosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).xyz;
   
-  position = segmentOffset*5.0;
+  vec4 targetPositionClip = projection * view * vec4(targetPosition, 1.0);
+  vec4 sourcePositionClip = projection * view * vec4(sourcePosition, 1.0);
+  
+  vec2 edgeDirectionClip = normalize(targetPositionClip.xy - sourcePositionClip.xy);
+  vec2 edgePerpendicularClip = vec2(-edgeDirectionClip.y, edgeDirectionClip.x);
+
+  vec4 sourceColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0);
+  vec4 targetColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0);
 
   float isSource = float(segmentParameter);
   float isTarget = float(uint(1) - segmentParameter);
+  
+  // position = vec4(segmentOffset.y*10.0*edgePerpendicularClip, 0.0, 1.0);
+  // position /= (targetPositionClip.w*isTarget + sourcePositionClip.w*isSource);
 
-  position += sourcePosition*isSource;
-  position += targetPosition*isTarget;
+  position += sourcePositionClip*isSource;
+  position += targetPositionClip*isTarget;
+  
+  vec4 positionNDC = position / position.w;
+  
+  vec4 positionFixedStrokeNDC = vec4(segmentOffset.y*0.002 * edgePerpendicularClip, 0.0, 0.0);
+  vec4 positionFixedStrokeClip = positionFixedStrokeNDC * position.w;
+  
+  vec4 positionClip = vec4(position.xy + segmentOffset.y*1.0 * edgePerpendicularClip, position.zw);
+
+  position = mix(positionFixedStrokeClip, positionClip, 0.8);
+  // position.x = max(position.x, positionFixedStrokeClip.x);
+  // position.y = max(position.x, positionFixedStrokeClip.y);
+   
 
   color += sourceColor*isSource;
   color += targetColor*isTarget;
+  // color.a *= 0.5;
 
-  vec4 clipPosition = projection * view * vec4(position, 1.0);
-  gl_Position = clipPosition;
+  gl_Position = position;
 
-  float distance = length(mousePosition - clipPosition.xy);
+  float distance = length(mousePosition - position.xy);
   float nearness = bump(distance, 100.0, 20.0);
 
   // color = nodeColor;

@@ -43,7 +43,6 @@ export const getPicoApp = moize.infinite(() => {
     .enable(PicoGL.BLEND)
     .blendFunc(PicoGL.SRC_ALPHA, PicoGL.ONE_MINUS_SRC_ALPHA)
     .enable(PicoGL.DEPTH_TEST)
-    .disable(PicoGL.CULL_FACE)
     .depthFunc(PicoGL.LEQUAL)
     .clearColor(0.1, 0.1, 0.1, 1.0)
 });

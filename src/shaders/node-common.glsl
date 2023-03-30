@@ -42,7 +42,7 @@ void main() {
   vec4 orthoFixedClipPosition = orthoFixedProjection * orthoFixedView * vec4(vertexPosition*scale, 1.0);
   vec3 orthoFixedNDC = orthoFixedClipPosition.xyz / orthoFixedClipPosition.w;
   
-  vec4 orthoZoomedClipPosition = orthoZoomedProjection * orthoZoomedView * vec4(vertexPosition*scale, 1.0);
+  vec4 orthoZoomedClipPosition = orthoZoomedProjection * orthoZoomedView * vec4(vertexPosition*scale, 1.0)*0.5;
   vec3 orthoZoomedNDC = orthoZoomedClipPosition.xyz / orthoZoomedClipPosition.w;
 
   vec3 localNDC = mix(orthoZoomedNDC, orthoFixedNDC, 1.0-nearness);

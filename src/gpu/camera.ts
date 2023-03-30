@@ -109,7 +109,7 @@ export const updateCameras = () => {
   orthoCameraZoomed.tick(clippingDistances);
   
   const orthoCameraFixed = getOrthographicCamera('fixed');
-  // orthoCameraFixed.params.distance = 1000;
+  orthoCameraFixed.resize(window.innerWidth / window.innerHeight);
   orthoCameraFixed.tick(clippingDistances)
 
   const camerasUniformBuffer = getCamerasUniformBuffer()
