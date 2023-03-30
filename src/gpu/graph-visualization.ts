@@ -178,8 +178,6 @@ const segmentOffsetGeometry = [
 
 export const getEdgeIndexBuffer = moize.infinite((linkIndexPairs) => {
   const edgePairIndices = new Uint32Array(linkIndexPairs.flat());
-  // const edgePairIndices = new Uint16Array(linkSegmentStrip(linkIndexPairs).flat());
-  // console.log(edgePairIndices)
   return getPicoApp().createIndexBuffer(PicoGL.UNSIGNED_INT, edgePairIndices);
 })
 

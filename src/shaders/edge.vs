@@ -13,8 +13,12 @@ uniform vec2 mousePosition;
 // uniform vec2[6] segmentOffset;
 
 // camera matrices
-uniform mat4 view;
-uniform mat4 projection;
+
+uniform cameras {
+  mat4 projection;
+  mat4 view;
+};
+
 uniform sampler2D positionTexture;
 uniform sampler2D colorTexture;
 uniform ivec2 textureDimensions;

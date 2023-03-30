@@ -7,9 +7,9 @@ import {
   loadInterpolationFramebuffer,
   swapInterpolationBuffers,
 } from './animation';
-import { getEdgeIndices, getEdgeVisualizerDrawCall, getNodePickerBuffer, getNodePickerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
-import { getGlobalCamera, getLocalCamera } from './camera';
-import { getPointerPositionCanvas, getPointerPositionClip } from '../interaction';
+import { getEdgeVisualizerDrawCall, getNodePickerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
+import { getGlobalCamera, getOrthographicCamera, getCamerasUniformBuffer, updateCameras } from './camera';
+import { drawPickerBuffer, getPointerPositionCanvas, getPointerPositionClip, getSelectedIndex } from '../interaction';
 import { debugTexture, generateGradientTexture } from './debug-texture';
 
 export const PRIMITIVE_RESTART_INDEX = 65535;
@@ -48,12 +48,6 @@ export const getPicoApp = moize.infinite(() => {
     .clearColor(0.1, 0.1, 0.1, 1.0)
 });
 
-const getNodeIndexFromPickerColor = (color: Uint8Array) => {
-  const nodeIndex = color[0] + color[1] * 256 + color[2] * 256 * 256;
-  // the offset makes it so the default selection is nothing
-  return nodeIndex-1;
-}
-
 export const fillCanvasToWindow = () => {
   const app = getPicoApp();
   const { width, height } = getWidthAndHeight();
@@ -68,35 +62,13 @@ export const fillCanvasToWindow = () => {
   const camera = getGlobalCamera();
 }
 
-
-const randomTexure = generateGradientTexture(32, 32);
+// const randomTexure = generateGradientTexture(32, 32);
 
 // no need to get the picker pixel every frame
-let pickerFrame = 0;
-let pickerSkip = 3;
-
-const pickedColor = new Uint8Array(4);
-let lastSelectedIndex = -1;
-
 export const animateGraph = () => {
-  const globalCamera = getGlobalCamera();
-  globalCamera.resize(window.innerWidth / window.innerHeight);
-  globalCamera.tick({
-    near: Math.min(globalCamera.params.distance*0.1, 100),
-    far: globalCamera.params.distance+10000,
-  });
-
-  console.log(globalCamera.params.distance)
-  
-  const localCamera = getLocalCamera();
-  localCamera.resize(window.innerWidth / window.innerHeight);
-  localCamera.tick({
-    near: globalCamera.params.near,
-    far: globalCamera.params.far,
-  });
+  updateCameras();
 
   const app = getPicoApp();
-  // app.clear();
   fillCanvasToWindow();
 
   const interpolationFramebuffer = loadInterpolationFramebuffer()
@@ -112,53 +84,27 @@ export const animateGraph = () => {
 
   interpolation.draw();
   
-
-    const pickerBuffers = getNodePickerSwappableBuffer();
-    const area = 100;
-    const scissorRegion : [number, number, number, number] = [getPointerPositionCanvas()[0] - area / 2, getPointerPositionCanvas()[1] - area / 2, area, area];
-    app.drawFramebuffer(pickerBuffers.current)
-      .enable(PicoGL.SCISSOR_TEST)
-      .scissor(...scissorRegion)
-
-    const pickerDrawCall = getNodePickerDrawCall()
-      .uniform('projection', globalCamera.state.projection)
-      .uniform('view', globalCamera.state.view)
-      .uniform('localProjection', getLocalCamera().state.projection)
-      .uniform('localView', getLocalCamera().state.view)
-      .draw();
-    
-      app.defaultViewport().clear();
-      pickerDrawCall.draw();
-
-    if (pickerFrame === 0 || true) {
-        app.readFramebuffer(pickerBuffers.current)
-          .readPixel(...getPointerPositionCanvas(), pickedColor)
-        lastSelectedIndex = getNodeIndexFromPickerColor(pickedColor);
-        pickerBuffers.swap();
-    }
+  drawPickerBuffer();
 
   app.defaultDrawFramebuffer().defaultViewport().clearColor(0, 0, 0, 1).disable(PicoGL.SCISSOR_TEST)
-
+    
   const nodeDrawCall = getNodeVisualizerDrawCall()
+    .uniformBlock('cameras', getCamerasUniformBuffer())
     .uniform('mousePosition', getPointerPositionClip())
-    .uniform('projection', globalCamera.state.projection)
-    .uniform('view', globalCamera.state.view)
-    .uniform('localProjection', getLocalCamera().state.projection)
-    .uniform('localView', getLocalCamera().state.view)
-    .uniform('selectedIndex', lastSelectedIndex)
+    .uniform('selectedIndex', getSelectedIndex())
 
   const edgeDrawCall = getEdgeVisualizerDrawCall()
+    .uniformBlock('cameras', getCamerasUniformBuffer())
     .texture('positionTexture', getPositionBuffers().texture)
     .texture('colorTexture', getColorBuffers().texture)
     .uniform('textureDimensions', [interpolationFramebuffer.width, interpolationFramebuffer.height])
     .uniform('mousePosition', getPointerPositionClip())
-    .uniform('projection', globalCamera.state.projection)
-    .uniform('view', globalCamera.state.view)
     
   app.clear();
   nodeDrawCall.draw();
   edgeDrawCall.draw();
 
+  // debug stuff
   window.lolDrawThatThing = (thatThing: string) => {
     if (thatThing === 'color') {
       window.lolDrawThat = getColorBuffers().texture;
@@ -177,7 +123,6 @@ export const animateGraph = () => {
     debugTexture(window.lolDrawThat)
   }
 
-  pickerFrame = (pickerFrame + 1) % pickerSkip;
   swapInterpolationBuffers()
 
   requestAnimationFrame(animateGraph);

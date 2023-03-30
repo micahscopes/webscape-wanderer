@@ -2,6 +2,7 @@ import createCamera from 'inertial-turntable-camera'
 import interactionEvents from 'normalized-interaction-events'
 import { getPicoApp } from './rendering'
 import moize from 'moize'
+import PicoGL from 'picogl'
 
 export const getGlobalCamera = moize.infinite(() => {
   const camera = createCamera({
@@ -15,7 +16,7 @@ export const getGlobalCamera = moize.infinite(() => {
 })
 
 // an orthographic camera for the local node projection
-export const getLocalCamera = moize.infinite(() => {
+export const getOrthographicCamera = moize.infinite((tag) => {
   const distance = 200
   const camera = createCamera({
     phi: Math.PI/4,
@@ -73,4 +74,51 @@ export const setupCameraInteraction = () => {
     .on('touchstart', ev => ev.originalEvent.preventDefault())
     .on('pinchstart', ev => ev.originalEvent.preventDefault())
 
+}
+
+export const getCamerasUniformBuffer = moize.infinite(() => {
+  const app = getPicoApp();
+  const buffer = app.createUniformBuffer([
+    PicoGL.FLOAT_MAT4,
+    PicoGL.FLOAT_MAT4,
+    PicoGL.FLOAT_MAT4,
+    PicoGL.FLOAT_MAT4,
+    PicoGL.FLOAT_MAT4,
+    PicoGL.FLOAT_MAT4,
+  ]);
+  return buffer;
+});
+
+const clamp = (value: number, min: number, max: number) => {
+  return Math.min(Math.max(value, min), max);
+}
+
+export const updateCameras = () => {
+  const globalCamera = getGlobalCamera();
+  const clippingDistances = {
+    near: clamp(globalCamera.params.distance*0.1, 10, 50),
+    far: globalCamera.params.distance+10000,
+  }
+  globalCamera.resize(window.innerWidth / window.innerHeight);
+  globalCamera.tick(clippingDistances);
+  console.log(globalCamera.params.distance)
+  
+  const orthoCameraZoomed = getOrthographicCamera('zoomed');
+  orthoCameraZoomed.params.distance = globalCamera.params.distance;
+  orthoCameraZoomed.resize(window.innerWidth / window.innerHeight);
+  orthoCameraZoomed.tick(clippingDistances);
+  
+  const orthoCameraFixed = getOrthographicCamera('fixed');
+  // orthoCameraFixed.params.distance = 1000;
+  orthoCameraFixed.tick(clippingDistances)
+
+  const camerasUniformBuffer = getCamerasUniformBuffer()
+  camerasUniformBuffer
+    .set(0, globalCamera.state.projection)
+    .set(1, globalCamera.state.view)
+    .set(2, orthoCameraZoomed.state.projection)
+    .set(3, orthoCameraZoomed.state.view)
+    .set(4, orthoCameraFixed.state.projection)
+    .set(5, orthoCameraFixed.state.view)
+    .update();
 }
