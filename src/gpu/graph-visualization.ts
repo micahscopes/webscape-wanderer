@@ -20,6 +20,7 @@ import {
 
 import bunny from "bunny";
 import icosphere from 'primitive-icosphere'
+import cube from 'primitive-cube'
 import {vertexNormals} from "normals";
 
 const getNodeVisualizerProgram = moize(() => {
@@ -33,7 +34,7 @@ const getNodePickerProgram = moize(() => {
 const getNodeVertexArray = moize.infinite(() => {
   // const geo = simplify(bunny.cells, bunny.positions)(1000)
   // const geo = bunny
-  const geo = icosphere(1, { subdivisions: 2 })
+  const geo = cube(1)
   const positions = geo.positions
   const cells = geo.cells
   // console.log(positions, cells)
@@ -157,25 +158,23 @@ const getEdgeVisualizerProgram = moize(() =>
   getPicoApp().createProgram(edgeVs, edgeFs)
 );
 
+// const segmentOffsetGeometry = [
+//   [0, -0.5],
+//   [1, -0.5],
+//   [1, 0.5],
+//   [0, -0.5],
+//   [1, 0.5],
+//   [0, 0.5],
+// ]
+
 const segmentOffsetGeometry = [
   [0, -0.5],
-  [1, -0.5],
-  [1, 0.5],
   [0, -0.5],
-  [1, 0.5],
+  [0, 0.5],
+  [0, -0.5],
+  [0, 0.5],
   [0, 0.5],
 ]
-
-const RESTART_INDEX = 65535;
-const linkSegmentStrip = linkIndexPairs => 
-  linkIndexPairs.flatMap(([a, b]) => [
-    a, a-2, b,
-    b-2, a-2, a,
-    // a,
-    // Math.max(0, b-2),
-    RESTART_INDEX
-    // a-2, b-2, a-2
-  ].map(i => i === -1 ? RESTART_INDEX : i))
 
 export const getEdgeIndexBuffer = moize.infinite((linkIndexPairs) => {
   const edgePairIndices = new Uint32Array(linkIndexPairs.flat());
@@ -189,13 +188,6 @@ export const getEdgeIndexVertexBuffer = moize.infinite((linkIndexPairs) => {
   return getPicoApp().createVertexBuffer(PicoGL.INT, 2, edgePairIndices);
 })
 
-const getEdgeSegmentIndexBuffer = moize.infinite((linkIndexPairs) => {
-  const edgeSegmentIndices = new Uint16Array(linkSegmentStrip(linkIndexPairs));
-  // console.log('edgeSegmentIndices', edgeSegmentIndices)
-  return getPicoApp().createIndexBuffer(PicoGL.INT_VEC2, edgeSegmentIndices);
-})
-  
-
 const getSegmentOffsetBuffer = moize.infinite(() => {
   const segmentOffsetBuffer = getPicoApp().createVertexBuffer(
     PicoGL.FLOAT,
@@ -207,9 +199,9 @@ const getSegmentOffsetBuffer = moize.infinite(() => {
 
 const getSegmentOffsetInterpolationBuffer = moize.infinite(() => {
   const segmentOffsetInterpolationBuffer = getPicoApp().createVertexBuffer(
-    PicoGL.FLOAT,
+    PicoGL.UNSIGNED_BYTE,
     1,
-    new Float32Array([0, 1, 1, 0, 1, 0])
+    new Uint8Array([0, 1, 1, 0, 1, 0])
   );
   return segmentOffsetInterpolationBuffer;
 });

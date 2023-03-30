@@ -8,7 +8,7 @@ import {
   swapInterpolationBuffers,
 } from './animation';
 import { getEdgeIndices, getEdgeVisualizerDrawCall, getNodePickerBuffer, getNodePickerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
-import { getCamera } from './camera';
+import { getGlobalCamera, getLocalCamera } from './camera';
 import { getPointerPositionCanvas, getPointerPositionClip } from '../interaction';
 import { debugTexture, generateGradientTexture } from './debug-texture';
 
@@ -30,20 +30,21 @@ const getWidthAndHeight = () => {
 
 export const getPicoApp = moize.infinite(() => {
   const canvas = document.createElement('canvas');
-  canvas.getContext('webgl2')
   document.body.appendChild(canvas);
-  const { width, height } = getWidthAndHeight();
 
+  const { width, height } = getWidthAndHeight();
   return PicoGL.createApp(canvas,
     {
-      antialias: false,
+      antialias: true,
       extensions: ['OES_texture_float', 'EXT_color_buffer_float', 'ANGLE_instanced_arrays'],
     }
   )
     .viewport(0, 0, width, height)
-    .enable(PicoGL.DEPTH_TEST)
     .enable(PicoGL.BLEND)
     .blendFunc(PicoGL.SRC_ALPHA, PicoGL.ONE_MINUS_SRC_ALPHA)
+    .enable(PicoGL.DEPTH_TEST)
+    .disable(PicoGL.CULL_FACE)
+    .depthFunc(PicoGL.LEQUAL)
     .clearColor(0.1, 0.1, 0.1, 1.0)
 });
 
@@ -57,14 +58,14 @@ export const fillCanvasToWindow = () => {
   const app = getPicoApp();
   const { width, height } = getWidthAndHeight();
   app.resize(width, height);
-  getCamera().resize(width / height);
+  getGlobalCamera().resize(width / height);
   const canvas = app.canvas as HTMLCanvasElement;
   canvas.style.position = 'absolute';
   canvas.style.top = '0px';
   canvas.style.left = '0px';
   // canvas.style.width = "100vw";
   canvas.style.height = "100vh";
-  const camera = getCamera();
+  const camera = getGlobalCamera();
 }
 
 
@@ -78,12 +79,21 @@ const pickedColor = new Uint8Array(4);
 let lastSelectedIndex = -1;
 
 export const animateGraph = () => {
-  const camera = getCamera();
-  camera.resize(window.innerWidth / window.innerHeight);
-  camera.tick({
-    near: camera.params.distance * 0.01,
-    far: camera.params.distance * 2 + 2000,
-  })
+  const globalCamera = getGlobalCamera();
+  globalCamera.resize(window.innerWidth / window.innerHeight);
+  globalCamera.tick({
+    near: Math.min(globalCamera.params.distance*0.1, 100),
+    far: globalCamera.params.distance+10000,
+  });
+
+  console.log(globalCamera.params.distance)
+  
+  const localCamera = getLocalCamera();
+  localCamera.resize(window.innerWidth / window.innerHeight);
+  localCamera.tick({
+    near: globalCamera.params.near,
+    far: globalCamera.params.far,
+  });
 
   const app = getPicoApp();
   // app.clear();
@@ -111,8 +121,10 @@ export const animateGraph = () => {
       .scissor(...scissorRegion)
 
     const pickerDrawCall = getNodePickerDrawCall()
-      .uniform('projection', camera.state.projection)
-      .uniform('view', camera.state.view)
+      .uniform('projection', globalCamera.state.projection)
+      .uniform('view', globalCamera.state.view)
+      .uniform('localProjection', getLocalCamera().state.projection)
+      .uniform('localView', getLocalCamera().state.view)
       .draw();
     
       app.defaultViewport().clear();
@@ -129,8 +141,10 @@ export const animateGraph = () => {
 
   const nodeDrawCall = getNodeVisualizerDrawCall()
     .uniform('mousePosition', getPointerPositionClip())
-    .uniform('projection', camera.state.projection)
-    .uniform('view', camera.state.view)
+    .uniform('projection', globalCamera.state.projection)
+    .uniform('view', globalCamera.state.view)
+    .uniform('localProjection', getLocalCamera().state.projection)
+    .uniform('localView', getLocalCamera().state.view)
     .uniform('selectedIndex', lastSelectedIndex)
 
   const edgeDrawCall = getEdgeVisualizerDrawCall()
@@ -138,8 +152,8 @@ export const animateGraph = () => {
     .texture('colorTexture', getColorBuffers().texture)
     .uniform('textureDimensions', [interpolationFramebuffer.width, interpolationFramebuffer.height])
     .uniform('mousePosition', getPointerPositionClip())
-    .uniform('projection', camera.state.projection)
-    .uniform('view', camera.state.view)
+    .uniform('projection', globalCamera.state.projection)
+    .uniform('view', globalCamera.state.view)
     
   app.clear();
   nodeDrawCall.draw();

@@ -4,7 +4,7 @@ precision highp int;
 
 layout(location=0) in ivec2 edgeIndices;
 layout(location=1) in vec3 segmentOffset;
-layout(location=2) in float segmentInterpolation;
+layout(location=2) in lowp uint segmentParameter;
 
 out vec4 color;
 out float radius;
@@ -47,8 +47,8 @@ void main() {
   
   position = segmentOffset*5.0;
 
-  float isSource = clamp(segmentInterpolation, 0.0, 1.0);
-  float isTarget = clamp(1.0 - segmentInterpolation, 0.0, 1.0);
+  float isSource = float(segmentParameter);
+  float isTarget = float(uint(1) - segmentParameter);
 
   position += sourcePosition*isSource;
   position += targetPosition*isTarget;

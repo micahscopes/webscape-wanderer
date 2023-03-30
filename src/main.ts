@@ -15,7 +15,7 @@ setupSelection();
 let graphData
 graphData = await prepareVisualizerData();
 // graphData = randomGraph(50000, 30000);
-// graphData = randomTrees(1, 7, 5,8, 100000)
+// graphData = randomTrees(1, 7, 5,8, 100)
 const { nodes, linkIndexPairs } = graphData;
 console.log('nodes', nodes)
 

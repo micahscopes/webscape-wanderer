@@ -13,6 +13,7 @@ layout(location=4) in vec3 vertexNormal;
 // uniform vec2 mousePosition;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 localProjection;
 
 flat out vec4 pickerColor;
 
