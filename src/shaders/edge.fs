@@ -4,25 +4,26 @@ precision highp float;
 in vec4 color;
 in vec2 edgeDirection;
 in float edgeLength;
-in float isSource;
+in float isTarget;
 out vec4 fragColor;
 in float y;
 
+const float PI = 3.1415926535897932384626433832795;
 const float freq = 1.0;
+
+uniform float time;
 
 #include "bump.glsl"
 
+float wave(float t, float freq){ return pow(sin(t * freq * PI), 2.0); }
 void main() {
-  float t = isSource;
+  float u = isTarget;
+  float w = dot(gl_FragCoord.xy, edgeDirection)/u;
+  // wave = 1.0 - wave*0.5;
 
   fragColor = color;
-  // fragColor *= bump(y, 2.0, 1.0);
-  fragColor *= 1.0;
-    // pow(sin(t * freq * edgeLength), 2.0);
-    // sin(gl_FragCoord.x/10.0) * edgeDirection.x +
-    // cos(gl_FragCoord.y/10.0) * edgeDirection.y);
-  // fragColor = vec4(texture(positionTexture, vec2(0.2)).xyz, 1.0);
-  // fragColor = texture(positionTexture, gl_FragCoord.xy);
-  // fragColor.a = 1.0;
-  // fragColor = vec4(gl_FragCoord.xy, 0.0, 1.0);
+  fragColor *= bump(y, 4.0, sin(u*PI));
+  // fragColor.a *= wave(t, 4.0);
+  fragColor.a *= wave(u + time/4.0, 20.0);
+  fragColor.a *= bump(u-0.5, 7.0, 1.0);
 }

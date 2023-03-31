@@ -96,6 +96,7 @@ export const animateGraph = () => {
     .uniformBlock('cameras', getCamerasUniformBuffer())
     .uniform('mousePosition', getPointerPositionClip())
     .uniform('selectedIndex', getSelectedIndex())
+    .uniform('time', performance.now() / 1000)
 
   const edgeDrawCall = getEdgeVisualizerDrawCall()
     .uniformBlock('cameras', getCamerasUniformBuffer())
@@ -104,6 +105,9 @@ export const animateGraph = () => {
     .texture('sizeTexture', getRadiusBuffers().texture)
     .uniform('textureDimensions', [interpolationFramebuffer.width, interpolationFramebuffer.height])
     .uniform('mousePosition', getPointerPositionClip())
+    .uniform('selectedIndex', getSelectedIndex())
+    .uniform('time', performance.now() / 1000)
+
     
   app.clear();
   nodeDrawCall.draw();

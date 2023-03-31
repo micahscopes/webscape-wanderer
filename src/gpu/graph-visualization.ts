@@ -161,15 +161,6 @@ const getEdgeVisualizerProgram = moize(() =>
   getPicoApp().createProgram(edgeVs, edgeFs)
 );
 
-// const segmentOffsetGeometry = [
-//   [0, -0.5],
-//   [1, -0.5],
-//   [1, 0.5],
-//   [0, -0.5],
-//   [1, 0.5],
-//   [0, 0.5],
-// ]
-
 const segmentOffsetGeometry = [
   [0, -0.5],
   [0, -0.5],
