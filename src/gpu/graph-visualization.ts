@@ -21,6 +21,7 @@ import {
 import bunny from "bunny";
 import icosphere from 'primitive-icosphere'
 import cube from 'primitive-cube'
+import simplify from 'mesh-simplify'
 import {vertexNormals} from "normals";
 
 const getNodeVisualizerProgram = moize(() => {
@@ -32,9 +33,11 @@ const getNodePickerProgram = moize(() => {
 });
 
 const getNodeVertexArray = moize.infinite(() => {
-  // const geo = simplify(bunny.cells, bunny.positions)(1000)
-  // const geo = bunny
+  // let geo = icosphere(1, { subdivisions: 2 })
+  // geo = simplify(geo.cells, geo.positions)(100)
   const geo = cube(1)
+  // const geo = bunny
+  console.log(geo.positions.length, "bunny tris")
   const positions = geo.positions
   const cells = geo.cells
   // console.log(positions, cells)

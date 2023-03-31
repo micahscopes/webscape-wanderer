@@ -96,11 +96,17 @@ const clamp = (value: number, min: number, max: number) => {
 export const updateCameras = () => {
   const globalCamera = getGlobalCamera();
   const clippingDistances = {
-    near: clamp(globalCamera.params.distance*0.1, 10, 50),
-    far: globalCamera.params.distance+10000,
+    // near: clamp(globalCamera.params.distance*0.1, 10, 50),
+    // far: globalCamera.params.distance+10000,
+    // near: clamp(globalCamera.params.distance*0.01, 0, 50),
+    near: globalCamera.params.distance*0.1,
+    far: globalCamera.params.distance*50000,
   }
   globalCamera.resize(window.innerWidth / window.innerHeight);
-  globalCamera.tick(clippingDistances);
+  globalCamera.tick({
+    fovY: Math.PI/2,
+    ...clippingDistances
+  });
   console.log(globalCamera.params.distance)
   
   const orthoCameraZoomed = getOrthographicCamera('zoomed');
@@ -110,7 +116,10 @@ export const updateCameras = () => {
   
   const orthoCameraFixed = getOrthographicCamera('fixed');
   orthoCameraFixed.resize(window.innerWidth / window.innerHeight);
-  orthoCameraFixed.tick(clippingDistances)
+  orthoCameraFixed.tick({
+    near: orthoCameraFixed.params.distance*0.1,
+    far: orthoCameraFixed.params.distance*10000, 
+  })
 
   const camerasUniformBuffer = getCamerasUniformBuffer()
   camerasUniformBuffer
