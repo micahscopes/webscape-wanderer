@@ -12,7 +12,7 @@ flat in int vertexID;
 // output to framebuffers
 layout(location = 1) out vec4 position;
 layout(location = 2) out vec4 color;
-// layout(location = 3) out float size;
+layout(location = 3) out vec4 size;
 
 uniform vec2 bufferDimensions;
 
@@ -24,5 +24,5 @@ void main() {
   // }
 
   color = vUpdatedColor;
-  // size = vUpdatedSize;
+  size = vec4(vUpdatedSize,0,0,1);
 }

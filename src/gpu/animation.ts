@@ -17,7 +17,7 @@ const getTextureFormatFromTypeAndItemSize = (type: GLenum, itemSize: number) => 
         internalFormat = PicoGL.RGBA32F
         break
       case `${PicoGL.FLOAT}${3}`:
-        internalFormat = PicoGL.RGB32F
+        internalFormat = PicoGL.RGBA32F
         break
       case `${PicoGL.FLOAT}${2}`:
         internalFormat = PicoGL.RG32F
@@ -82,8 +82,10 @@ class InterpolationBuffers {
     const app = getPicoApp()
     const size = Math.ceil(Math.sqrt(numItems+1))
     const opts = {
-        internalFormat: PicoGL.RGBA32F,
-        // internalFormat: getTextureFormatFromTypeAndItemSize(this._type, this._itemSize),
+        // internalFormat: PicoGL.RGBA32F,
+        width: size,
+        height: size,
+        internalFormat: getTextureFormatFromTypeAndItemSize(this._type, this._itemSize),
         type: this._type,
         flipY: true,
         minFilter: PicoGL.NEAREST,
@@ -197,7 +199,7 @@ export const loadInterpolationFramebuffer = () => {
 
   framebuffer.colorTarget(1, positionTexture)
   framebuffer.colorTarget(2, colorTexture)
-  // framebuffer.colorTarget(3, radiusTexture)
+  framebuffer.colorTarget(3, radiusTexture)
   // .depthTarget(getDepthTarget(positionTexture.width))
   
   return framebuffer

@@ -8,8 +8,8 @@ in vec2 uv;
 out vec2 vUV;
 
 void main() {
-    vUV = uv;
-    gl_Position = vec4(position, 0.0, 1.0);
+  vUV = uv;
+  gl_Position = vec4(position, 0.0, 1.0);
 }`;
 
 const fragmentShaderSource = `#version 300 es
@@ -19,7 +19,8 @@ uniform sampler2D uTexture;
 out vec4 fragColor;
 
 void main() {
-    fragColor = texture(uTexture, vUV);
+  fragColor = texture(uTexture, vUV);
+  fragColor.a = 1.0;
 }`;
 
 const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);

@@ -20,6 +20,10 @@
   },
   "dependencies": {
     "@bnaya/objectbuffer": "^0.31.2",
+    "@luma.gl/webgl2-polyfill": "^7.3.2",
+    "@most/core": "^1.6.1",
+    "@most/dom-event": "^2.2.0",
+    "@most/scheduler": "^1.3.0",
     "3d-force-graph": "^1.70.17",
     "3d-force-graph-vr": "^2.0.16",
     "anime": "^0.1.2",

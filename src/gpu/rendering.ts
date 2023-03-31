@@ -4,13 +4,14 @@ import {
   getColorBuffers,
   getInterpolationDrawCall,
   getPositionBuffers,
+  getRadiusBuffers,
   loadInterpolationFramebuffer,
   swapInterpolationBuffers,
 } from './animation';
-import { getEdgeVisualizerDrawCall, getNodePickerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
-import { getGlobalCamera, getOrthographicCamera, getCamerasUniformBuffer, updateCameras } from './camera';
-import { drawPickerBuffer, getPointerPositionCanvas, getPointerPositionClip, getSelectedIndex } from '../interaction';
-import { debugTexture, generateGradientTexture } from './debug-texture';
+import { getEdgeVisualizerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
+import { getGlobalCamera, getCamerasUniformBuffer, updateCameras } from './camera';
+import { drawPickerBuffer, getPointerPositionClip, getSelectedIndex } from '../interaction';
+import { debugTexture } from './debug-texture';
 
 export const PRIMITIVE_RESTART_INDEX = 65535;
 const getWidthAndHeight = () => {
@@ -31,6 +32,10 @@ const getWidthAndHeight = () => {
 export const getPicoApp = moize.infinite(() => {
   const canvas = document.createElement('canvas');
   document.body.appendChild(canvas);
+
+  const gl = canvas.getContext('webgl2');
+  if (gl) console.log('WebGL2 initialized')
+  else console.error('WebGL2 failed to initialize')
 
   const { width, height } = getWidthAndHeight();
   return PicoGL.createApp(canvas,
@@ -96,6 +101,7 @@ export const animateGraph = () => {
     .uniformBlock('cameras', getCamerasUniformBuffer())
     .texture('positionTexture', getPositionBuffers().texture)
     .texture('colorTexture', getColorBuffers().texture)
+    .texture('sizeTexture', getRadiusBuffers().texture)
     .uniform('textureDimensions', [interpolationFramebuffer.width, interpolationFramebuffer.height])
     .uniform('mousePosition', getPointerPositionClip())
     
@@ -110,6 +116,9 @@ export const animateGraph = () => {
     }
     if (thatThing === 'position') {
       window.lolDrawThat = getPositionBuffers().texture;
+    }
+    if (thatThing === 'size') {
+      window.lolDrawThat = getRadiusBuffers().texture;
     }
     if (thatThing === 'picker') {
       window.lolDrawThat = getNodePickerSwappableBuffer().other.colorAttachments[0];

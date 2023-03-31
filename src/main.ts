@@ -37,6 +37,9 @@ window.setNodePositions = (positionsFn) => {
 window.setNodeColors = (colorFn) => {
     getColorBuffers().targetData(new Float32Array(new Array(nodes.length*4).fill(0).flatMap(colorFn)));
 }
+window.setNodeSizes = (sizeFn) => {
+    getRadiusBuffers().targetData(new Float32Array(new Array(nodes.length).fill(0).flatMap(sizeFn)));
+}
 await pickRandomVisualizer();
 
 // try out different visualizers:
@@ -56,7 +59,7 @@ const nodeSizes = new Float32Array(nodes.length);
 // }
 // sizes from node sizes
 for (let i = 0; i < nodeSizes.length; i++) {
-    nodeSizes[i] = Math.sqrt(nodes[i].size)*5;
+    nodeSizes[i] = Math.sqrt(nodes[i].size)/10;
 }
 getRadiusBuffers().targetData(nodeSizes)
 
