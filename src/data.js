@@ -27,14 +27,14 @@ const fetchData =
     return { valueNetworkData, projectsData, organizationsData }
   }
 
-export const graphData = moize.promise(fetchData)
+export const datEcosystemData = moize.promise(fetchData)
 export const graphWorker = wrap(new GraphDbWorker())
 export const graphLayoutWorker = wrap(new GraphLayoutWorker())
 
 export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*dependents?.length**1.2), 2)
 
-export const prepareVisualizerData = async () => {
-  const { valueNetworkData } = await graphData()
+export const getGraphData = moize.promise(async () => {
+  const { valueNetworkData } = await datEcosystemData()
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
     index,
     project,
@@ -62,9 +62,9 @@ export const prepareVisualizerData = async () => {
   const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
   
   return { nodes, links, linkIndexPairs, nodesByProject }
-}
+})
 
-export const randomGraph = (numNodes, numEdges) => {
+export const randomGraphData = (numNodes, numEdges) => {
   const nodes = [...Array(numNodes).keys()].map(index => ({
     index,
     id: String(index),
@@ -88,7 +88,7 @@ export const randomGraph = (numNodes, numEdges) => {
   return { nodes, links, linkIndexPairs }
 }
 
-export const randomTrees = (trunks, numLevels, minChildren, maxChildren, maxNodes) => {
+export const randomTreesData = (trunks, numLevels, minChildren, maxChildren, maxNodes) => {
   const nodes = []
   const links = []
   const linkIndexPairs = []
@@ -133,7 +133,7 @@ export const randomTrees = (trunks, numLevels, minChildren, maxChildren, maxNode
 
 
 export const prepareGraphDBWorker = async () => {
-  const data = await graphData()
+  const data = await datEcosystemData()
   return await graphWorker.buildGraph(data)
 }
 
@@ -142,6 +142,12 @@ export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3
     data, 
     proxy(positions => getPositionBuffers()?.targetData(positions))
   )
+}
+
+export const getNodePosition = (node) => {
+  const positions = getPositionBuffers().mostRecentData
+  const index = node.index
+  return [positions[index*3], positions[index*3+1], positions[index*3+2]]
 }
 
 export const useD3ForceSimulator = async (data) => await prepareGraphLayoutWorker(data || await prepareVisualizerData(), graphLayoutWorker.useD3ForceSimulator)

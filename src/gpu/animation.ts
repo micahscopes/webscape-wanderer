@@ -51,6 +51,8 @@ const getTextureFormatFromTypeAndItemSize = (type: GLenum, itemSize: number) => 
 class InterpolationBuffers {
   protected positionSwap = false
 
+  protected _mostRecentData: ArrayBufferView
+
   protected _currentA: VertexBuffer
   // protected _currentATexture: Texture
   protected _currentB: VertexBuffer
@@ -132,6 +134,7 @@ class InterpolationBuffers {
 
     if (ArrayBuffer.isView(data)) {
       this._target.data(data)
+      this._mostRecentData = data
       if (immediate) {
         this._currentA.data(data)
         this._currentB.data(data)
@@ -161,6 +164,10 @@ class InterpolationBuffers {
 
   get target() {
     return this._target
+  }
+  
+  get mostRecentData() {
+    return this._mostRecentData
   }
 }
 

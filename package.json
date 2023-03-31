@@ -11,6 +11,7 @@
   "devDependencies": {
     "angle-normals": "^1.0.0",
     "bunny": "^1.0.1",
+    "femtotween": "^2.0.3",
     "normalized-interaction-events": "^2.0.1",
     "vite": "^3.2.3",
     "vite-plugin-glsl": "^1.1.2",
@@ -24,9 +25,11 @@
     "@most/core": "^1.6.1",
     "@most/dom-event": "^2.2.0",
     "@most/scheduler": "^1.3.0",
+    "@tsdotnet/tween-factory": "^2.0.11",
     "3d-force-graph": "^1.70.17",
     "3d-force-graph-vr": "^2.0.16",
     "anime": "^0.1.2",
+    "animejs": "^3.2.1",
     "browser-level": "^1.0.1",
     "color-hash": "^2.0.1",
     "comlink": "^4.3.1",
@@ -57,9 +60,12 @@
     "quadstore": "^11.0.7",
     "quadstore-comunica": "^3.0.8",
     "rdf-data-factory": "^1.1.1",
+    "shifty": "^2.20.4",
     "sim-ecs": "^0.6.0",
     "three-bas": "github:zadvorsky/three.bas",
     "three-forcegraph": "^1.41.4",
-    "tiny-spring": "^1.0.0"
+    "tiny-spring": "^1.0.0",
+    "tween-factory": "^1.0.5-beta",
+    "tweener": "^0.1.3"
   }
 }

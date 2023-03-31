@@ -1,10 +1,9 @@
 import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./gpu/animation";
 import { animateGraph, getPicoApp } from './gpu/rendering';
 import { setEdgeIndices } from "./gpu/graph-visualization";
-import { prepareVisualizerData, prepareGraphLayoutWorker, randomGraph, randomTrees, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator } from "./data";
+import { prepareGraphLayoutWorker, randomGraphData, randomTreesData, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator, getGraphData } from "./data";
 import { trackFPS } from "./fps";
-import { setupCameraInteraction } from "./gpu/camera";
-import { setupSelection } from "./interaction";
+import { setupCameraInteraction, setupSelection } from "./interaction";
 
 const app = getPicoApp();
 app.clear();
@@ -13,7 +12,7 @@ setupCameraInteraction();
 setupSelection();
 
 let graphData
-graphData = await prepareVisualizerData();
+graphData = await getGraphData();
 // graphData = randomGraph(50000, 30000);
 // graphData = randomTrees(1, 7, 5,8, 10000)
 const { nodes, linkIndexPairs } = graphData;
@@ -59,7 +58,7 @@ const nodeSizes = new Float32Array(nodes.length);
 // }
 // sizes from node sizes
 for (let i = 0; i < nodeSizes.length; i++) {
-    nodeSizes[i] = Math.sqrt(nodes[i].size)/10;
+    nodeSizes[i] = Math.sqrt(nodes[i].size)/20;
 }
 getRadiusBuffers().targetData(nodeSizes)
 

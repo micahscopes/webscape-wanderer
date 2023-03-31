@@ -9,9 +9,10 @@ import {
   swapInterpolationBuffers,
 } from './animation';
 import { getEdgeVisualizerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
-import { getGlobalCamera, getCamerasUniformBuffer, updateCameras } from './camera';
-import { drawPickerBuffer, getPointerPositionClip, getSelectedIndex } from '../interaction';
+import { getCamerasUniformBuffer, updateCameraUniforms } from './camera';
+import { drawPickerBuffer, getPointerPositionClip, getSelectedIndex, globalCamera, updateCameras } from '../interaction';
 import { debugTexture } from './debug-texture';
+import { proxy } from 'comlink';
 
 export const PRIMITIVE_RESTART_INDEX = 65535;
 const getWidthAndHeight = () => {
@@ -56,21 +57,24 @@ export const fillCanvasToWindow = () => {
   const app = getPicoApp();
   const { width, height } = getWidthAndHeight();
   app.resize(width, height);
-  getGlobalCamera().resize(width / height);
+  globalCamera.resize(width / height);
   const canvas = app.canvas as HTMLCanvasElement;
   canvas.style.position = 'absolute';
   canvas.style.top = '0px';
   canvas.style.left = '0px';
   // canvas.style.width = "100vw";
   canvas.style.height = "100vh";
-  const camera = getGlobalCamera();
 }
 
 // const randomTexure = generateGradientTexture(32, 32);
 
 // no need to get the picker pixel every frame
 export const animateGraph = () => {
-  updateCameras();
+  updateCameras(
+    updateCameraUniforms,
+    window.innerWidth,
+    window.innerHeight,
+  );
 
   const app = getPicoApp();
   fillCanvasToWindow();

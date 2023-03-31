@@ -26,6 +26,9 @@ uniform sampler2D colorTexture;
 uniform sampler2D sizeTexture;
 uniform ivec2 textureDimensions;
 
+uniform bool selected;
+uniform bool hovered;
+
 // given an index, return the corresponding position
 ivec2 getTextureIndex(int index, ivec2 textureDimensions) {
   int textureLength = textureDimensions.x * textureDimensions.y;
