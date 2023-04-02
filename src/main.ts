@@ -5,8 +5,13 @@ import { prepareGraphLayoutWorker, randomGraphData, randomTreesData, graphLayout
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 
+
 const app = getPicoApp();
 app.clear();
+
+
+// app.canvas.addEventListener('selected', (ev: any) => {
+//     console.log('selected', ev.detail)
 
 setupCameraInteraction();
 setupSelection();
@@ -19,8 +24,8 @@ const { nodes, linkIndexPairs } = graphData;
 console.log('nodes', nodes)
 
 const visualizers = [
-    useD3ForceSimulator,
-    // useNgraphForceSimulator,
+    // useD3ForceSimulator,
+    useNgraphForceSimulator,
     // useFDGSimulator
 ]
 
@@ -58,7 +63,7 @@ const nodeSizes = new Float32Array(nodes.length);
 // }
 // sizes from node sizes
 for (let i = 0; i < nodeSizes.length; i++) {
-    nodeSizes[i] = Math.sqrt(nodes[i].size)/20;
+    nodeSizes[i] = Math.sqrt(nodes[i].size)/40;
 }
 getRadiusBuffers().targetData(nodeSizes)
 

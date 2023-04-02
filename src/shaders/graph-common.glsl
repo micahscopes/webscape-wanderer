@@ -72,11 +72,13 @@ vec4 edgeGeometry(
   float scale,
   in CameraMatrices cam
 ) {
-  vec2 edgePerpendicular = vec2(-edgeDirection.y, edgeDirection.x) * scale;
+  vec2 edgePerpendicular = vec2(-edgeDirection.y, edgeDirection.x)*scale/3.0;
   vec4 position = cam.projection * cam.view * vec4(nodePosition, 1.0);
   vec4 positionNDC = position / position.w;
+  // let's clamp the position in the near z direction to deal with precision loss near z = -1
+  // positionNDC.z = clamp(positionNDC.z, 0.5, 1.0);
 
-  vec4 positionClip = vec4(position.xy + vertexPosition.y*1.0 * edgePerpendicular, position.zw);
+  vec4 positionClip = vec4(position.xy + vertexPosition.y*1.0 * edgePerpendicular*50.0, position.zw);
 
   vec4 positionFixedStrokeNDC = positionNDC + vec4(vertexPosition.y * edgePerpendicular, 0.0, 0.0);
   vec4 positionFixedStrokeClip = positionFixedStrokeNDC * position.w;

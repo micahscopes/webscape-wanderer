@@ -8,11 +8,16 @@ layout(location=2) in lowp uint segmentParameter;
 
 
 out vec4 color;
+flat out vec4 sourceColor;
+flat out vec4 targetColor;
+out vec4 position;
 out float size;
-out vec2 edgeDirection;
-out float edgeLength;
+flat out vec2 edgeDirection;
+flat out float edgeLength;
+flat out float edgeLength2D;
 out float isSource;
 out float isTarget;
+out float v;
 out float y;
 
 uniform vec2 mousePosition;
@@ -48,10 +53,11 @@ float bump(float x, float q, float w) {
 }
 
 void main() {
-  isSource = float(uint(1)-segmentParameter);
-  isTarget = float(segmentParameter);
+  isSource = segmentOffset.x;
+  isTarget = 1.0-segmentOffset.x;
   
-  vec4 position = vec4(0);
+  position = vec4(0);
+  vec3 vertexOffset = segmentOffset + vec3(0.0, -0.5, 0.0);
 
   vec3 sourceNodePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).xyz;
   vec3 targetNodePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).xyz;
@@ -60,18 +66,20 @@ void main() {
   float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
   size = sourceSize*isSource + targetSize*isTarget;
+  size *= 0.25;
   
   vec4 targetPositionClip = projection * view * vec4(targetNodePosition, 1.0);
   vec4 sourcePositionClip = projection * view * vec4(sourceNodePosition, 1.0);
   
-  edgeDirection = normalize(targetPositionClip.xy/targetPositionClip.w - sourcePositionClip.xy/sourcePositionClip.w);
+  edgeDirection = normalize(targetPositionClip.xyz/targetPositionClip.w - sourcePositionClip.xyz/sourcePositionClip.w).xy;
   edgeLength = length(targetNodePosition.xyz - sourceNodePosition.xyz);
+  edgeLength2D = length((targetPositionClip.xy/targetPositionClip.w - sourcePositionClip.xy/sourcePositionClip.w));
 
   position = edgeGeometry(
     nodePosition,
-    segmentOffset,
+    vertexOffset,
     edgeDirection,
-    size/5.0,
+    size,
     CameraMatrices(
       projection,
       view,
@@ -83,16 +91,24 @@ void main() {
   );
 
   // apply a slight z offset to push edges back a bit
-  position.z += 0.01*position.w;
+  position.z += 0.01 * position.w * bump(vertexOffset.x, 4.0, 0.125);
 
   vec4 sourceColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0);
   vec4 targetColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0);
   color += sourceColor*isSource;
   color += targetColor*isTarget;
-  // color.a *= 0.5;
+  
+  // color = mix(sourceColor, targetColor, segmentOffset.x*(-1.0*isSource));
+  
+  // color = smoothstep(sourceColor, targetColor, vec4(vertexOffset.x)); 
+  
+
+  // add fog using the NDC z coordinate
+  // color.a *= 1.0 - clamp(position.z/position.w, 0.0, 1.0);
 
   gl_Position = position;
-  y = segmentOffset.y;
+  y = vertexOffset.y;
+  v = segmentOffset.y;
 
   float distance = length(mousePosition - position.xy);
   float nearness = bump(distance, 100.0, 20.0);

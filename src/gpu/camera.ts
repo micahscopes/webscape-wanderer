@@ -4,6 +4,7 @@ import { getPicoApp } from './rendering'
 import moize from 'moize'
 import PicoGL, { UniformBuffer } from 'picogl'
 import { proxy } from 'comlink'
+import { throttle } from 'lodash-es'
 
 export const getCamerasUniformBuffer = moize.infinite(() => {
   const app = getPicoApp();
@@ -22,7 +23,9 @@ const clamp = (value: number, min: number, max: number) => {
   return Math.min(Math.max(value, min), max);
 }
 
-export const updateCameraUniforms = proxy((
+export const updateCameraUniforms = proxy(
+  // throttle to prevent backpressure
+  throttle((
     globalPerspective,
     globalView,
     zoomedProjection,
@@ -39,4 +42,5 @@ export const updateCameraUniforms = proxy((
       .set(4, fixedPerspective)
       .set(5, fixedView)
       .update()
-  })
+    }, 1)
+  )

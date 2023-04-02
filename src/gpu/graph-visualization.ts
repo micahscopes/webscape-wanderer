@@ -161,14 +161,28 @@ const getEdgeVisualizerProgram = moize(() =>
   getPicoApp().createProgram(edgeVs, edgeFs)
 );
 
-const segmentOffsetGeometry = [
-  [0, -0.5],
-  [0, -0.5],
-  [0, 0.5],
-  [0, -0.5],
-  [0, 0.5],
-  [0, 0.5],
-]
+// const segmentOffsetGeometry = [
+//   [0, -0.5],
+//   [0.5, 0.5],
+//   [0, 0.5],
+//   [0, -0.5],
+//   [0.5, -0.5],
+//   [0.5, 0.5],
+//   // again but shifted over by x+0.5
+//   [0.5, -0.5],
+//   [1, 0.5],
+//   [0.5, 0.5],
+//   [0.5, -0.5],
+//   [1, -0.5],
+//   [1, 0.5],
+// ]
+
+import grid from 'grid-mesh'
+
+const segX = 100;
+const segY = 1;
+const segmentOffsetGeometry = grid(segX, segY);
+segmentOffsetGeometry.positions = segmentOffsetGeometry.positions.map(([x,y]) => [x/segX, y/segY])
 
 export const getEdgeIndexBuffer = moize.infinite((linkIndexPairs) => {
   const edgePairIndices = new Uint32Array(linkIndexPairs.flat());
@@ -184,18 +198,18 @@ const getSegmentOffsetBuffer = moize.infinite(() => {
   const segmentOffsetBuffer = getPicoApp().createVertexBuffer(
     PicoGL.FLOAT,
     2,
-    new Float32Array(segmentOffsetGeometry.flat())
+    new Float32Array(segmentOffsetGeometry.positions.flat())
   );
+  console.log(segmentOffsetGeometry)
   return segmentOffsetBuffer;
 });
 
-const getSegmentOffsetInterpolationBuffer = moize.infinite(() => {
-  const segmentOffsetInterpolationBuffer = getPicoApp().createVertexBuffer(
-    PicoGL.UNSIGNED_BYTE,
-    1,
-    new Uint8Array([0, 1, 1, 0, 1, 0])
+const getSegmentOffsetIndexBuffer = moize.infinite(() => {
+  const segmentOffsetIndexBuffer = getPicoApp().createIndexBuffer(
+    PicoGL.UNSIGNED_SHORT,
+    new Uint16Array(segmentOffsetGeometry.cells.flat())
   );
-  return segmentOffsetInterpolationBuffer;
+  return segmentOffsetIndexBuffer;
 });
 
 export const getEdgeVertexArray = moize.infinite(() => 
@@ -208,11 +222,11 @@ export const loadEdgeVertexArray = moize.infinite(
     const vertexArray = getEdgeVertexArray();
     const indexBuffer = getEdgeIndexVertexBuffer(edgeData);
     const segmentOffsetBuffer = getSegmentOffsetBuffer();
-    const segmentInterpolationBuffer = getSegmentOffsetInterpolationBuffer();
+    const segmentOffsetIndexBuffer = getSegmentOffsetIndexBuffer();
     return vertexArray
       .instanceAttributeBuffer(0, indexBuffer)
       .vertexAttributeBuffer(1, segmentOffsetBuffer)
-      .vertexAttributeBuffer(2, segmentInterpolationBuffer)
+      .indexBuffer(segmentOffsetIndexBuffer)
   }
 );
 

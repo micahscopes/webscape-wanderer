@@ -97,7 +97,7 @@ class InterpolationBuffers {
         wrapX: PicoGL.CLAMP_TO_EDGE,
       }
       
-    console.log('making texture', Math.pow(size, 2), opts, this._type)    
+    // console.log('making texture', Math.pow(size, 2), opts, this._type)    
     return app.createTexture2D(
       size, size,
       opts
@@ -107,7 +107,7 @@ class InterpolationBuffers {
   makeTextureIndicesVertexBuffer = moize.infinite((numItems) => {
     const app = getPicoApp()
     const indices = new Uint32Array(numItems).map((_, i) => i)
-    console.log('made texture indices', indices)
+    // console.log('made texture indices', indices)
     return app.createVertexBuffer(PicoGL.UNSIGNED_INT, 1, indices)
   })
 

@@ -14,6 +14,19 @@ import { drawPickerBuffer, getPointerPositionClip, getSelectedIndex, globalCamer
 import { debugTexture } from './debug-texture';
 import { proxy } from 'comlink';
 
+let drawEdges= true;
+let drawNodes = true;
+
+// toggle edges with keyboard
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'e') {
+    drawEdges = !drawEdges;
+  }
+  if (e.key === 'n') {
+    drawNodes = !drawNodes;
+  }
+})
+
 export const PRIMITIVE_RESTART_INDEX = 65535;
 const getWidthAndHeight = () => {
   // Calculate the device pixel ratio
@@ -114,8 +127,11 @@ export const animateGraph = () => {
 
     
   app.clear();
-  nodeDrawCall.draw();
-  edgeDrawCall.draw();
+  drawNodes && nodeDrawCall.draw();
+  drawEdges && edgeDrawCall.draw();
+  // drawEdges && edgeDrawCall.draw();
+  // drawEdges && edgeDrawCall.draw();
+  // drawEdges && edgeDrawCall.draw();
 
   // debug stuff
   window.lolDrawThatThing = (thatThing: string) => {

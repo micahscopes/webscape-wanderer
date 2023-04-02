@@ -9,7 +9,10 @@ export const getGlobalCamera = moize.infinite(() => {
   const camera = createCamera({
     // phi: 0.5,
     // theta: 1,
-    distance: 2000,  
+    panDecayTime: 200,
+    zoomDecayTime: 200,
+    rotationDecayTime: 500,
+    distance: 2000,
     // center: [0, 4, 0],
     // fovY: (5 / 360) * (Math.PI/2),
   })
@@ -50,7 +53,7 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
   }
   globalCamera.resize(width/height);
   globalCamera.tick({
-    fovY: Math.PI/2,
+    fovY: Math.PI/3,
     ...clippingDistances
   });
   // console.log(globalCamera.params.distance)

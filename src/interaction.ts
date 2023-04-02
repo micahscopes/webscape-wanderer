@@ -106,7 +106,7 @@ export const setupSelection = moize.infinite(() => {
     // @ts-ignore
     const node = ev.detail.info
     const nodePosition = getNodePosition(node);
-    console.log(nodePosition, 'setting camera center')
+    // console.log(nodePosition, 'setting camera center')
     setCameraCenter(nodePosition);
   })
 });
