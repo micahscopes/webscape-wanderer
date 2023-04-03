@@ -2,14 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dat Garden</title>
-    <script type="module" crossorigin src="/dat-garden-visualization/assets/index-d7983e53.js"></script>
-    <link rel="stylesheet" href="/dat-garden-visualization/assets/index-b528f970.css">
+    <script type="module" crossorigin src="/dat-garden-visualization/assets/index-72bc7eec.js"></script>
   </head>
   <body>
-    <div id="app"></div>
     
+    <div id="selection-info"></div>
   </body>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+    }
+    body div {
+      margin: 10px;
+    }
+    html, canvas {
+      scroll-behavior: smooth;
+    }
+    #selection-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      z-index: 500;
+    }
+  </style>
 </html>
