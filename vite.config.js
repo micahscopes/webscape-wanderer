@@ -4,23 +4,23 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import glsl from 'vite-plugin-glsl';
 import wasm from "vite-plugin-wasm";
 
+const plugins = [
+  topLevelAwait({
+    promiseExportName: "__tla",
+    promiseImportName: i => `__tla_${i}`
+  }),
+  glsl(),
+  wasm(), 
+  nodePolyfills({
+    protocolImports: true,
+  }),
+]
+
 export default defineConfig({
-  plugins: [
-    topLevelAwait({
-      // The export name of top-level await promise for each chunk module
-      promiseExportName: "__tla",
-      // The function to generate import names of top-level await promise in each chunk module
-      promiseImportName: i => `__tla_${i}`
-    }),
-    glsl(),
-    wasm(), 
-    nodePolyfills({
-      // Whether to polyfill `node:` protocol imports.
-      protocolImports: true,
-    }),
-  ],
+  plugins,
   worker: {
     format: "es",
+    plugins 
   },
-  base: "/dat-garden-visualization/",
+  base: "./",
 });

@@ -66,7 +66,7 @@ void main() {
   float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
   size = sourceSize*isSource + targetSize*isTarget;
-  size *= 0.25;
+  size *= 0.1;
   
   vec4 targetPositionClip = projection * view * vec4(targetNodePosition, 1.0);
   vec4 sourcePositionClip = projection * view * vec4(sourceNodePosition, 1.0);

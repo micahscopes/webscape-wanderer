@@ -179,7 +179,7 @@ const getEdgeVisualizerProgram = moize(() =>
 
 import grid from 'grid-mesh'
 
-const segX = 100;
+const segX = 20;
 const segY = 1;
 const segmentOffsetGeometry = grid(segX, segY);
 segmentOffsetGeometry.positions = segmentOffsetGeometry.positions.map(([x,y]) => [x/segX, y/segY])

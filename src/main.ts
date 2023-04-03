@@ -29,8 +29,8 @@ const { nodes, linkIndexPairs } = graphData;
 console.log('nodes', nodes)
 
 const visualizers = [
-    // useD3ForceSimulator,
-    useNgraphForceSimulator,
+    useD3ForceSimulator,
+    // useNgraphForceSimulator,
     // useFDGSimulator
 ]
 

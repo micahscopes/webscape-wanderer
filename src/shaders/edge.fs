@@ -54,7 +54,7 @@ void main() {
   //   triangle
   // );
 
-  // fragColor.a *= wave(u + time/4.0, 20.0);
+  fragColor.a *= wave(u + time/20.0, 50.0);
   // fragColor.a *= mix(1.0, bump(u-0.5, 5.0, 1.0), 0.8);
 
   fragColor.a = min(1.0-triangle/3.0, fragColor.a);

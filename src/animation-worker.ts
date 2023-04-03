@@ -1,9 +1,7 @@
-import { expose, proxy, transfer } from 'comlink'
+import { expose, transfer } from 'comlink'
 import createCamera from 'inertial-turntable-camera'
 import moize from 'moize'
-import { UniformBuffer } from 'picogl'
-import tweenFactory from '@tsdotnet/tween-factory';
-import cubic from '@tsdotnet/tween-factory/src/easing/cubic';
+import * as TWEEN from '@tweenjs/tween.js'
 
 export const getGlobalCamera = moize.infinite(() => {
   const camera = createCamera({
@@ -96,20 +94,32 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
 }
 
 
-const tween = tweenFactory().updateOnAnimationFrame().easing(cubic.easeInOut);
+// const tween = tweenFactory().updateOnAnimationFrame();
+let tween : TWEEN.Tween<any>;
 let activeTween: any = null
-const setCameraCenter = (center, duration=3000) => {
-  const newCenter = JSON.parse(JSON.stringify(center));
-  activeTween = tween.duration(duration).tween(globalCamera.params.center, newCenter)
+const setCameraCenter = (newCenter, duration=3000) => {
+  tween?.stop();
+  tween = (new TWEEN.Tween(globalCamera.params.center)).to(newCenter, duration).easing(TWEEN.Easing.Cubic.InOut)
+    // .onUpdate(() => {
+    //   console.log('hi')
+    // })
+  tween.start();
+  // console.log('tweening to', newCenter, 'from', center, 'duration', duration, 'tween', tween)
   globalCamera.params.rotationCenter = newCenter;
 }
+
+const animateTween = () => {
+  requestAnimationFrame(animateTween);
+  TWEEN.update();
+}
+animateTween();
 
 let panning = false
 let zooming = false
 
 const startPanning = () => {
   panning = true
-  activeTween.dispose();
+  tween.stop();
 }
 
 const stopPanning = () => {

@@ -39,7 +39,7 @@ export const setupFDGSimulator = moize.infinite(async (graphData) => {
   graphData.links.forEach((link) => {
     const source = String(link.sourceIndex);
     const target = String(link.targetIndex);
-    fdgSim.addEdge(source, target, link.strength || 0.0001);
+    fdgSim.addEdge(source, target, link.strength || 0.01);
   });
 
   positions = new Float32Array(graphData.nodes.length * 3);

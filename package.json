@@ -13,6 +13,7 @@
     "bunny": "^1.0.1",
     "femtotween": "^2.0.3",
     "normalized-interaction-events": "^2.0.1",
+    "rollup-plugin-polyfill-node": "^0.12.0",
     "vite": "^3.2.3",
     "vite-plugin-glsl": "^1.1.2",
     "vite-plugin-node-polyfills": "^0.5.0",
@@ -25,6 +26,7 @@
     "@most/core": "^1.6.1",
     "@most/dom-event": "^2.2.0",
     "@most/scheduler": "^1.3.0",
+    "@tsdotnet/collection-base": "^2.0.13",
     "@tsdotnet/tween-factory": "^2.0.11",
     "3d-force-graph": "^1.70.17",
     "3d-force-graph-vr": "^2.0.16",
@@ -37,6 +39,7 @@
     "d3-force-3d": "github:vasturiano/d3-force-3d",
     "dat.gui": "^0.7.9",
     "es6-promisify": "^7.0.0",
+    "events": "^3.3.0",
     "fdg-wasm": "^0.1.1",
     "grid-mesh": "^0.1.0",
     "gsap": "^3.11.4",
@@ -68,6 +71,7 @@
     "three-forcegraph": "^1.41.4",
     "tiny-spring": "^1.0.0",
     "tween-factory": "^1.0.5-beta",
+    "tween.js": "^16.6.0",
     "tweener": "^0.1.3"
   }
 }
