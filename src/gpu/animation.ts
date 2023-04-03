@@ -113,16 +113,17 @@ class InterpolationBuffers {
 
   // set target data, rebuilding buffers if necessary
   targetData = (data: ArrayBufferView | number, {
-    offset = 0, // offset for modifying existing data
+    offset = -1, // offset for modifying existing data
     immediate = false, // whether to update the current buffer immediately
   } = {}) => {
     let length
-    if (offset > 0) {
+    if (offset > -1) {
       // if the user provides an offset, use the existing buffer (which is memoized by length)
       length = this._target.numItems
       // console.log('using existing buffer', length, this._itemSize)
     } else {
       // otherwise, we need to figure out if the length has changed
+      offset = 0
       length = ArrayBuffer.isView(data) ? data.byteLength / this._itemSize / 4 : data
     }
     this._currentA = this.makeBuffer(length, 'currentA')
@@ -133,11 +134,11 @@ class InterpolationBuffers {
     this._texturePixelPositions = this.makeTextureIndicesVertexBuffer(length)
 
     if (ArrayBuffer.isView(data)) {
-      this._target.data(data)
+      this._target.data(data, offset * this._itemSize * 4)
       this._mostRecentData = data
       if (immediate) {
-        this._currentA.data(data)
-        this._currentB.data(data)
+        this._currentA.data(data, offset * this._itemSize * 4)
+        this._currentB.data(data, offset * this._itemSize * 4)
       }
     }
   }

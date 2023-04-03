@@ -2,7 +2,7 @@ import moize from 'moize'
 import GraphDbWorker from './graph-db-worker.js?worker'
 import GraphLayoutWorker from './graph-layout-worker.js?worker'
 import { wrap, proxy } from 'comlink'
-import { fromPairs, throttle } from 'lodash-es'
+import { fromPairs, throttle, uniqWith } from 'lodash-es'
 import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
 import { getPositionBuffers } from './gpu/animation'
 import ColorHash from 'color-hash'
@@ -31,7 +31,7 @@ export const datEcosystemData = moize.promise(fetchData)
 export const graphWorker = wrap(new GraphDbWorker())
 export const graphLayoutWorker = wrap(new GraphLayoutWorker())
 
-export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*dependents?.length**1.2), 2)
+export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*(dependents?.length || 1.0)**1.2), 2)
 
 export const getGraphData = moize.promise(async () => {
   const { valueNetworkData } = await datEcosystemData()
@@ -44,23 +44,36 @@ export const getGraphData = moize.promise(async () => {
     color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
     // color: [1,0,0,1],
     size: nodeScaleFn(dependents),
+    dependents,
+    dependencies,
   }))
   
   const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
-
   const nodeFromProject = fromPairs(nodes.map(node => [node.project, node]))
-  const links = Object.entries(valueNetworkData).flatMap(([project, { dependents }]) =>
-    dependents?.map(dependent => ({
+
+  let links = Object.entries(valueNetworkData).flatMap(([project, { dependents, dependencies }]) =>
+    (dependents || []).map(dependent => ({
       source: dependent,
       sourceNode: nodeFromProject[dependent],
-      sourceIndex: nodes.findIndex(node => node.project === dependent),
+      sourceIndex: nodes.find(node => node.project === dependent).index,
       target: project,
       targetNode: nodeFromProject[project],
-      targetIndex: nodes.findIndex(node => node.project === project),
+      targetIndex: nodes.find(node => node.project === project).index,
     }))
+    .concat((dependencies || []).map(dependency => ({
+      source: project,
+      sourceNode: nodeFromProject[project],
+      sourceIndex: nodes.find(node => node.project === project).index,
+      target: dependency,
+      targetNode: nodeFromProject[dependency],
+      targetIndex: nodes.find(node => node.project === dependency).index,
+    })))
   ).filter(edge => edge)
   
+  links = uniqWith(links, (a, b) => a.sourceIndex === b.sourceIndex && a.targetIndex === b.targetIndex)
+  
   const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
+  console.log('link count', links.length)
   
   const edgeIndexFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, index]))
   const edgeFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, links[index]]))

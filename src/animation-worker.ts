@@ -38,10 +38,6 @@ export const getOrthographicCamera = moize.infinite((tag) => {
 
 const globalCamera = getGlobalCamera()
 
-const zoomGlobalCamera = (...args) => {
-  globalCamera.zoom(...args)
-}
-
 export const updateCameras = (setCameraUniformBuffers, width, height) => {
   const globalCamera = getGlobalCamera();
   const clippingDistances = {
@@ -101,17 +97,49 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
 
 
 const tween = tweenFactory().updateOnAnimationFrame().easing(cubic.easeInOut);
-
+let activeTween: any = null
 const setCameraCenter = (center, duration=3000) => {
   const newCenter = JSON.parse(JSON.stringify(center));
-  tween.duration(duration).tween(globalCamera.params.center, newCenter)
+  activeTween = tween.duration(duration).tween(globalCamera.params.center, newCenter)
   globalCamera.params.rotationCenter = newCenter;
+}
 
+let panning = false
+let zooming = false
+
+const startPanning = () => {
+  panning = true
+  activeTween.dispose();
+}
+
+const stopPanning = () => {
+  panning = false
+}
+
+const startZooming = () => {
+  zooming = true
+}
+
+const stopZooming = () => {
+  zooming = false
+}
+
+const zoomGlobalCamera = (...args) => {
+  globalCamera.zoom(...args)
+}
+
+const panGlobalCamera = (...args) => {
+  globalCamera.pan(...args)
 }
 
 expose({
+  startPanning,
+  stopPanning,
+  startZooming,
+  stopZooming,
   globalCamera,
   updateCameras,
   setCameraCenter,
-  zoomGlobalCamera
+  zoomGlobalCamera,
+  panGlobalCamera,
 })

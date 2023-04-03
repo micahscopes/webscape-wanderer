@@ -1,7 +1,7 @@
 import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./gpu/animation";
 import { animateGraph, getPicoApp } from './gpu/rendering';
 import { setEdgeIndices } from "./gpu/graph-visualization";
-import { prepareGraphLayoutWorker, randomGraphData, randomTreesData, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator, getGraphData } from "./data";
+import { prepareGraphLayoutWorker, randomGraphData, randomTreesData, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator, getGraphData, prepareGraphDBWorker } from "./data";
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 
@@ -18,6 +18,11 @@ setupSelection();
 
 let graphData
 graphData = await getGraphData();
+await prepareGraphDBWorker();
+
+window.graphData = graphData
+
+
 // graphData = randomGraph(50000, 30000);
 // graphData = randomTrees(1, 7, 5,8, 10000)
 const { nodes, linkIndexPairs } = graphData;

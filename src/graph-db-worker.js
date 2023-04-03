@@ -14,7 +14,6 @@ const store = new Quadstore({ backend, dataFactory: df });
 const engine = new Engine(store);
 
 async function buildGraph(data) {
-  // await store.open();
   const {valueNetworkData, projectsData, organizationsData} = data
   
   const valueNetworkQuads = Object.entries(valueNetworkData)

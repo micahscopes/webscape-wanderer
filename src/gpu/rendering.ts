@@ -101,7 +101,7 @@ export const animateGraph = () => {
     .clearColor(0, 0, 0, 1)
     
   const interpolation = getInterpolationDrawCall()
-    .uniform('uMixRatio', 0.005)
+    .uniform('uMixRatio', 0.05)
 
   interpolation.draw();
   

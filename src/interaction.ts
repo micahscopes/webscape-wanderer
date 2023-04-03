@@ -3,18 +3,25 @@ import { getPicoApp } from "./gpu/rendering";
 import { getNodePickerDrawCall, getNodePickerSwappableBuffer } from "./gpu/graph-visualization";
 import PicoGL from "picogl";
 import { getCamerasUniformBuffer } from "./gpu/camera";
-import { datEcosystemData, getGraphData, getNodePosition } from "./data";
+import { datEcosystemData, doQuery, getGraphData, getNodePosition } from "./data";
   import { Tweenable, tween } from "shifty";
 import moize from "moize";
 import AnimationWorker from "./animation-worker?worker";
-import {Remote, wrap} from 'comlink'
+import {Remote, proxy, wrap} from 'comlink'
+import { downstreamDependentsDependenciesQuery } from "./query-helpers";
+import { applyVisualsToNode, applyVisuals, initializeSelectionVisuals } from "./selection";
 
 // window.animationWorker = wrap(new AnimationWorker())
 const {
   globalCamera,
   updateCameras,
   setCameraCenter,
-  zoomGlobalCamera
+  zoomGlobalCamera,
+  panGlobalCamera,
+  startPanning,
+  stopPanning,
+  startZooming,
+  stopZooming,
 } = wrap(new AnimationWorker()) as Remote<any>
 
 export {
@@ -102,14 +109,44 @@ export const setupSelection = moize.infinite(() => {
     }
   })
   
-  canvas.addEventListener("selected", (ev) => {
+  canvas.addEventListener("selected", async (ev) => {
+    console.log(ev)
     // @ts-ignore
     const node = ev.detail.info
-    const nodePosition = getNodePosition(node);
-    // console.log(nodePosition, 'setting camera center')
-    setCameraCenter(nodePosition);
-  })
-});
+    if (node) {
+      const nodePosition = getNodePosition(node);
+      const query = downstreamDependentsDependenciesQuery(node.project)
+      console.log('the node', node)
+      const {nodesByProject, links} = await getGraphData()
+      initializeSelectionVisuals().then(
+      () => {
+          doQuery(
+            query,
+            // proxy(data => {}),
+            proxy((data, get) => {
+              // if (node !== selectedNode) return;
+              get(["dependent", "dependency"]).then(({ dependent, dependency }) => {
+                // console.log("query result:", dependent.value, dependency.value);
+                applyVisualsToNode(nodesByProject[dependent.value], { immediate: false })
+                applyVisualsToNode(nodesByProject[dependency.value], { immediate: false })
+              });
+            }),
+            proxy(() => {
+              console.log("query ended:", query);
+            })
+          )
+          // console.log(nodePosition, 'setting camera center')
+          setCameraCenter(nodePosition);
+        })
+      } else {
+        console.log("no selection")
+        applyVisuals({
+          immediate: true
+        })
+      }
+    });
+      }
+    )
 
 const radiansPerHalfScreenWidth = Math.PI * 0.5;
 
@@ -127,7 +164,9 @@ export const setupCameraInteraction = () => {
       if (!ev.active || ev.buttons !== 1) return;
 
       if (ev.mods.shift) {
-        globalCamera.pan(ev.dx, ev.dy);
+        // globalCamera.pan(ev.dx, ev.dy);
+        startPanning();
+        panGlobalCamera(ev.dx, ev.dy);
       } else if (ev.mods.meta) {
         globalCamera.pivot(ev.dx, ev.dy);
       } else {
@@ -135,6 +174,8 @@ export const setupCameraInteraction = () => {
           -ev.dx * radiansPerHalfScreenWidth,
           -ev.dy * radiansPerHalfScreenWidth
         );
+        
+        stopPanning();
       }
       ev.originalEvent.preventDefault();
     })
@@ -148,12 +189,17 @@ export const setupCameraInteraction = () => {
     })
     .on('pinchmove', function (ev) {
       if (!ev.active) return;
+      startPanning();
+      startZooming();
       zoomGlobalCamera(0,0, 1 - ev.zoomx);
-      globalCamera.pan(ev.dx, ev.dy);
+      panGlobalCamera(ev.dx, ev.dy);
     })
     .on('touchstart', ev => ev.originalEvent.preventDefault())
     .on('pinchstart', ev => ev.originalEvent.preventDefault())
-
+    .on('pinchend', () => {
+      stopPanning();
+      stopZooming();
+    })
 }
 
 // let pickerFrame = 0;
