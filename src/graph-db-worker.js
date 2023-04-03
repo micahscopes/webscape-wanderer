@@ -3,7 +3,6 @@ import { DataFactory } from 'rdf-data-factory';
 import { Quadstore } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
 import { expose, proxy } from 'comlink'
-import { downstreamDependentsQuery, directDependentsQuery } from './query-helpers';
 
 import { OWNS, DEPENDS_ON} from './query-helpers';
 import { fromPairs } from 'lodash-es';

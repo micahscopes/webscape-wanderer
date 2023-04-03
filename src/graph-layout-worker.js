@@ -17,7 +17,7 @@ const moizeArgs = {
   onCacheMiss: () => console.log('using cached fdg-wasm layout')
 }
 
-export const setupFDGSimulator = moize.infinite(async (graphData) => {
+const setupFDGSimulator = moize.infinite(async (graphData) => {
   console.log('setting up fdg-wasm layout again')
   const wasm = await init();
   const fdgSim = new ForceGraphSimulator();

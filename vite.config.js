@@ -1,6 +1,6 @@
 import topLevelAwait from "vite-plugin-top-level-await";
 import { defineConfig } from 'vite'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+// import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import glsl from 'vite-plugin-glsl';
 import wasm from "vite-plugin-wasm";
 
@@ -11,16 +11,32 @@ const plugins = [
   }),
   glsl(),
   wasm(), 
-  nodePolyfills({
-    protocolImports: true,
-  }),
+  //nodePolyfills({
+  //  protocolImports: true,
+  //}),
 ]
 
 export default defineConfig({
+  target: "es6",
   plugins,
   worker: {
     format: "es",
-    plugins 
+    plugins
   },
-  base: "./",
+  base: "/dat-garden-visualization/",
+  optimizeDeps: {
+    esbuildOptions: {
+        // Node.js global to browser globalThis
+        define: {
+            global: 'globalThis',
+        },
+    },
+},
+  //server: {
+  //  fs: {
+  //    allow: ['../quadstore', '.'],
+  //  },
+  //},
+
+  //base: "./", // this relies on `import.meta`, which doesn't work in workers on firefox/webkit
 });

@@ -1,14 +1,14 @@
 import PicoGL from "picogl";
 import moize from "moize";
 
-import edgeVs from "../shaders/edge.vs";
-import edgeFs from "../shaders/edge.fs";
+import edgeVs from "../shaders/edge.vert";
+import edgeFs from "../shaders/edge.frag";
 
-import nodeVs from "../shaders/node.vs";
-import nodeFs from "../shaders/node.fs";
+import nodeVs from "../shaders/node.vert";
+import nodeFs from "../shaders/node.frag";
 
-import nodePickerVs from "../shaders/node-picker.vs";
-import nodePickerFs from "../shaders/node-picker.fs";
+import nodePickerVs from "../shaders/node-picker.vert";
+import nodePickerFs from "../shaders/node-picker.frag";
 
 import { getPicoApp } from "./rendering";
 import {
