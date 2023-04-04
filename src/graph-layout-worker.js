@@ -1,5 +1,6 @@
 import { expose, transfer } from "comlink";
 import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
+import requestAnimationFrame from 'raf';
 
 import moize from "moize";
 

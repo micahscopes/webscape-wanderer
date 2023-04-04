@@ -2,6 +2,7 @@ import PicoGL from 'picogl';
 import moize from 'moize';
 import {
   getColorBuffers,
+  getEmphasisBuffers,
   getInterpolationDrawCall,
   getPositionBuffers,
   getRadiusBuffers,
@@ -120,6 +121,7 @@ export const animateGraph = () => {
     .texture('positionTexture', getPositionBuffers().texture)
     .texture('colorTexture', getColorBuffers().texture)
     .texture('sizeTexture', getRadiusBuffers().texture)
+    .texture('emphasisTexture', getEmphasisBuffers().texture)
     .uniform('textureDimensions', [interpolationFramebuffer.width, interpolationFramebuffer.height])
     .uniform('mousePosition', getPointerPositionClip())
     .uniform('selectedIndex', getSelectedIndex())
@@ -145,7 +147,7 @@ export const animateGraph = () => {
       window.lolDrawThat = getRadiusBuffers().texture;
     }
     if (thatThing === 'picker') {
-      window.lolDrawThat = getNodePickerSwappableBuffer().other.colorAttachments[0];
+      window.lolDrawThat = getNodePickerSwappableBuffer().current.colorAttachments[0];
     }
     else {
       window.lolDrawThat = null;

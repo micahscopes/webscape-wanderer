@@ -2,6 +2,7 @@ import { expose, transfer } from 'comlink'
 import createCamera from 'inertial-turntable-camera'
 import moize from 'moize'
 import * as TWEEN from '@tweenjs/tween.js'
+import requestAnimationFrame from 'raf'
 
 export const getGlobalCamera = moize.infinite(() => {
   const camera = createCamera({
@@ -134,8 +135,11 @@ const stopZooming = () => {
   zooming = false
 }
 
-const zoomGlobalCamera = (...args) => {
-  globalCamera.zoom(...args)
+const zoomGlobalCamera = (x,y,delta) => {
+  // limit zooming in
+  if (globalCamera.params.distance > 25 || delta > 0) {
+    globalCamera.zoom(x,y,delta)
+  }
 }
 
 const panGlobalCamera = (...args) => {

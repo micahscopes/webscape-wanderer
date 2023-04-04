@@ -17,6 +17,7 @@ flat out float edgeLength;
 flat out float edgeLength2D;
 out float isSource;
 out float isTarget;
+out float emphasis;
 out float v;
 out float y;
 
@@ -29,6 +30,7 @@ uniform vec2 mousePosition;
 uniform sampler2D positionTexture;
 uniform sampler2D colorTexture;
 uniform sampler2D sizeTexture;
+uniform sampler2D emphasisTexture;
 uniform ivec2 textureDimensions;
 
 uniform bool selected;
@@ -65,6 +67,7 @@ void main() {
   
   float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
+
   size = sourceSize*isSource + targetSize*isTarget;
   size *= 0.1;
   
@@ -98,6 +101,11 @@ void main() {
   color += sourceColor*isSource;
   color += targetColor*isTarget;
   
+  float sourceEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
+  float targetEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
+
+  emphasis = sourceEmphasis*isSource + targetEmphasis*isTarget;
+
   // color = mix(sourceColor, targetColor, segmentOffset.x*(-1.0*isSource));
   
   // color = smoothstep(sourceColor, targetColor, vec4(vertexOffset.x)); 
@@ -111,19 +119,5 @@ void main() {
   v = segmentOffset.y;
 
   float distance = length(mousePosition - position.xy);
-  float nearness = bump(distance, 100.0, 20.0);
-
-  // color = nodeColor;
-  // color.xyz = normalize(color.xyz);
-  // color.a *= nearness * 0.4;
-  // color = nodeColor;
-  // size = nodeSize;
-  // color = vec4(0.5, 0.0, float(gl_InstanceID)/5.0, 1.0);
-  // size = 1.0;
-  // gl_Position = vec4(segmentOffset[gl_VertexID % 5]/10.0, 0.0, 1.0);
-
-  
-  // debug the source positions in clip space
-  // vec4 debugPosition = vec4(sourcePosition+0.1*segmentOffset, 1.0);
-  // gl_Position = debugPosition;
+  // float nearness = bump(distance, 100.0, 20.0);
 }

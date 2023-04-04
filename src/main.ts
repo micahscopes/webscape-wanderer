@@ -1,4 +1,4 @@
-import { getColorBuffers, getPositionBuffers, getRadiusBuffers } from "./gpu/animation";
+import { getColorBuffers, getEmphasisBuffers, getPositionBuffers, getRadiusBuffers } from "./gpu/animation";
 import { animateGraph, getPicoApp } from './gpu/rendering';
 import { setEdgeIndices } from "./gpu/graph-visualization";
 import { prepareGraphLayoutWorker, randomGraphData, randomTreesData, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator, getGraphData, prepareGraphDBWorker } from "./data";
@@ -9,10 +9,6 @@ import { setupCameraInteraction, setupSelection } from "./interaction";
 const app = getPicoApp();
 app.clear();
 
-
-// app.canvas.addEventListener('selected', (ev: any) => {
-//     console.log('selected', ev.detail)
-
 setupCameraInteraction();
 setupSelection();
 
@@ -20,11 +16,8 @@ let graphData
 graphData = await getGraphData();
 await prepareGraphDBWorker();
 
-window.graphData = graphData
-
-
-// graphData = randomGraph(50000, 30000);
-// graphData = randomTrees(1, 7, 5,8, 10000)
+// graphData = randomGraphData(2000,2000);
+// graphData = randomTreesData(1, 7, 5,8, 10000)
 const { nodes, linkIndexPairs } = graphData;
 console.log('nodes', nodes)
 
@@ -40,15 +33,6 @@ const pickRandomVisualizer = async () => {
     await visualizer(graphData);
 }
 
-window.setNodePositions = (positionsFn) => {
-    getPositionBuffers().targetData(new Float32Array(new Array(nodes.length*3).fill(0).flatMap(positionsFn)));
-}
-window.setNodeColors = (colorFn) => {
-    getColorBuffers().targetData(new Float32Array(new Array(nodes.length*4).fill(0).flatMap(colorFn)));
-}
-window.setNodeSizes = (sizeFn) => {
-    getRadiusBuffers().targetData(new Float32Array(new Array(nodes.length).fill(0).flatMap(sizeFn)));
-}
 await pickRandomVisualizer();
 
 // try out different visualizers:
@@ -61,12 +45,8 @@ setEdgeIndices(linkIndexPairs)
 const colors = new Float32Array(nodes.flatMap(({ color }) => color));
 getColorBuffers().targetData(colors)
 
-const nodeSizes = new Float32Array(nodes.length);
-// fill with random sizes
-// for (let i = 0; i < nodeSizes.length; i++) {
-//     nodeSizes[i] = Math.random() * 100;
-// }
 // sizes from node sizes
+const nodeSizes = new Float32Array(nodes.length);
 for (let i = 0; i < nodeSizes.length; i++) {
     nodeSizes[i] = Math.sqrt(nodes[i].size)/40;
 }
@@ -78,6 +58,8 @@ const randomPoint = () => [Math.random() * scale - 1, Math.random() * scale - 1,
 // const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
 const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint))
 getPositionBuffers().targetData(initialNodePositions);
+
+getEmphasisBuffers().targetData(new Float32Array(nodes.length).fill(0));
 
 // display the graph stats in a panel
 const statsPanel = document.createElement('div');
@@ -96,3 +78,15 @@ statsPanel.innerHTML = `
 animateGraph();
 trackFPS();
 
+
+// debugging stuff
+window.setNodePositions = (positionsFn) => {
+    getPositionBuffers().targetData(new Float32Array(new Array(nodes.length*3).fill(0).flatMap(positionsFn)));
+}
+window.setNodeColors = (colorFn) => {
+    getColorBuffers().targetData(new Float32Array(new Array(nodes.length*4).fill(0).flatMap(colorFn)));
+}
+window.setNodeSizes = (sizeFn) => {
+    getRadiusBuffers().targetData(new Float32Array(new Array(nodes.length).fill(0).flatMap(sizeFn)));
+}
+window.graphData = graphData

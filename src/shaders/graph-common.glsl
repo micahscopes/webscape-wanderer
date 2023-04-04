@@ -84,5 +84,5 @@ vec4 edgeGeometry(
   vec4 positionFixedStrokeClip = positionFixedStrokeNDC * position.w;
 
   // return positionFixedStrokeClip;
-  return mix(positionFixedStrokeClip, positionClip, 0.5);
+  return mix(positionFixedStrokeClip, positionClip, 0.8);
 }

@@ -3,15 +3,16 @@ precision highp float;
 
 in vec4 color;
 in vec4 position;
+in float emphasis;
+in float size;
 flat in vec2 edgeDirection;
 flat in float edgeLength;
 flat in float edgeLength2D;
 in float isTarget;
 in float isSource;
-in float size;
-out vec4 fragColor;
 in float y;
-in float v;
+
+out vec4 fragColor;
 
 const float PI = 3.1415926535897932384626433832795;
 const float freq = 1.0;
@@ -49,21 +50,24 @@ void main() {
   float triangle = d < 0.0 ? 1.0 : 0.0;
 
   fragColor = color;
+  
   // fragColor *= max(
   //   (4.0 + bump(y, 1.0, sin(u*PI)))/5.0,
   //   triangle
   // );
 
-  fragColor.a *= wave(u + time/20.0, 50.0);
-  // fragColor.a *= mix(1.0, bump(u-0.5, 5.0, 1.0), 0.8);
+  // waves
+  fragColor.a *= mix(1.0, wave(u + time/20.0, 50.0), mix(0.25, 1.0, emphasis));
+  
+  // soften edges near nodes
+  // fragColor.a *= mix(1.0, bump(u-0.5, 5.0, 1.0), (1.0 - emphasis)*0.8);
 
+  // add a little triangle
   fragColor.a = min(1.0-triangle/3.0, fragColor.a);
   
-  // fragColor.a*=0.75;
+  fragColor.a *= mix(0.5, 1.0, emphasis);
   
   // add fog using the z-buffer
-  // parameters to control the fog:
-  
   fragColor.rgb *= mix(1.0, bump(position.x/position.w, 2.0, 1.0), 0.5);
 
   // debug y parameter

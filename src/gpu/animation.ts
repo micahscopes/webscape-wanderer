@@ -175,11 +175,13 @@ class InterpolationBuffers {
 export const getPositionBuffers = moize.infinite(() => new InterpolationBuffers(PicoGL.FLOAT, 3, 1))
 export const getColorBuffers = moize.infinite(() => new InterpolationBuffers(PicoGL.FLOAT, 4, 1))
 export const getRadiusBuffers = moize.infinite(() => new InterpolationBuffers(PicoGL.FLOAT, 1, 1))
+export const getEmphasisBuffers = moize.infinite(() => new InterpolationBuffers(PicoGL.FLOAT, 1, 1))
 
 export const swapInterpolationBuffers = () => {
   getPositionBuffers().swap()
   getRadiusBuffers().swap()
   getColorBuffers().swap()
+  getEmphasisBuffers().swap()
 }
 
 export const getInterpolationFramebuffer = moize.infinite(() => {
@@ -202,25 +204,29 @@ export const loadInterpolationFramebuffer = () => {
   const positionTexture = getPositionBuffers().texture
   const colorTexture = getColorBuffers().texture
   const radiusTexture = getRadiusBuffers().texture
+  const emphasisTexture = getEmphasisBuffers().texture
   
   // console.log('resizing framebuffer', positionTexture.width, positionTexture.height)
 
   framebuffer.colorTarget(1, positionTexture)
   framebuffer.colorTarget(2, colorTexture)
   framebuffer.colorTarget(3, radiusTexture)
+  framebuffer.colorTarget(4, emphasisTexture)
+
   // .depthTarget(getDepthTarget(positionTexture.width))
   
   return framebuffer
 }
 
-export const setInterpolationTargets = (positions: ArrayBufferView, colors: ArrayBufferView, sizes: ArrayBufferView, opts: {
-  offset?: number,
-  immediate?: boolean,
-}) => {
-  getPositionBuffers().targetData(positions, opts)
-  getColorBuffers().targetData(colors, opts)
-  getRadiusBuffers().targetData(sizes, opts)
-}
+// export const setInterpolationTargets = (positions: ArrayBufferView, colors: ArrayBufferView, sizes: ArrayBufferView, opts: {
+//   offset?: number,
+//   immediate?: boolean,
+// }) => {
+//   getPositionBuffers().targetData(positions, opts)
+//   getColorBuffers().targetData(colors, opts)
+//   getRadiusBuffers().targetData(sizes, opts)
+//   getEmphasisBuffers().targetData(new Float32Array(positions.byteLength / 4), opts)
+// }
 
 export const getInterpolationProgram = moize.infinite(() => {
   const app = getPicoApp()
@@ -228,7 +234,7 @@ export const getInterpolationProgram = moize.infinite(() => {
     interpolationVs,
     interpolationFs,
     {
-      transformFeedbackVaryings: ['vUpdatedPosition', 'vUpdatedColor', 'vUpdatedSize'],
+      transformFeedbackVaryings: ['vUpdatedPosition', 'vUpdatedColor', 'vUpdatedSize', 'vUpdatedEmphasis'],
       transformFeedbackMode: PicoGL.SEPARATE_ATTRIBS,
     }
   )
@@ -245,10 +251,12 @@ export const loadInterpolationInputVertexArray = () => {
     .vertexAttributeBuffer(0, getPositionBuffers().current)
     .vertexAttributeBuffer(1, getColorBuffers().current)
     .vertexAttributeBuffer(2, getRadiusBuffers().current)
-    .vertexAttributeBuffer(3, getPositionBuffers().target)
-    .vertexAttributeBuffer(4, getColorBuffers().target)
-    .vertexAttributeBuffer(5, getRadiusBuffers().target)
-    .vertexAttributeBuffer(6, getPositionBuffers().texturePixelPositions)
+    .vertexAttributeBuffer(3, getEmphasisBuffers().current)
+    .vertexAttributeBuffer(4, getPositionBuffers().target)
+    .vertexAttributeBuffer(5, getColorBuffers().target)
+    .vertexAttributeBuffer(6, getRadiusBuffers().target)
+    .vertexAttributeBuffer(7, getEmphasisBuffers().target)
+    .vertexAttributeBuffer(8, getPositionBuffers().texturePixelPositions)
 }
 
 const getInterpolationOutputTransformFeedback = moize.infinite(() => {
@@ -262,6 +270,7 @@ export const loadInterpolationOutputTransformFeedback = () => {
     .feedbackBuffer(0, getPositionBuffers().updated)
     .feedbackBuffer(1, getColorBuffers().updated)
     .feedbackBuffer(2, getRadiusBuffers().updated)
+    .feedbackBuffer(3, getEmphasisBuffers().updated)
 }
 
 export const getInterpolationDrawCall = () => {

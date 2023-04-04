@@ -5,16 +5,19 @@ precision highp int;
 layout(location=0) in vec3 currentPosition;
 layout(location=1) in vec4 currentColor;
 layout(location=2) in float currentSize;
-layout(location=3) in vec3 targetPosition;
-layout(location=4) in vec4 targetColor;
-layout(location=5) in float targetSize;
+layout(location=3) in float currentEmphasis;
+layout(location=4) in vec3 targetPosition;
+layout(location=5) in vec4 targetColor;
+layout(location=6) in float targetSize;
+layout(location=7) in float targetEmphasis;
 
-layout(location=6) in uint vertexPosition;
+layout(location=8) in uint vertexPosition;
 
 out vec3 vTargetPosition;
 out vec3 vUpdatedPosition;
 out vec4 vUpdatedColor;
 out float vUpdatedSize;
+out float vUpdatedEmphasis;
 
 uniform float uMixRatio;
 uniform vec2 mousePosition;
@@ -42,6 +45,7 @@ void main() {
   vUpdatedPosition = currentPosition + normalize(delta)*min(0.005, distance/200.0);
   vUpdatedPosition = mix(currentPosition, targetPosition, mixRatio);
   vUpdatedColor = mix(currentColor, targetColor, mixRatio);
+  vUpdatedEmphasis = mix(currentEmphasis, targetEmphasis, mixRatio);
 
   uint v = uint(gl_VertexID);
   // uint v = vertexPosition;

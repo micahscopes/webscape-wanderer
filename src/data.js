@@ -34,11 +34,13 @@ export const graphLayoutWorker = wrap(new GraphLayoutWorker())
 export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*(dependents?.length || 1.0)**1.2), 2)
 
 export const getGraphData = moize.promise(async () => {
-  const { valueNetworkData } = await datEcosystemData()
+  const { valueNetworkData, projectsData } = await datEcosystemData()
+  console.log(await datEcosystemData())
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
     index,
     project,
     id: project,
+    data: projectsData[project],
     owner,
     // color: [...colorHash.rgb(project || String(index)).map(x => x/255), 1],
     color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
