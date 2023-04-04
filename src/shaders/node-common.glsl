@@ -26,6 +26,10 @@ out vec3 normal;
 void main() {
   float scale = nodeSize;
 
+  #ifdef PICKER
+    scale *= 1.25;
+  #endif
+
   NodeGeometryBundle geo = nodeGeometry(
     nodePosition,
     vertexPosition,

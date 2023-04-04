@@ -15,6 +15,7 @@ export const getCamerasUniformBuffer = moize.infinite(() => {
     PicoGL.FLOAT_MAT4,
     PicoGL.FLOAT_MAT4,
     PicoGL.FLOAT_MAT4,
+    PicoGL.UNSIGNED_INT
   ]);
   return buffer;
 });
@@ -31,7 +32,7 @@ export const updateCameraUniforms = proxy(
     zoomedProjection,
     zoomedView,
     fixedPerspective,
-    fixedView    
+    fixedView,
   ) => {
     // console.log('updating cameras', globalPerspective, globalView, zoomedProjection, zoomedView, fixedPerspective, fixedView)    
     getCamerasUniformBuffer()

@@ -11,9 +11,10 @@ import {
 } from './animation';
 import { getEdgeVisualizerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
 import { getCamerasUniformBuffer, updateCameraUniforms } from './camera';
-import { drawPickerBuffer, getPointerPositionClip, getSelectedIndex, globalCamera, updateCameras } from '../interaction';
+import { drawPickerBuffer, getPointerPositionClip, globalCamera, updateCameras } from '../interaction';
 import { debugTexture } from './debug-texture';
-import { proxy } from 'comlink';
+import { colord } from 'colord'
+import { getSelectedIndex } from '../selection';
 
 let drawEdges= true;
 let drawNodes = true;
@@ -28,7 +29,15 @@ window.addEventListener('keydown', (e) => {
   }
 })
 
+
+
 export const PRIMITIVE_RESTART_INDEX = 65535;
+// export const CLEAR_COLOR : [number,number,number,number] = [0.1,0.1,0.1, 1.0];
+
+const getClearColor = () =>
+  [colord(document.body.style.backgroundColor).toRgb()]
+  .flatMap(({r,g,b,a}) => [r,g,b,a].map(x => x/255)) as [number,number,number,number]
+
 const getWidthAndHeight = () => {
   // Calculate the device pixel ratio
   const devicePixelRatio = window.devicePixelRatio || 1;
@@ -64,7 +73,7 @@ export const getPicoApp = moize.infinite(() => {
     .blendFunc(PicoGL.SRC_ALPHA, PicoGL.ONE_MINUS_SRC_ALPHA)
     .enable(PicoGL.DEPTH_TEST)
     .depthFunc(PicoGL.LEQUAL)
-    .clearColor(0.1, 0.1, 0.1, 1.0)
+    .clearColor(...getClearColor())
 });
 
 export const fillCanvasToWindow = () => {
@@ -108,7 +117,7 @@ export const animateGraph = () => {
   
   drawPickerBuffer();
 
-  app.defaultDrawFramebuffer().defaultViewport().clearColor(0, 0, 0, 1).disable(PicoGL.SCISSOR_TEST)
+  app.defaultDrawFramebuffer().defaultViewport().clearColor(...getClearColor()).disable(PicoGL.SCISSOR_TEST)
     
   const nodeDrawCall = getNodeVisualizerDrawCall()
     .uniformBlock('cameras', getCamerasUniformBuffer())
@@ -131,9 +140,6 @@ export const animateGraph = () => {
   app.clear();
   drawNodes && nodeDrawCall.draw();
   drawEdges && edgeDrawCall.draw();
-  // drawEdges && edgeDrawCall.draw();
-  // drawEdges && edgeDrawCall.draw();
-  // drawEdges && edgeDrawCall.draw();
 
   // debug stuff
   window.lolDrawThatThing = (thatThing: string) => {

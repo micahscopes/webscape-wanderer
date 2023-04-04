@@ -55,9 +55,11 @@ void main() {
   //   (4.0 + bump(y, 1.0, sin(u*PI)))/5.0,
   //   triangle
   // );
+  
+  fragColor.a *= bump(y, 1.0, 1.0);
 
   // waves
-  fragColor.a *= mix(1.0, wave(u + time/20.0, 50.0), mix(0.25, 1.0, emphasis));
+  fragColor.a *= mix(1.0, wave(u + time/20.0, 50.0), mix(0.1, 1.0, emphasis));
   
   // soften edges near nodes
   // fragColor.a *= mix(1.0, bump(u-0.5, 5.0, 1.0), (1.0 - emphasis)*0.8);

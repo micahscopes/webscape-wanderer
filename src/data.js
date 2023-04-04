@@ -7,11 +7,7 @@ import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
 import { getPositionBuffers } from './gpu/animation'
 import ColorHash from 'color-hash'
 
-const colorHash = new ColorHash({ lightness: [0.35, 0.5, 0.65] });
-
-function projectOrgColor(node) {
-  return colorHash.rgb(node.owner || "");
-}
+const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
 const fetchData =
   async () => {
@@ -33,41 +29,64 @@ export const graphLayoutWorker = wrap(new GraphLayoutWorker())
 
 export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*(dependents?.length || 1.0)**1.2), 2)
 
+export const makeNavId = (project) => {
+  const id = project
+    // remove base url portion matching any site, including leading slash
+    .replace(/^(https?:\/\/)?(www\.)?([a-z0-9-]+\.)+[a-z0-9-]+/i, '')
+    // remove trailing slash
+    .replace(/\/$/, '')
+    // remove leading slash
+    .replace(/^\//, '')
+    // convert non-url friendly characters to dashes
+    .replace(/[^A-Za-z0-9\.]/gi, '-')
+    // remove duplicate dashes
+    .replace(/-+/g, '-')
+    // replace leading "package"
+    .replace(/^package-/, '')
+    // remove "v-" from version numbers
+    .replace(/-v-/, '-')
+  
+    return id //.split('-').reverse().join('-')  
+}
+
 export const getGraphData = moize.promise(async () => {
-  const { valueNetworkData, projectsData } = await datEcosystemData()
+  const { valueNetworkData, projectsData, organizationsData } = await datEcosystemData()
   console.log(await datEcosystemData())
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
     index,
     project,
     id: project,
     data: projectsData[project],
+    // make a url friendly id
+    navId: makeNavId(project),
     owner,
-    // color: [...colorHash.rgb(project || String(index)).map(x => x/255), 1],
+    ownerData: organizationsData[owner],
     color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
-    // color: [1,0,0,1],
     size: nodeScaleFn(dependents),
     dependents,
     dependencies,
   }))
   
   const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
-  const nodeFromProject = fromPairs(nodes.map(node => [node.project, node]))
+  const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
+  const nodesByProjectName = fromPairs(nodes.map(node => [node.data.name, node]))
+  const nodesByNavId = fromPairs(nodes.map(node => [node.navId, node]))
 
   let links = Object.entries(valueNetworkData).flatMap(([project, { dependents, dependencies }]) =>
     (dependents || []).map(dependent => ({
       source: dependent,
-      sourceNode: nodeFromProject[dependent],
+      sourceNode: nodesByProject[dependent],
       sourceIndex: nodes.find(node => node.project === dependent).index,
       target: project,
-      targetNode: nodeFromProject[project],
+      targetNode: nodesByProject[project],
       targetIndex: nodes.find(node => node.project === project).index,
     }))
     .concat((dependencies || []).map(dependency => ({
       source: project,
-      sourceNode: nodeFromProject[project],
+      sourceNode: nodesByProject[project],
       sourceIndex: nodes.find(node => node.project === project).index,
       target: dependency,
-      targetNode: nodeFromProject[dependency],
+      targetNode: nodesByProject[dependency],
       targetIndex: nodes.find(node => node.project === dependency).index,
     })))
   ).filter(edge => edge)
@@ -80,7 +99,7 @@ export const getGraphData = moize.promise(async () => {
   const edgeIndexFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, index]))
   const edgeFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, links[index]]))
   
-  return { nodes, links, linkIndexPairs, nodesByProject: nodeFromProject }
+  return { nodes, links, linkIndexPairs, nodesByNavId, nodesByProject, nodesByProjectName }
 })
 
 export const randomGraphData = (numNodes, numEdges) => {
@@ -160,8 +179,7 @@ export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3
   return await sim(
     data, 
     proxy(
-      // let's not backlog the main thread with layout updates
-      throttle(positions => getPositionBuffers()?.targetData(positions), 1000/60)
+      positions => getPositionBuffers()?.targetData(positions)
   ))
 }
 

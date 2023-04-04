@@ -36,6 +36,12 @@ uniform ivec2 textureDimensions;
 uniform bool selected;
 uniform bool hovered;
 
+// a function to desaturate a color
+vec3 desaturate(vec3 color, float amount) {
+  float average = (color.r + color.g + color.b) / 3.0;
+  return mix(color, vec3(average), amount);
+}
+
 // given an index, return the corresponding position
 ivec2 getTextureIndex(int index, ivec2 textureDimensions) {
   int textureLength = textureDimensions.x * textureDimensions.y;
@@ -48,15 +54,39 @@ ivec2 getTextureIndex(int index, ivec2 textureDimensions) {
   return ivec2(x,y);
 }
 
-float bump(float x, float q, float w) {
-  float clamped_x = clamp(x/w, -0.5, 0.5);
-  float y = pow(exp(1.0 - 1.0 / (1.0 - pow(2.0*clamped_x, 2.0))), q);
-  return y;
+vec4 edgeGeometry(
+  in vec3 nodePosition,
+  in vec3 vertexPosition,
+  in vec2 edgeDirection,
+  float scale,
+  float flatness,
+  in CameraMatrices cam
+) {
+  vec2 edgePerpendicular = vec2(-edgeDirection.y, edgeDirection.x)*scale/3.0;
+  vec4 position = cam.projection * cam.view * vec4(nodePosition, 1.0);
+  vec4 positionNDC = position / position.w;
+  // let's clamp the position in the near z direction to deal with precision loss near z = -1
+  // positionNDC.z = clamp(positionNDC.z, 0.5, 1.0);
+
+  vec4 positionClip = vec4(position.xy + vertexPosition.y*1.0 * edgePerpendicular, position.zw);
+
+  vec4 positionFixedStrokeNDC = positionNDC + vec4(vertexPosition.y * edgePerpendicular, 0.0, 0.0);
+  vec4 positionFixedStrokeClip = positionFixedStrokeNDC * position.w;
+
+  // return positionFixedStrokeClip;
+  return mix(positionFixedStrokeClip, positionClip, 1.0-flatness);
 }
+
+#include "bump.glsl"
 
 void main() {
   isSource = segmentOffset.x;
   isTarget = 1.0-segmentOffset.x;
+  
+  float sourceEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
+  float targetEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
+
+  emphasis = max(sourceEmphasis, targetEmphasis);
   
   position = vec4(0);
   vec3 vertexOffset = segmentOffset + vec3(0.0, -0.5, 0.0);
@@ -69,7 +99,7 @@ void main() {
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
   size = sourceSize*isSource + targetSize*isTarget;
-  size *= 0.1;
+  size *= mix(0.3, 0.1, emphasis);
   
   vec4 targetPositionClip = projection * view * vec4(targetNodePosition, 1.0);
   vec4 sourcePositionClip = projection * view * vec4(sourceNodePosition, 1.0);
@@ -83,6 +113,7 @@ void main() {
     vertexOffset,
     edgeDirection,
     size,
+    mix(0.5, 1.0, emphasis),
     CameraMatrices(
       projection,
       view,
@@ -100,11 +131,10 @@ void main() {
   vec4 targetColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0);
   color += sourceColor*isSource;
   color += targetColor*isTarget;
-  
-  float sourceEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
-  float targetEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
-  emphasis = sourceEmphasis*isSource + targetEmphasis*isTarget;
+  // desaturate the color if the emphasis is low
+  color.rgb = desaturate(color.rgb, 1.0-emphasis);
+  color.a *= mix(0.25, 1.0, emphasis);
 
   // color = mix(sourceColor, targetColor, segmentOffset.x*(-1.0*isSource));
   

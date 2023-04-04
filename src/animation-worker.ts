@@ -96,17 +96,24 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
 
 
 // const tween = tweenFactory().updateOnAnimationFrame();
-let tween : TWEEN.Tween<any>;
-let activeTween: any = null
+let centerTween : TWEEN.Tween<any>;
+let distanceTween : TWEEN.Tween<any>;
+
 const setCameraCenter = (newCenter, duration=3000) => {
-  tween?.stop();
-  tween = (new TWEEN.Tween(globalCamera.params.center)).to(newCenter, duration).easing(TWEEN.Easing.Cubic.InOut)
-    // .onUpdate(() => {
-    //   console.log('hi')
-    // })
-  tween.start();
-  // console.log('tweening to', newCenter, 'from', center, 'duration', duration, 'tween', tween)
+  centerTween?.stop();
+  centerTween = (new TWEEN.Tween(globalCamera.params.center))
+    .to(newCenter, duration)
+    .easing(TWEEN.Easing.Cubic.InOut)
+  centerTween.start();
   globalCamera.params.rotationCenter = newCenter;
+}
+
+const setCameraDistance = (distance, duration=5000) => {
+  distanceTween?.stop();
+  distanceTween = (new TWEEN.Tween(globalCamera.params))
+    .to({distance}, duration)
+    .easing(TWEEN.Easing.Cubic.InOut)
+  distanceTween.start();
 }
 
 const animateTween = () => {
@@ -120,7 +127,7 @@ let zooming = false
 
 const startPanning = () => {
   panning = true
-  tween.stop();
+  centerTween?.stop()
 }
 
 const stopPanning = () => {
@@ -129,6 +136,7 @@ const stopPanning = () => {
 
 const startZooming = () => {
   zooming = true
+  distanceTween?.stop()
 }
 
 const stopZooming = () => {
@@ -146,14 +154,20 @@ const panGlobalCamera = (...args) => {
   globalCamera.pan(...args)
 }
 
+const getGlobalCameraParams = () => {
+  return globalCamera.params
+}
+
 expose({
   startPanning,
   stopPanning,
   startZooming,
   stopZooming,
   globalCamera,
+  getGlobalCameraParams,
   updateCameras,
   setCameraCenter,
+  setCameraDistance,
   zoomGlobalCamera,
   panGlobalCamera,
 })

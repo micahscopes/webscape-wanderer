@@ -22,8 +22,11 @@ import {
   applyVisuals,
   initializeSelectionVisuals,
   showSelectionInfo,
+  setSelectedIndex,
+  getSelectedIndex,
 } from "./selection";
 import { throttle } from "lodash-es";
+import navigation from "./navigation";
 
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ev: any) => {
@@ -35,26 +38,44 @@ const normalizedEventCoordinates = (ev: any) => {
   return { x: x * 2 - 1, y: -(y * 2 - 1) };
 };
 
+const animationWorker = wrap(new AnimationWorker()) as Remote<any>;
 // window.animationWorker = wrap(new AnimationWorker())
 const {
   globalCamera,
   updateCameras,
   setCameraCenter,
+  setCameraDistance,
   zoomGlobalCamera,
   panGlobalCamera,
+  startZooming,
   startPanning,
   stopPanning,
-  startZooming,
-  stopZooming,
-} = wrap(new AnimationWorker()) as Remote<any>;
+} = animationWorker
 
-export { globalCamera, updateCameras, setCameraCenter };
+export { globalCamera, updateCameras, setCameraCenter, setCameraDistance };
+
+export let selectedZoom: number;
+export let deselectedZoom: number;
+const maxSelectedZoom = 500;
+const minUnselectedZoom = maxSelectedZoom;
+
+const stopZooming = async () => {
+  animationWorker.stopZooming();
+  const selected = getSelectedIndex();
+  const distance = (await animationWorker.getGlobalCameraParams()).distance;
+  if (selected > -1) {  
+    selectedZoom = Math.min(distance, maxSelectedZoom);
+    // console.log('setting selected zoom', selectedZoom)
+  } else {
+    deselectedZoom = Math.max(distance, minUnselectedZoom);
+    // console.log('setting deselected zoom', deselectedZoom)
+  }
+};
 
 const pointerPositionInfo: any = {};
 
-const pickedColor = new Uint8Array(4);
+const pickedColor = new Uint8Array(4).fill(0);
 let lastOverIndex = -1;
-let selectedIndex = -1;
 let dragging = false;
 let countLastDragEvents = 0;
 let cumulativeDragDistance = 0;
@@ -136,7 +157,9 @@ export const setupSelection = moize.infinite(() => {
     if (!wasDrag) {
       pickerTime = true;
       setTimeout(() => {
-        selectedIndex = lastOverIndex;
+        // if clicking the same node, deselect
+        const selectedIndex = getSelectedIndex()
+        setSelectedIndex(lastOverIndex === selectedIndex ? -1 : lastOverIndex);
         getSelectedInfo().then((info) => {
           canvas.dispatchEvent(
             new CustomEvent("selected", { detail: { selectedIndex, info } })
@@ -149,50 +172,14 @@ export const setupSelection = moize.infinite(() => {
     }
   });
 
-  canvas.addEventListener("selected", async (ev) => {
-    const selectedSizeMap = (size) => size * 2;
-    // @ts-ignore
+  canvas.addEventListener("selected", (ev) => {
+    //@ts-ignore
     const node = ev.detail.info;
-    if (node) {
-      const nodePosition = getNodePosition(node);
-      const query = downstreamDependentsDependenciesQuery(node.project);
-      console.log("the node", node);
-      const { nodesByProject, links } = await getGraphData();
-      initializeSelectionVisuals().then(() => {
-        applyVisualsToNode(node, { sizeMap: selectedSizeMap, emphasis: 1 });
-        doQuery(
-          query,
-          // proxy(data => {}),
-          proxy((data, get) => {
-            // if (node !== selectedNode) return;
-            get(["dependent", "dependency"]).then(
-              ({ dependent, dependency }) => {
-                // console.log("query result:", dependent.value, dependency.value);
-                applyVisualsToNode(nodesByProject[dependent.value], {
-                  sizeMap: selectedSizeMap,
-                  emphasis: 1,
-                });
-                applyVisualsToNode(nodesByProject[dependency.value], {
-                  sizeMap: selectedSizeMap,
-                  emphasis: 1,
-                });
-              }
-            );
-          }),
-          proxy(() => {
-            console.log("query ended:", query);
-          })
-        );
-        // console.log(nodePosition, 'setting camera center')
-        setCameraCenter(nodePosition);
-      });
-      
-      showSelectionInfo(node);
-    } else {
-      console.log("no selection");
-      applyVisuals();
-    }
-    
+    console.log('preparing to navigate:', node)
+    navigation.push(
+      node ? `#project/${node?.navId}` : '#-'
+    );
+    // getRouter().go('lol')
   });
 });
 
@@ -205,19 +192,21 @@ export const setupCameraInteraction = () => {
   //@ts-ignore
   canvas.addEventListener(
     "wheel",
-    throttle((ev) => {
+    (ev) => {
       const scrollVector =
         Math.exp((ev.deltaY / canvas.clientHeight) * 2) - 1.0;
       const scrollDirection = Math.sign(scrollVector);
+      
       // console.log(scrollVector, scrollDirection, 'zooming')
-
+      startZooming();
       zoomGlobalCamera(
         0,
         0,
         scrollDirection * Math.min(Math.abs(scrollVector), 0.06)
       );
       ev.preventDefault();
-    }, 1000 / 60),
+      stopZooming();
+    },
     { passive: false }
   );
 
@@ -275,7 +264,7 @@ export const setupCameraInteraction = () => {
 
 // let pickerFrame = 0;
 // let pickerSkip = 3;
-let pickerTime = false;
+let pickerTime = true;
 
 export const getNodeIndexFromPickerColor = (color: Uint8Array) => {
   const nodeIndex = color[0] + color[1] * 256 + color[2] * 256 * 256;
@@ -306,9 +295,9 @@ export const drawPickerBuffer = () => {
   app.defaultViewport().clear();
   pickerDrawCall.draw();
 
-  if (pickerTime) {
+  if (pickerTime || true) {
     app
-      .readFramebuffer(pickerBuffers.current)
+      .readFramebuffer(pickerBuffers.other)
       .readPixel(...getPointerPositionCanvas(), pickedColor);
 
     lastOverIndex = getNodeIndexFromPickerColor(pickedColor);
@@ -317,8 +306,7 @@ export const drawPickerBuffer = () => {
   }
 };
 
-export const getSelectedIndex = () => selectedIndex;
 export const getSelectedInfo = async () => {
   const { nodes } = await getGraphData();
-  return nodes[selectedIndex];
+  return nodes[getSelectedIndex()];
 };

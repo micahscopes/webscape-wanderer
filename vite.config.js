@@ -32,11 +32,11 @@ export default defineConfig({
         },
     },
 },
-  //server: {
-  //  fs: {
-  //    allow: ['../quadstore', '.'],
-  //  },
-  //},
+  server: {
+    fs: {
+      allow: ['../router', '.'],
+    },
+  },
 
   //base: "./", // this relies on `import.meta`, which doesn't work in workers on firefox/webkit
 });

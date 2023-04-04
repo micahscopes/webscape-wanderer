@@ -4,6 +4,7 @@ import { setEdgeIndices } from "./gpu/graph-visualization";
 import { prepareGraphLayoutWorker, randomGraphData, randomTreesData, graphLayoutWorker, useD3ForceSimulator, useNgraphForceSimulator, useFDGSimulator, getGraphData, prepareGraphDBWorker } from "./data";
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
+import navigation from "./navigation";
 
 
 const app = getPicoApp();
@@ -63,10 +64,10 @@ getEmphasisBuffers().targetData(new Float32Array(nodes.length).fill(0));
 
 // display the graph stats in a panel
 const statsPanel = document.createElement('div');
-statsPanel.style.position = 'absolute';
+statsPanel.classList.add('overlay');
+statsPanel.classList.add('debug');
 statsPanel.style.top = '0';
 statsPanel.style.right = '0';
-statsPanel.style.color = 'white';
 
 document.body.appendChild(statsPanel);
 
@@ -78,6 +79,7 @@ statsPanel.innerHTML = `
 animateGraph();
 trackFPS();
 
+navigation.start()
 
 // debugging stuff
 window.setNodePositions = (positionsFn) => {
@@ -90,3 +92,17 @@ window.setNodeSizes = (sizeFn) => {
     getRadiusBuffers().targetData(new Float32Array(new Array(nodes.length).fill(0).flatMap(sizeFn)));
 }
 window.graphData = graphData
+
+// toggle debug panel
+window.addEventListener('keydown', (e) => {
+    const debugStylesheet = (document.querySelector('#debug-style') as HTMLStyleElement).sheet!;
+    // @ts-ignore
+    const showing = debugStylesheet.cssRules[0]!.styleMap.get('display').value !== 'none'
+
+    // console.log(debugStylesheet, showing, debugStylesheet.cssRules[0]!.styleMap.get('display'))
+
+    if (e.key === 'd') {
+        // @ts-ignore
+        debugStylesheet.cssRules[0]!.styleMap.set('display', showing ? 'none' : 'block')
+    }
+})

@@ -1,10 +1,11 @@
 const fpsIndicator = document.createElement('div');
 document.body.appendChild(fpsIndicator);
 fpsIndicator.id = 'fps-indicator';
-fpsIndicator.style.zIndex = '1000';
+fpsIndicator.classList.add('overlay');
+fpsIndicator.classList.add('debug');
 fpsIndicator.innerHTML = `
-<p class="value">FPS: 0</p>
-<canvas width="100" height="50" class="graph"></canvas>
+<div class="value">FPS: 0</div>
+<canvas width="60" height="20" class="graph"></canvas>
 `
 fpsIndicator.style.position = 'absolute';
 fpsIndicator.style.top = '0px';
@@ -22,7 +23,7 @@ let frames = 0;
 let fpsHistory: number[] = [];
 const smaWindow = 5
 
-export const getFPS = () => fpsHistory.slice(0,smaWindow).reduce((a, b) => a + b, 0) / smaWindow;
+export const getFPS = () => fpsHistory.slice(0, smaWindow).reduce((a, b) => a + b, 0) / smaWindow;
 
 // use a simple moving average to smooth out the FPS
 export const trackFPS = () => {
