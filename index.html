@@ -4,31 +4,101 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dat Garden</title>
-    <script type="module" crossorigin src="/dat-garden-visualization/assets/index-72bc7eec.js"></script>
+    <script type="module" crossorigin src="/dat-garden-visualization/assets/index-d0470bdd.js"></script>
   </head>
   <body>
     
-    <div id="selection-info"></div>
+    <div id="selection-info" class="overlay"></div>
   </body>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background-color: black;
+      background-color: rgb(27, 27, 27);
+      /* background-color: rgb(1,1,1); */
       color: white;
       font-family: sans-serif;
     }
-    body div {
-      margin: 10px;
+    .overlay {
+      z-index: 2;
+      position: absolute;
+      margin: 1em;
     }
     html, canvas {
       scroll-behavior: smooth;
     }
     #selection-info {
-      position: absolute;
       bottom: 0;
       left: 0;
-      z-index: 500;
+      margin: 0.5em;
+      max-width: min(100vw, 90ch)
     }
+    a, a:visited {
+      color: lightcoral;
+    }
+    
+  </style>
+  <style id="debug-style">
+    .debug {
+      display: none;
+    }
+    .debug {
+      background-color: darkslateblue;
+      border: 1px solid aqua;
+      padding: 0.5em;
+    }
+  </style>
+  <style>
+    .project {
+      display: flex;
+      flex-direction: column;
+      padding: 0.25em 0.5em;
+    }
+    .project > .h3 {
+      margin-block-start: 0.25em !important;
+    }
+    .description {
+      max-width: 90ch;
+    }
+    .links {
+      margin-top: 1em;
+      display: flex;
+      grid-auto-columns: auto;
+      align-items: center;
+    }
+    .links > :not(:last-child):after {
+      content: "•";
+      margin: 0 0.5em;
+    }
+    .owner {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .owner > :first-child {
+      margin-right: 0.5em;
+    }
+    .avatar-container, .avatar, .avatar-stroke {
+      width: 32px;
+      height: 32px;
+    }
+    .avatar-container {
+      position: relative;
+    }
+    .owner .avatar-stroke {
+      filter: invert(100%) brightness(10000%);
+      position: absolute;
+      z-index: 1;
+      border-radius: 50%;
+    }
+    .owner .avatar {
+      transform: scale(0.9);
+      transform-origin: center;
+      position: absolute;
+      z-index: 2;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
   </style>
 </html>
