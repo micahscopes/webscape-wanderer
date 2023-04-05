@@ -60,6 +60,8 @@ class InterpolationBuffers {
   protected _target: VertexBuffer
   // protected _targetTexture: Texture
   
+  protected _readbackBuffer: VertexBuffer
+  
   protected _texture: Texture
   protected _texturePixelPositions: VertexBuffer
 
@@ -125,6 +127,7 @@ class InterpolationBuffers {
       // otherwise, we need to figure out if the length has changed
       offset = 0
       length = ArrayBuffer.isView(data) ? data.byteLength / this._itemSize / 4 : data
+      this._readbackBuffer = this.makeBuffer(100, 'readback')
     }
     this._currentA = this.makeBuffer(length, 'currentA')
     this._currentB = this.makeBuffer(length, 'currentB')
@@ -146,6 +149,70 @@ class InterpolationBuffers {
   swap() {
     this.positionSwap = !this.positionSwap
   }
+
+  readBack(index: number) {
+    // console.log('reading back', index)
+    const app = getPicoApp();
+    const gl = app.gl as WebGL2RenderingContext;
+
+    let target 
+    if (this._type === PicoGL.FLOAT) {
+      target = new Float32Array(this._itemSize)
+    } else if (this._type === PicoGL.UNSIGNED_BYTE) {
+      target = new Uint8Array(this._itemSize)
+    } else if (this._type === PicoGL.UNSIGNED_SHORT) {
+      target = new Uint16Array(this._itemSize)
+    } else if (this._type === PicoGL.UNSIGNED_INT) {
+      target = new Uint32Array(this._itemSize)
+    } else {
+      target = new ArrayBuffer(this._itemSize * 4)
+    }
+    
+  
+    // unbind all the buffers from transform feedback
+    gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+    gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
+    gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, null);
+    gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, null);
+  
+    // Calculate byte offset for the given index
+    const byteOffset = index * this._itemSize * 4;
+    // console.log ('byte offset', byteOffset, this._itemSize, this._target.numItems)
+    
+    // check to make sure we're not reading out of bounds
+    // if (byteOffset + this._itemSize * 4 > this._target.numItems*this._itemSize*4) {
+    //   throw new Error(`Index ${index} is out of bounds for buffer of length ${this._target.byteLength / 4 / this._itemSize}`);
+    // }
+
+    // unbind the current buffer from transform feedback
+    // gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+  
+    // Bind the updated buffer (source buffer) to the COPY_READ_BUFFER binding point
+    gl.bindBuffer(PicoGL.COPY_READ_BUFFER, this.target.buffer);
+  
+    // Bind the readback buffer (destination buffer) to the COPY_WRITE_BUFFER binding point
+    gl.bindBuffer(PicoGL.COPY_WRITE_BUFFER, this._readbackBuffer.buffer);
+  
+    // Copy the data at the given index from the updated buffer to the readback buffer
+    gl.copyBufferSubData(PicoGL.COPY_READ_BUFFER, PicoGL.COPY_WRITE_BUFFER, byteOffset, 0, this._itemSize * 4);
+  
+    // Create an ArrayBufferView based on the target ArrayBuffer
+    const dataArray = new DataView(target.buffer);
+  
+    // Read the data from the readback buffer into the target
+    gl.getBufferSubData(gl.COPY_WRITE_BUFFER, 0, dataArray);
+    
+    // Release the buffer bindings
+    gl.bindBuffer(PicoGL.COPY_READ_BUFFER, null);
+    // gl.bindBuffer(PicoGL.COPY_WRITE_BUFFER, null);
+
+    // console.log(target, dataArray);
+
+    // loadInterpolationOutputTransformFeedback()
+
+    return target;
+  }
+  
 
   get current() {
     return this.positionSwap ? this._currentA : this._currentB

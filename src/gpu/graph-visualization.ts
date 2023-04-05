@@ -34,10 +34,7 @@ const getNodePickerProgram = moize(() => {
 
 const getNodeVertexArray = moize.infinite(() => {
   // let geo = icosphere(1, { subdivisions: 2 })
-  // geo = simplify(geo.cells, geo.positions)(100)
   const geo = cube(1)
-  // const geo = bunny
-  console.log(geo.positions.length, "bunny tris")
   const positions = geo.positions
   const cells = geo.cells
   // console.log(positions, cells)
@@ -200,7 +197,7 @@ const getSegmentOffsetBuffer = moize.infinite(() => {
     2,
     new Float32Array(segmentOffsetGeometry.positions.flat())
   );
-  console.log(segmentOffsetGeometry)
+  // console.log(segmentOffsetGeometry)
   return segmentOffsetBuffer;
 });
 

@@ -12,6 +12,7 @@
         /* background-color: rgb(1,1,1); */
         color: white;
         font-family: sans-serif;
+        overflow: hidden;
       }
       .overlay {
         z-index: 2;
@@ -31,6 +32,61 @@
         color: lightcoral;
       }
       
+    </style>
+    <style>
+      .cursor {
+        /* a circle centered around its position */
+        position: absolute;
+        z-index: 1;
+        transform: translate(-50%, 50%);
+        pointer-events: none;
+        transition: all 100ms linear, opacity 500ms ease-in-out;
+        /* transition: opacity 100ms ease-in-out; */
+        opacity: 0;
+      }
+      .cursor.focused {
+        opacity: 1;
+      }
+      .cursor.circle {
+        border-radius: 50%;
+        border-color: rgb(255, 255, 255);
+        border: 1px solid rgb(255, 255, 255);
+        /* background-color: white; */
+      }
+      .hovered-cursor {
+        width: 1em;
+        height: 1em;
+        /* border: solid rgba(245, 245, 245, 0.5) 1px; */
+        border: solid white 1px;
+        /* background-color: rgba(255, 255, 255, 0.498); */
+        /* background-color: aqua; */
+        /* mix-blend-mode: overlay; */
+        /* filter: blur(0.5em); */
+        border-radius: 50%;
+      }
+      .hovered-tooltip {
+        transform: initial;
+      }
+      .hovered-tooltip > * {
+        color: white;
+        left: 3em;
+        top: -1em;
+        position: relative;
+        /* background-color: black; */
+        font-weight: bold;
+        text-shadow: 0 0 0.5em rgba(0, 0, 0, 0.5);
+      }
+      .selected-cursor {
+        display: none;
+
+        width: 0.5em;
+        height: 0.5em;
+        border: solid rgba(255, 255, 255, 0.163) 1px;
+        border-radius: 100%;
+        background-color: rgb(163, 163, 163);
+        mix-blend-mode: overlay;
+        filter: saturate(1.5);
+      }
     </style>
     <style id="debug-style">
       .debug {
@@ -93,7 +149,6 @@
         border-radius: 50%;
         margin-right: 8px;
       }
-
     </style>
   </head>
   <body>

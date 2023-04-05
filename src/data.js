@@ -51,7 +51,7 @@ export const makeNavId = (project) => {
 
 export const getGraphData = moize.promise(async () => {
   const { valueNetworkData, projectsData, organizationsData } = await datEcosystemData()
-  console.log(await datEcosystemData())
+  // console.log(await datEcosystemData())
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
     index,
     project,
@@ -94,7 +94,7 @@ export const getGraphData = moize.promise(async () => {
   links = uniqWith(links, (a, b) => a.sourceIndex === b.sourceIndex && a.targetIndex === b.targetIndex)
   
   const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
-  console.log('link count', links.length)
+  // console.log('link count', links.length)
   
   const edgeIndexFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, index]))
   const edgeFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, links[index]]))
@@ -175,11 +175,18 @@ export const prepareGraphDBWorker = async () => {
   return await graphWorker.buildGraph(data)
 }
 
+let latestTargetPositions;
+export const getLatestTargetPositions = () => latestTargetPositions
+
 export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3ForceSimulator) => {
   return await sim(
     data, 
     proxy(
-      positions => getPositionBuffers()?.targetData(positions)
+      positions => {
+        getPositionBuffers()?.targetData(positions)
+        latestTargetPositions = positions
+        // console.log('updating target positions', latestTargetPositions)
+      }
   ))
 }
 

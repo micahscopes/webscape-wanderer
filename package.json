@@ -30,6 +30,7 @@
     "d3-force-3d": "github:vasturiano/d3-force-3d",
     "dat.gui": "^0.7.9",
     "fdg-wasm": "^0.1.1",
+    "gl-matrix": "^3.4.3",
     "grid-mesh": "^0.1.0",
     "inertial-turntable-camera": "^2.0.4",
     "level": "^8.0.0",

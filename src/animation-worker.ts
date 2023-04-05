@@ -158,6 +158,29 @@ const getGlobalCameraParams = () => {
   return globalCamera.params
 }
 
+import { mat4, vec4, vec2 } from 'gl-matrix';
+
+const computeScreenPosition = ([x,y,z]) => {
+  const {projection, view} = getGlobalCamera().state;
+  const positionWorld = vec4.fromValues(x,y,z,1);
+  const positionClip = vec4.create();
+  const positionNDC = vec4.create();
+  
+  // @ts-ignore
+  const projectionMatrix = mat4.fromValues(...projection);
+  // @ts-ignore
+  const viewMatrix = mat4.fromValues(...view);
+  
+  const modelViewProjectionMatrix = mat4.create();
+  mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
+
+  vec4.transformMat4(positionClip, positionWorld, modelViewProjectionMatrix);
+  vec4.scale(positionNDC, positionClip, 1/positionClip[3]);
+
+  return [positionNDC[0], positionNDC[1], positionNDC[2]];
+}
+
+
 expose({
   startPanning,
   stopPanning,
@@ -170,4 +193,5 @@ expose({
   setCameraDistance,
   zoomGlobalCamera,
   panGlobalCamera,
+  computeScreenPosition,
 })

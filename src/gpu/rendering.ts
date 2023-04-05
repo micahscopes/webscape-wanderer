@@ -11,10 +11,10 @@ import {
 } from './animation';
 import { getEdgeVisualizerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
 import { getCamerasUniformBuffer, updateCameraUniforms } from './camera';
-import { drawPickerBuffer, getCurrentlyHoveringIndex, getLastOverIndex, getPointerPositionClip, globalCamera, updateCameras } from '../interaction';
+import { alignCursorToFocusedNode, drawPickerBuffer, getCurrentlyHoveringIndex, getCurrentlyHoveringNode, getLastOverIndex, getPointerPositionClip, globalCamera, hoveredCursor, hoveredTooltip, selectedCursor, updateCameras } from '../interaction';
 import { debugTexture } from './debug-texture';
 import { colord } from 'colord'
-import { getSelectedIndex } from '../selection';
+import { getSelectedIndex, getSelectedNode } from '../selection';
 
 let drawEdges= true;
 let drawNodes = true;
@@ -102,6 +102,16 @@ export const animateGraph = () => {
   const app = getPicoApp();
   fillCanvasToWindow();
 
+  getSelectedNode().then(node => {
+    // console.log('highlighting node ...', node)
+    selectedCursor.highlightNode(node)
+  })
+  
+  getCurrentlyHoveringNode().then(node => {
+    hoveredTooltip.highlightNode(node)
+    hoveredCursor.highlightNode(node)
+  })
+  
   const interpolationFramebuffer = loadInterpolationFramebuffer()
   app
     .drawFramebuffer(interpolationFramebuffer)
@@ -122,7 +132,8 @@ export const animateGraph = () => {
   const nodeDrawCall = getNodeVisualizerDrawCall()
     .uniformBlock('cameras', getCamerasUniformBuffer())
     .uniform('mousePosition', getPointerPositionClip())
-    .uniform("selectedIndex", getCurrentlyHoveringIndex() > -1 ? getCurrentlyHoveringIndex() : getSelectedIndex())
+    .uniform("selectedIndex", getSelectedIndex())
+    .uniform("hoveringIndex", getCurrentlyHoveringIndex())
     .uniform('time', performance.now() / 1000)
 
   const edgeDrawCall = getEdgeVisualizerDrawCall()

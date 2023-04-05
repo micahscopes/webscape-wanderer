@@ -129,7 +129,7 @@ import forceLayout from "ngraph.forcelayout";
 import createGraph from "ngraph.graph";
 
 const setupNgraphForceSimulator = moize.infinite(async (graphData) => {
-  console.log('setting up ngraph layout again')
+  // console.log('setting up ngraph layout again')
   const ngraph = createGraph();
   graphData.nodes.forEach((node) => {
     ngraph.addNode(node.id, node);

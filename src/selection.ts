@@ -1,7 +1,7 @@
 import moize from "moize";
 import { getColorBuffers, getEmphasisBuffers, getRadiusBuffers } from "./gpu/animation";
 import { doQuery, getGraphData, getNodePosition } from "./data";
-import { identity } from "lodash-es";
+import { identity, debounce } from "lodash-es";
 import { html, render } from 'lit-html';
 import { downstreamDependentsDependenciesQuery } from "./query-helpers";
 import { proxy } from "comlink";
@@ -109,7 +109,7 @@ const selectionInfo = (node) => html`
 `;
 
 
-export const showSelectionInfo = selectedNode => {
+export const showSelectionInfo = debounce(selectedNode => {
   const selectionInfoElement = document.getElementById('selection-info');
   if (selectedNode) {
     const result = selectionInfo(selectedNode);
@@ -118,7 +118,7 @@ export const showSelectionInfo = selectedNode => {
   } else {
     render(html``, selectionInfoElement!);
   }
-}
+}, 0)
 
 
 export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
@@ -128,7 +128,7 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
     setSelectedIndex(node.index);
     const nodePosition = getNodePosition(node);
     const query = downstreamDependentsDependenciesQuery(node.project);
-    console.log("selected node:", node);
+    // console.log("selected node:", node);
     const { nodesByProject, links } = await getGraphData();
     initializeSelectionVisuals().then(() => {
       applyVisualsToNode(node, { sizeMap: doubleNodeSize, emphasis: 1 });
@@ -152,7 +152,7 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
           );
         }),
         proxy(() => {
-          console.log("query ended:", query);
+          // console.log("query ended:", query);
         })
       );
       // console.log(nodePosition, 'setting camera center')
@@ -160,10 +160,11 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
       zoom && setCameraDistance(selectedZoom || 75);
     });
   } else {
-    console.log("no selection");
+    // console.log("no selection");
     zoom && setCameraDistance(deselectedZoom || 1500);
     zoom && setCameraCenter([0, 0, 0], 4000);
     applyVisuals();
+    setSelectedIndex(-1);
   }
 
   showSelectionInfo(node);
@@ -179,4 +180,10 @@ let selectedIndex = -1;
 export const getSelectedIndex = () => selectedIndex;
 export const setSelectedIndex = (index) => {
   selectedIndex = index
+}
+
+export const getSelectedNode = async () => {
+  const index = getSelectedIndex();
+  const { nodes } = await getGraphData();
+  return nodes[index];
 }
