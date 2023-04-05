@@ -11,7 +11,7 @@ import {
 } from './animation';
 import { getEdgeVisualizerDrawCall, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall } from './graph-visualization';
 import { getCamerasUniformBuffer, updateCameraUniforms } from './camera';
-import { drawPickerBuffer, getPointerPositionClip, globalCamera, updateCameras } from '../interaction';
+import { drawPickerBuffer, getCurrentlyHoveringIndex, getLastOverIndex, getPointerPositionClip, globalCamera, updateCameras } from '../interaction';
 import { debugTexture } from './debug-texture';
 import { colord } from 'colord'
 import { getSelectedIndex } from '../selection';
@@ -116,13 +116,13 @@ export const animateGraph = () => {
   interpolation.draw();
   
   drawPickerBuffer();
-
+  
   app.defaultDrawFramebuffer().defaultViewport().clearColor(...getClearColor()).disable(PicoGL.SCISSOR_TEST)
     
   const nodeDrawCall = getNodeVisualizerDrawCall()
     .uniformBlock('cameras', getCamerasUniformBuffer())
     .uniform('mousePosition', getPointerPositionClip())
-    .uniform('selectedIndex', getSelectedIndex())
+    .uniform("selectedIndex", getCurrentlyHoveringIndex() > -1 ? getCurrentlyHoveringIndex() : getSelectedIndex())
     .uniform('time', performance.now() / 1000)
 
   const edgeDrawCall = getEdgeVisualizerDrawCall()

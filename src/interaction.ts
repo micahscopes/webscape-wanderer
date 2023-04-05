@@ -24,9 +24,11 @@ import {
   showSelectionInfo,
   setSelectedIndex,
   getSelectedIndex,
+  initializationVisualMaps,
 } from "./selection";
-import { throttle } from "lodash-es";
+import { debounce, throttle } from "lodash-es";
 import navigation from "./navigation";
+import { getColorBuffers } from "./gpu/animation";
 
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ev: any) => {
@@ -76,6 +78,8 @@ const pointerPositionInfo: any = {};
 
 const pickedColor = new Uint8Array(4).fill(0);
 let lastOverIndex = -1;
+export const getLastOverIndex = () => lastOverIndex;
+let lastOverNode
 let dragging = false;
 let countLastDragEvents = 0;
 let cumulativeDragDistance = 0;
@@ -122,6 +126,9 @@ const collectPointerPositionInfo = ({ x, y }) => {
 
   // console.log("pointerPositionInfo", pointerPositionInfo, ev.originalEvent.clientX, ev.originalEvent.clientY)
 };
+
+let currentlyHoveringIndex = -1;
+export const getCurrentlyHoveringIndex = () => currentlyHoveringIndex
 
 export const setupSelection = moize.infinite(() => {
   const app = getPicoApp();
@@ -181,6 +188,31 @@ export const setupSelection = moize.infinite(() => {
     );
     // getRouter().go('lol')
   });
+  
+  const handleHoverOn = debounce((hoveredNode, clear=false) => {
+    currentlyHoveringIndex = hoveredNode?.index || -1
+    showSelectionInfo(hoveredNode);
+    if (clear) {
+      currentlyHoveringIndex = -1
+    }
+  }, 250);
+  
+  canvas.addEventListener("hover", async (ev) => {
+    const { nodes } = await getGraphData();
+    //@ts-ignore
+    const wasHoveredIndex = ev.detail.wasHoveredIndex;
+    const wasHoveredNode = wasHoveredIndex > -1 ? nodes[wasHoveredIndex] : null;
+    //@ts-ignore
+    const nowHoveredIndex = ev.detail.nowHoveredIndex;
+    const nowHoveredNode = nowHoveredIndex > -1 ? nodes[nowHoveredIndex] : null;
+    const selectedNode = getSelectedIndex() > -1 ? nodes[getSelectedIndex()] : null;
+    
+    if (nowHoveredNode) {
+      handleHoverOn(nowHoveredNode);
+    } else {
+      handleHoverOn(selectedNode);
+    }
+  })
 });
 
 const radiansPerHalfScreenWidth = Math.PI / 3;
@@ -300,7 +332,20 @@ export const drawPickerBuffer = () => {
       .readFramebuffer(pickerBuffers.other)
       .readPixel(...getPointerPositionCanvas(), pickedColor);
 
-    lastOverIndex = getNodeIndexFromPickerColor(pickedColor);
+    const overIndex = getNodeIndexFromPickerColor(pickedColor);
+    if (lastOverIndex !== overIndex) {
+      app.canvas.dispatchEvent(new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }));
+    }
+    lastOverIndex = overIndex;
+    
+    // getGraphData().then(({ nodes }) => {
+    //   const overNode = nodes[lastOverIndex];
+    //   if (overNode != lastOverNode) {
+    //     console.log('over node:', overNode)
+    //     lastOverNode = overNode;
+    //   }
+    // });
+
     pickerBuffers.swap();
     pickerTime = false;
   }

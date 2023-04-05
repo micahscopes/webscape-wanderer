@@ -1,5 +1,5 @@
 import { expose, transfer } from "comlink";
-import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
+// import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
 import requestAnimationFrame from 'raf';
 
 import moize from "moize";
@@ -18,63 +18,63 @@ const moizeArgs = {
   onCacheMiss: () => console.log('using cached fdg-wasm layout')
 }
 
-const setupFDGSimulator = moize.infinite(async (graphData) => {
-  console.log('setting up fdg-wasm layout again')
-  const wasm = await init();
-  const fdgSim = new ForceGraphSimulator();
+// const setupFDGSimulator = moize.infinite(async (graphData) => {
+//   console.log('setting up fdg-wasm layout again')
+//   const wasm = await init();
+//   const fdgSim = new ForceGraphSimulator();
 
-  fdgSim.setDimensions(3);
+//   fdgSim.setDimensions(3);
 
-  const factor = 1;
+//   const factor = 1;
 
-  graphData.nodes.forEach((node, i) => {
-    const id = String(node.index);
-    fdgSim.addNode(id, 1000);
-    fdgSim.setNodeLocation(
-      id,
-      node.x * factor,
-      node.y * factor,
-      node.z * factor
-    );
-  });
-  graphData.links.forEach((link) => {
-    const source = String(link.sourceIndex);
-    const target = String(link.targetIndex);
-    fdgSim.addEdge(source, target, link.strength || 0.01);
-  });
+//   graphData.nodes.forEach((node, i) => {
+//     const id = String(node.index);
+//     fdgSim.addNode(id, 1000);
+//     fdgSim.setNodeLocation(
+//       id,
+//       node.x * factor,
+//       node.y * factor,
+//       node.z * factor
+//     );
+//   });
+//   graphData.links.forEach((link) => {
+//     const source = String(link.sourceIndex);
+//     const target = String(link.targetIndex);
+//     fdgSim.addEdge(source, target, link.strength || 0.01);
+//   });
 
-  positions = new Float32Array(graphData.nodes.length * 3);
+//   positions = new Float32Array(graphData.nodes.length * 3);
 
-  fdgSim.resetNodePlacement();
+//   fdgSim.resetNodePlacement();
 
-  const simulate = () => {
-    if (fdgSim) {
-      fdgSim.update(0.05);
-      positions = new Float32Array(fdgSim.nodes.length * 3);
-      positions?.set(
-        fdgSim.nodes.flatMap((node) => node.location.map((x) => x))
-      );
-      updatePositions &&
-        positions &&
-        updatePositions(transfer(positions, [positions.buffer]));
-    }
+//   const simulate = () => {
+//     if (fdgSim) {
+//       fdgSim.update(0.05);
+//       positions = new Float32Array(fdgSim.nodes.length * 3);
+//       positions?.set(
+//         fdgSim.nodes.flatMap((node) => node.location.map((x) => x))
+//       );
+//       updatePositions &&
+//         positions &&
+//         updatePositions(transfer(positions, [positions.buffer]));
+//     }
 
-    if (using === fdgSim) requestAnimationFrame(simulate);
-  };
-  simulate();
+//     if (using === fdgSim) requestAnimationFrame(simulate);
+//   };
+//   simulate();
 
-  return () => {
-    using = fdgSim
-    simulate()
-  };
-}, moizeArgs);
+//   return () => {
+//     using = fdgSim
+//     simulate()
+//   };
+// }, moizeArgs);
 
-const useFDGSimulator = async (graphData, updatePositionsCallback) => {
-  console.log('using fdg-wasm layout')
-  updatePositions = updatePositionsCallback;
-  const start = await setupFDGSimulator(graphData);
-  start()
-}
+// const useFDGSimulator = async (graphData, updatePositionsCallback) => {
+//   console.log('using fdg-wasm layout')
+//   updatePositions = updatePositionsCallback;
+//   const start = await setupFDGSimulator(graphData);
+//   start()
+// }
 
 
 import {
@@ -185,7 +185,7 @@ const useNgraphForceSimulator = async (graphData, updatePositionsCallback) => {
 }
 
 expose({
-  useFDGSimulator,
+  // useFDGSimulator,
   useD3ForceSimulator,
   useNgraphForceSimulator,
 });

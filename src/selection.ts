@@ -62,14 +62,18 @@ export const applyVisualsToNode = async (node, {
   emphasisBuffers.targetData(epmhasis, { offset: node.index, immediate });
 }
 
+export const initializationVisualMaps = {
+  colorMap: color => {
+    const mean = color.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
+    return [...color.slice(0, 3).map(x => mean), 0.5]
+  },
+  sizeMap: size => size * 0.5,
+}
+
 export const initializeSelectionVisuals = async (immediate = false) => {
   // console.log('initializeSelectionVisuals')
   await applyVisuals({
-    colorMap: color => {
-      const mean = color.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
-      return [...color.slice(0, 3).map(x => mean), 0.5]
-    },
-    sizeMap: size => size * 0.5,
+    ...initializationVisualMaps,
     immediate
   });
 }
@@ -109,7 +113,7 @@ export const showSelectionInfo = selectedNode => {
   const selectionInfoElement = document.getElementById('selection-info');
   if (selectedNode) {
     const result = selectionInfo(selectedNode);
-    console.log(result)
+    // console.log(result)
     render(result, selectionInfoElement!);
   } else {
     render(html``, selectionInfoElement!);
@@ -124,7 +128,7 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
     setSelectedIndex(node.index);
     const nodePosition = getNodePosition(node);
     const query = downstreamDependentsDependenciesQuery(node.project);
-    console.log("the node", node);
+    console.log("selected node:", node);
     const { nodesByProject, links } = await getGraphData();
     initializeSelectionVisuals().then(() => {
       applyVisualsToNode(node, { sizeMap: doubleNodeSize, emphasis: 1 });

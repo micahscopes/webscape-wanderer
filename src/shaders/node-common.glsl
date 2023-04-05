@@ -25,7 +25,9 @@ out vec3 normal;
 
 void main() {
   float scale = nodeSize;
-
+  float isSelected = float(gl_InstanceID == selectedIndex);
+  scale *= mix(1.0, 1.1, isSelected);
+  
   #ifdef PICKER
     scale *= 1.25;
   #endif
