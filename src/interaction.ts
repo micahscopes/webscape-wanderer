@@ -6,30 +6,13 @@ import {
 } from "./gpu/graph-visualization";
 import PicoGL from "picogl";
 import { getCamerasUniformBuffer } from "./gpu/camera";
-import {
-  datEcosystemData,
-  doQuery,
-  getGraphData,
-  getLatestTargetPositions,
-  getNodePosition,
-} from "./data";
-import { Tweenable, tween } from "shifty";
+import { getGraphData, getNodePosition } from "./data";
 import moize from "moize";
 import AnimationWorker from "./animation-worker?worker";
-import { Remote, proxy, wrap } from "comlink";
-import { downstreamDependentsDependenciesQuery } from "./query-helpers";
-import {
-  applyVisualsToNode,
-  applyVisuals,
-  initializeSelectionVisuals,
-  showSelectionInfo,
-  setSelectedIndex,
-  getSelectedIndex,
-  initializationVisualMaps,
-} from "./selection";
-import { debounce, throttle } from "lodash-es";
+import { Remote, wrap } from "comlink";
+import { setSelectedIndex, getSelectedIndex } from "./selection";
+import { throttle } from "lodash-es";
 import navigation from "./navigation";
-import { getColorBuffers, getPositionBuffers } from "./gpu/animation";
 import { render, html, TemplateResult } from "lit-html";
 
 // convert event coordinates to normalized coordinates

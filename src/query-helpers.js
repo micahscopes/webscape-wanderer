@@ -10,6 +10,12 @@ export const downstreamDependentsQuery = startProject => `
   }
 `;
 
+export const upstreamDependenciesQuery = startProject => `
+  PREFIX dependson: <http://dat-ecosystem.org#dependson>
+  SELECT DISTINCT ?dependency WHERE {
+    ${startProject} dependson:* ?dependency .
+  }
+`;
 
 // This query selects all the projects that depend on the given project, directly or indirectly.
 // It returns dependents of the given project along with each of their direct dependencies (using a subquery).
@@ -21,11 +27,23 @@ export const downstreamDependentsDependenciesQuery = startProject => `
   }
 `;
 
+// this query selects all the projects that the given project depends on, directly or indirectly.
+export const upstreamDependentsDependenciesQuery = startProject => `
+  PREFIX dependson: <http://dat-ecosystem.org#dependson>
+  SELECT DISTINCT ?dependent ?dependency WHERE {
+    <${startProject}> dependson:* ?dependent .
+    ?dependent dependson: ?dependency .
+  }
+  `;
 
 export const directDependentsQuery = startProject => `
   PREFIX dependson: <http://dat-ecosystem.org#dependson>
-  SELECT DISTINCT ?dependent
-  WHERE {
-      <${startProject}> dependson: ?dependent
-  }
-`;
+  SELECT DISTINCT ?dependent WHERE {
+    ?dependent dependson: <${startProject}> .
+  }`
+
+export const directDependenciesQuery = startProject => `
+  PREFIX dependson: <http://dat-ecosystem.org#dependson>
+  SELECT DISTINCT ?dependency WHERE {
+    <${startProject}> dependson: ?dependency .
+  }`

@@ -3,9 +3,11 @@ import { getColorBuffers, getEmphasisBuffers, getRadiusBuffers } from "./gpu/ani
 import { doQuery, getGraphData, getNodePosition } from "./data";
 import { identity, debounce } from "lodash-es";
 import { html, render } from 'lit-html';
-import { downstreamDependentsDependenciesQuery } from "./query-helpers";
+import { directDependenciesQuery, directDependentsQuery, downstreamDependentsDependenciesQuery, upstreamDependentsDependenciesQuery } from "./query-helpers";
 import { proxy } from "comlink";
 import { deselectedZoom, selectedZoom, setCameraCenter, setCameraDistance } from "./interaction";
+
+import { hue, normal } from 'color-blend/unit'
 
 // export const getCurrentSelection = moize.infinite(() => new Set());
 
@@ -120,40 +122,62 @@ export const showSelectionInfo = debounce(selectedNode => {
   }
 }, 0)
 
-
 export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
-  const doubleNodeSize = (size) => size * 2;
   // @ts-ignore
   if (node) {
     setSelectedIndex(node.index);
     const nodePosition = getNodePosition(node);
-    const query = downstreamDependentsDependenciesQuery(node.project);
+    // const downstreamQuery = downstreamDependentsDependenciesQuery(node.project);
+    // const upstreamQuery = upstreamDependentsDependenciesQuery(node.project);
+    const downstreamQuery = directDependentsQuery(node.project);
+    const upstreamQuery = directDependenciesQuery(node.project);
     // console.log("selected node:", node);
     const { nodesByProject, links } = await getGraphData();
-    initializeSelectionVisuals().then(() => {
-      applyVisualsToNode(node, { sizeMap: doubleNodeSize, emphasis: 1 });
-      doQuery(
-        query,
-        // proxy(data => {}),
-        proxy((data, get) => {
+    const resultHandler = ({sizeMap=identity, emphasis=1, colorMap=identity}) => (data, get) => {
           // if (node !== selectedNode) return;
           get(["dependent", "dependency"]).then(
             ({ dependent, dependency }) => {
               // console.log("query result:", dependent.value, dependency.value);
-              applyVisualsToNode(nodesByProject[dependent.value], {
-                sizeMap: doubleNodeSize,
-                emphasis: 1,
+              applyVisualsToNode(nodesByProject[dependent?.value || node.project], {
+                sizeMap,
+                emphasis,
+                colorMap
               });
-              applyVisualsToNode(nodesByProject[dependency.value], {
-                sizeMap: doubleNodeSize,
-                emphasis: 1,
+              applyVisualsToNode(nodesByProject[dependency?.value || node.project], {
+                sizeMap,
+                emphasis,
+                colorMap
               });
             }
           );
-        }),
-        proxy(() => {
-          // console.log("query ended:", query);
-        })
+        }
+    initializeSelectionVisuals().then(() => {
+      doQuery(
+        downstreamQuery,
+        proxy(resultHandler({
+          sizeMap: size => size*2,
+          colorMap: color => {
+            const c = {r: color[0], g: color[1], b: color[2], a: color[3]}
+            const green = {r: 0, g: 1, b: 0, a: 0.8}
+            const result = hue(c, green)
+            return [result.r, result.g, result.b, result.a]
+          }
+        })),
+        // proxy(() => {console.log('downstream query done')})
+      );
+      applyVisualsToNode(node, { sizeMap: size => size*4, emphasis: 1 });
+      doQuery(
+        upstreamQuery,
+        proxy(resultHandler({
+          sizeMap: size => size*2,
+          colorMap: color => {
+            const c = {r: color[0], g: color[1], b: color[2], a: color[3]}
+            const blue = {r: 0, g: 0, b: 1, a: 0.8}
+            const result = hue(c, blue)
+            return [result.r, result.g, result.b, result.a]
+          }
+        })),
+        // proxy(() => {console.log('upstream query done')})
       );
       // console.log(nodePosition, 'setting camera center')
       zoom && setCameraCenter(nodePosition);

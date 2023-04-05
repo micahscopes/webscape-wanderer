@@ -23,6 +23,7 @@
     "@tweenjs/tween.js": "^19.0.0",
     "@very-simple/router": "github:micahscopes/router",
     "browser-level": "^1.0.1",
+    "color-blend": "^4.0.0",
     "color-hash": "^2.0.1",
     "colord": "^2.9.3",
     "comlink": "^4.3.1",
