@@ -211,3 +211,18 @@ export const getSelectedNode = async () => {
   const { nodes } = await getGraphData();
   return nodes[index];
 }
+
+import { colord, extend } from "colord";
+import namesPlugin from "colord/plugins/names";
+
+extend([namesPlugin]);
+
+export const getSelectedColor = () => {
+  // get the link color from the document style :root `--selected-color` variable
+  const root = document.documentElement;
+
+  const color = colord(getComputedStyle(root).getPropertyValue('--selected-color')).toRgb();
+  // console.log('selected color:', color)
+
+  return new Float32Array([color.r/255.0, color.g/255.0, color.b/255.0, 1.0])
+}

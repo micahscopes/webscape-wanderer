@@ -10,6 +10,7 @@ layout(location=4) in vec3 vertexNormal;
 uniform vec2 mousePosition;
 
 uniform int selectedIndex;
+uniform vec4 selectedColor;
 
 #ifdef PICKER
   flat out vec4 color;
@@ -52,7 +53,9 @@ void main() {
 
   vec4 clipPosition = geo.orthographicClipPosition;
   
-  vec4 selectedColor = vec4(1.0, 1.0, 1.0, 1.0);
+  // vec4 selectedColor = vec4(1.0, 1.0, 1.0, 1.0);
+  // vec4 selectedColor = vec4(240.0/255.0, 128.0/255.0, 128.0/255.0, 1.0);
+
   
   #ifdef PICKER
     color = instanceIdToColor();

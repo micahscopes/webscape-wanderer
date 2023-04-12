@@ -14,7 +14,7 @@ import { getCamerasUniformBuffer, updateCameraUniforms } from './camera';
 import { alignCursorToFocusedNode, drawPickerBuffer, getCurrentlyHoveringIndex, getCurrentlyHoveringNode, getLastOverIndex, getPointerPositionClip, globalCamera, hoveredCursor, hoveredTooltip, selectedCursor, updateCameras } from '../interaction';
 import { debugTexture } from './debug-texture';
 import { colord } from 'colord'
-import { getSelectedIndex, getSelectedNode } from '../selection';
+import { getSelectedColor, getSelectedIndex, getSelectedNode } from '../selection';
 
 let drawEdges= true;
 let drawNodes = true;
@@ -133,6 +133,7 @@ export const animateGraph = () => {
     .uniformBlock('cameras', getCamerasUniformBuffer())
     .uniform('mousePosition', getPointerPositionClip())
     .uniform("selectedIndex", getSelectedIndex())
+    .uniform("selectedColor", getSelectedColor())
     .uniform("hoveringIndex", getCurrentlyHoveringIndex())
     .uniform('time', performance.now() / 1000)
 
