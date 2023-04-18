@@ -1,9 +1,9 @@
-layout(location=0) in vec3 nodePosition;
-layout(location=1) in vec4 nodeColor;
-layout(location=2) in float nodeSize;
+// layout(location=0) in vec3 nodePosition;
+// layout(location=1) in vec4 nodeColor;
+// layout(location=2) in float nodeSize;
 
-layout(location=3) in vec3 vertexPosition;
-layout(location=4) in vec3 vertexNormal;
+layout(location=0) in vec3 vertexPosition;
+layout(location=1) in vec3 vertexNormal;
 
 #include "graph-common.glsl"
 
@@ -11,6 +11,13 @@ uniform vec2 mousePosition;
 
 uniform int selectedIndex;
 uniform vec4 selectedColor;
+
+uniform sampler2D positionTexture;
+uniform sampler2D colorTexture;
+uniform sampler2D sizeTexture;
+uniform sampler2D emphasisTexture;
+
+uniform ivec2 textureDimensions;
 
 #ifdef PICKER
   flat out vec4 color;
@@ -25,6 +32,14 @@ out vec3 normal;
 #include "bump.glsl"
 
 void main() {
+  int id = gl_InstanceID;
+  
+  vec3 nodePosition = texelFetch(positionTexture, getTextureIndex(id, textureDimensions), 0).xyz;
+  vec4 nodeColor = texelFetch(colorTexture, getTextureIndex(id, textureDimensions), 0);
+  float nodeSize = texelFetch(sizeTexture, getTextureIndex(id, textureDimensions), 0).r;
+  float nodeEmphasis = texelFetch(emphasisTexture, getTextureIndex(id, textureDimensions), 0).r;
+
+
   float scale = nodeSize;
   float isSelected = float(gl_InstanceID == selectedIndex);
   scale *= mix(1.0, 1.1, isSelected);

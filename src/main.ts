@@ -5,6 +5,7 @@ import { prepareGraphLayoutWorker, randomGraphData, randomTreesData, graphLayout
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
+import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers, setAllLayerSizes } from "./gpu/interpolation";
 
 
 const app = getPicoApp();
@@ -12,6 +13,8 @@ app.clear();
 
 setupCameraInteraction();
 setupSelection();
+
+document.querySelector('html')?.classList.add('loading')
 
 let graphData
 graphData = await getGraphData();
@@ -42,9 +45,13 @@ await pickRandomVisualizer();
 setEdgeIndices(linkIndexPairs)
 // setEdgeIndices(linkIndexPairs.slice(0, 1000))
 
+setAllLayerSizes(nodes.length);
+
 // use node colors
 const colors = new Float32Array(nodes.flatMap(({ color }) => color));
 getColorBuffers().targetData(colors)
+getColorLayers().target.setFromArray(colors)
+getColorLayers().current.setFromArray(colors)
 
 // sizes from node sizes
 const nodeSizes = new Float32Array(nodes.length);
@@ -52,6 +59,8 @@ for (let i = 0; i < nodeSizes.length; i++) {
     nodeSizes[i] = Math.sqrt(nodes[i].size)/40;
 }
 getRadiusBuffers().targetData(nodeSizes)
+getSizeLayers().target.setFromArray(nodeSizes)
+getSizeLayers().current.setFromArray(nodeSizes)
 
 // initialize random node positions
 const scale = 40;
@@ -59,8 +68,12 @@ const randomPoint = () => [Math.random() * scale - 1, Math.random() * scale - 1,
 // const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
 const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint))
 getPositionBuffers().targetData(initialNodePositions);
+getPositionLayers().target.setFromArray(initialNodePositions);
+getPositionLayers().current.setFromArray(initialNodePositions);
 
 getEmphasisBuffers().targetData(new Float32Array(nodes.length).fill(0));
+getEmphasisLayers().target.setFromArray(new Float32Array(nodes.length).fill(0));
+getEmphasisLayers().current.setFromArray(new Float32Array(nodes.length).fill(0));
 
 // display the graph stats in a panel
 const statsPanel = document.createElement('div');
@@ -75,6 +88,8 @@ statsPanel.innerHTML = `
     <div>Nodes: ${nodes.length}</div>
     <div>Edges: ${linkIndexPairs.length}</div>
 `;
+
+document.querySelector('html')!.classList.remove('loading')
 
 animateGraph();
 trackFPS();

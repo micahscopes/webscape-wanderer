@@ -64,3 +64,15 @@ NodeGeometryBundle nodeGeometry(
     orthographicClipPosition
   );
 }
+
+// given an index, return the corresponding position
+ivec2 getTextureIndex(int index, ivec2 textureDimensions) {
+  int textureLength = textureDimensions.x * textureDimensions.y;
+  // index = textureLength - index;
+
+  // get the x and y coordinates of the pixel
+  int x = index % textureDimensions.x;
+  int y = index / textureDimensions.x;
+
+  return ivec2(x,y);
+}

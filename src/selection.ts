@@ -39,9 +39,23 @@ export const applyVisuals = async ({
   const emphasis = getEmphasisBuffers();
   const colorData = await getDefaultColors(colorMap)
   const sizeData = await getDefaultSizes(sizeMap)
-  colors.targetData(colorData, { immediate });
-  sizes.targetData(sizeData, { immediate });
-  emphasis.targetData(new Float32Array(emphasis.target.numItems).fill(0), { immediate })
+  const colorsTargetLayer = getColorLayers();
+  const sizesLayer = getSizeLayers();
+  const emphasisLayer = getEmphasisLayers();
+  
+  colorsTargetLayer.target.setFromArray(colorData);
+  sizesLayer.target.setFromArray(sizeData);
+  emphasisLayer.target.setFromArray(new Float32Array(sizeData.length).fill(0));
+  
+  if (immediate) {
+    colorsTargetLayer.current.setFromArray(colorData);
+    sizesLayer.current.setFromArray(sizeData);
+    emphasisLayer.current.setFromArray(new Float32Array(sizeData.length).fill(0));
+  }
+
+  // colors.targetData(colorData, { immediate });
+  // sizes.targetData(sizeData, { immediate });
+  // emphasis.targetData(new Float32Array(emphasis.target.numItems).fill(0), { immediate })
 }
 
 export const applyVisualsToNode = async (node, {
@@ -54,14 +68,28 @@ export const applyVisualsToNode = async (node, {
   const size = new Float32Array([sizeMap(defaultSizeMap(node))]);
   const epmhasis = new Float32Array([emphasis]);
 
-  const colorBuffers = getColorBuffers();
-  const sizeBuffers = getRadiusBuffers();
-  const emphasisBuffers = getEmphasisBuffers();
+  // const colorBuffers = getColorBuffers();
+  // const sizeBuffers = getRadiusBuffers();
+  // const emphasisBuffers = getEmphasisBuffers();
 
   // console.log('applying visuals to node', node, color, size, node.index)
-  colorBuffers.targetData(color, { offset: node.index, immediate });
-  sizeBuffers.targetData(size, { offset: node.index, immediate });
-  emphasisBuffers.targetData(epmhasis, { offset: node.index, immediate });
+  // colorBuffers.targetData(color, { offset: node.index, immediate });
+  // sizeBuffers.targetData(size, { offset: node.index, immediate });
+  // emphasisBuffers.targetData(epmhasis, { offset: node.index, immediate });
+  
+  const colorsTargetLayer = getColorLayers();
+  const sizesLayer = getSizeLayers();
+  const emphasisLayer = getEmphasisLayers();
+
+  colorsTargetLayer.target.setAtIndex1D(node.index, color);
+  sizesLayer.target.setAtIndex1D(node.index, size);
+  emphasisLayer.target.setAtIndex1D(node.index, epmhasis);
+
+  if (immediate) {
+    colorsTargetLayer.current.setAtIndex1D(node.index, color);
+    sizesLayer.current.setAtIndex1D(node.index, size);
+    emphasisLayer.current.setAtIndex1D(node.index, epmhasis);
+  }
 }
 
 export const initializationVisualMaps = {
@@ -214,6 +242,7 @@ export const getSelectedNode = async () => {
 
 import { colord, extend } from "colord";
 import namesPlugin from "colord/plugins/names";
+import { getColorLayers, getEmphasisLayers, getSizeLayers } from "./gpu/interpolation";
 
 extend([namesPlugin]);
 

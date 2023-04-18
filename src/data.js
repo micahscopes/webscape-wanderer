@@ -6,6 +6,7 @@ import { fromPairs, throttle, uniqWith } from 'lodash-es'
 import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
 import { getPositionBuffers } from './gpu/animation'
 import ColorHash from 'color-hash'
+import { getPositionLayers } from './gpu/interpolation'
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
@@ -184,6 +185,7 @@ export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3
     proxy(
       positions => {
         getPositionBuffers()?.targetData(positions)
+        getPositionLayers().target.setFromArray(positions)
         latestTargetPositions = positions
         // console.log('updating target positions', latestTargetPositions)
       }

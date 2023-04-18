@@ -14,6 +14,7 @@ import { setSelectedIndex, getSelectedIndex } from "./selection";
 import { throttle } from "lodash-es";
 import navigation from "./navigation";
 import { render, html, TemplateResult } from "lit-html";
+import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers, shimPicoTexture } from "./gpu/interpolation";
 
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ev: any) => {
@@ -307,11 +308,22 @@ export const drawPickerBuffer = () => {
     .drawFramebuffer(pickerBuffers.current.resize(app.width, app.height))
     .enable(PicoGL.SCISSOR_TEST)
     .scissor(...scissorRegion);
+    
+  // console.log(app.state.drawFramebufferBinding)
 
   const pickerDrawCall = getNodePickerDrawCall()
     .uniformBlock("cameras", getCamerasUniformBuffer())
     .uniform("mousePosition", getPointerPositionClip())
-    .uniform("selectedIndex", getSelectedIndex());
+    .uniform("selectedIndex", getSelectedIndex())
+    .uniform('textureDimensions', [getColorLayers().current.width, getColorLayers().current.height])
+    // @ts-ignore
+    .texture('positionTexture', shimPicoTexture(getPositionLayers().current.lastState.texture))
+    // @ts-ignore
+    .texture('colorTexture', shimPicoTexture(getColorLayers().current.lastState.texture))
+    // @ts-ignore
+    .texture('sizeTexture', shimPicoTexture(getSizeLayers().current.lastState.texture))
+    // @ts-ignore
+    .texture('emphasisTexture', shimPicoTexture(getEmphasisLayers().current.lastState.texture))
 
   app.defaultViewport().clear();
   pickerDrawCall.draw();

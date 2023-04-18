@@ -9,6 +9,8 @@ import { getPointerPositionClip } from '../interaction'
 import { getEdgeIndexBuffer, getEdgeIndexVertexBuffer, getEdgeIndices, getEdgeVertexArray } from './graph-visualization'
 
 
+
+
 const getTextureFormatFromTypeAndItemSize = (type: GLenum, itemSize: number) => {
   let internalFormat;
 
@@ -177,16 +179,7 @@ class InterpolationBuffers {
   
     // Calculate byte offset for the given index
     const byteOffset = index * this._itemSize * 4;
-    // console.log ('byte offset', byteOffset, this._itemSize, this._target.numItems)
     
-    // check to make sure we're not reading out of bounds
-    // if (byteOffset + this._itemSize * 4 > this._target.numItems*this._itemSize*4) {
-    //   throw new Error(`Index ${index} is out of bounds for buffer of length ${this._target.byteLength / 4 / this._itemSize}`);
-    // }
-
-    // unbind the current buffer from transform feedback
-    // gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
-  
     // Bind the updated buffer (source buffer) to the COPY_READ_BUFFER binding point
     gl.bindBuffer(PicoGL.COPY_READ_BUFFER, this.target.buffer);
   
@@ -260,8 +253,6 @@ export const getDepthTarget = moize.infinite((size) => {
   const app = getPicoApp()
   return app.createTexture2D(size, size, {
     internalFormat: PicoGL.DEPTH_COMPONENT32F,
-    // format: PicoGL.DEPTH_COMPONENT,
-    // type: PicoGL.FLOAT,
   })
 })
 
@@ -284,16 +275,6 @@ export const loadInterpolationFramebuffer = () => {
   
   return framebuffer
 }
-
-// export const setInterpolationTargets = (positions: ArrayBufferView, colors: ArrayBufferView, sizes: ArrayBufferView, opts: {
-//   offset?: number,
-//   immediate?: boolean,
-// }) => {
-//   getPositionBuffers().targetData(positions, opts)
-//   getColorBuffers().targetData(colors, opts)
-//   getRadiusBuffers().targetData(sizes, opts)
-//   getEmphasisBuffers().targetData(new Float32Array(positions.byteLength / 4), opts)
-// }
 
 export const getInterpolationProgram = moize.infinite(() => {
   const app = getPicoApp()

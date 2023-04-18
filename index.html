@@ -154,8 +154,30 @@
         margin-right: 8px;
       }
     </style>
+    <style>
+      #loading-indicator {
+        /* display: none; */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        text-align: center;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+        pointer-events: none;
+
+        opacity: 0;
+        transition: opacity 500ms ease-in-out;
+      }
+      html.loading #loading-indicator {
+        /* display: block; */
+        opacity: 1;
+      }
+    </style>
   </head>
   <body>
+    <div id="loading-indicator">
+      <h1>Loading...</h1>
+    </div>
     <script type="module" src="/src/main.ts"></script>
     <div id="selection-info" class="overlay"></div>
   </body>

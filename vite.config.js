@@ -31,10 +31,14 @@ export default defineConfig({
             global: 'globalThis',
         },
     },
+    include: [
+      // necessary because gpu-io only builds a UMD module
+      "gpu-io"
+    ]
 },
   server: {
     fs: {
-      allow: ['../router', '.'],
+      allow: ['../router', '../gpu-io', '.'],
     },
   },
 

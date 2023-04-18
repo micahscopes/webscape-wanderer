@@ -4,12 +4,10 @@ precision highp int;
 
 layout(location=0) in ivec2 edgeIndices;
 layout(location=1) in vec3 segmentOffset;
-layout(location=2) in lowp uint segmentParameter;
-
 
 out vec4 color;
-flat out vec4 sourceColor;
-flat out vec4 targetColor;
+// flat out vec4 sourceColor;
+// flat out vec4 targetColor;
 out vec4 position;
 out float size;
 flat out vec2 edgeDirection;
@@ -40,18 +38,6 @@ uniform bool hovered;
 vec3 desaturate(vec3 color, float amount) {
   float average = (color.r + color.g + color.b) / 3.0;
   return mix(color, vec3(average), amount);
-}
-
-// given an index, return the corresponding position
-ivec2 getTextureIndex(int index, ivec2 textureDimensions) {
-  int textureLength = textureDimensions.x * textureDimensions.y;
-  // index = textureLength - index;
-
-  // get the x and y coordinates of the pixel
-  int x = index % textureDimensions.x;
-  int y = index / textureDimensions.x;
-
-  return ivec2(x,y);
 }
 
 vec4 edgeGeometry(

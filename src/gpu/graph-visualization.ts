@@ -60,8 +60,8 @@ const getNodeVertexArray = moize.infinite(() => {
   return (
     getPicoApp()
       .createVertexArray()
-      .vertexAttributeBuffer(3, geoBuffer)
-      .vertexAttributeBuffer(4, geoNormals)
+      .vertexAttributeBuffer(0, geoBuffer)
+      .vertexAttributeBuffer(1, geoNormals)
       .indexBuffer(geoIndexBuffer)
   );
 });
@@ -69,13 +69,14 @@ const getNodeVertexArray = moize.infinite(() => {
 const loadNodeVertexArray = () => {
   const vertexArray = getNodeVertexArray();
   const positionBuffer = getPositionBuffers().current;
-  const colorBuffer = getColorBuffers().current;
-  const radiusBuffer = getRadiusBuffers().current;
+  // const positionBuffer = getPositionBuffers().current;
+  // const colorBuffer = getColorBuffers().current;
+  // const radiusBuffer = getRadiusBuffers().current;
 
   return vertexArray
-    .instanceAttributeBuffer(0, positionBuffer)
-    .instanceAttributeBuffer(1, colorBuffer)
-    .instanceAttributeBuffer(2, radiusBuffer);
+    .instanceAttributeBuffer(3, positionBuffer)
+    // .instanceAttributeBuffer(1, colorBuffer)
+    // .instanceAttributeBuffer(2, radiusBuffer);
 };
 
 export const getNodePickerBuffer = moize.infinite((tag) => {
@@ -214,7 +215,7 @@ export const getEdgeVertexArray = moize.infinite(() =>
     .createVertexArray()
 )
 
-export const loadEdgeVertexArray = moize.infinite(
+export const loadEdgeVertexArray = (
   (edgeData: ArrayBufferView) => {
     const vertexArray = getEdgeVertexArray();
     const indexBuffer = getEdgeIndexVertexBuffer(edgeData);
@@ -243,6 +244,7 @@ export const getMostRecentEdgeVertexArray = () => {
 
 export const getEdgeVisualizerDrawCall = moize.infinite(() => {
   const program = getEdgeVisualizerProgram();
+  program.program.id = "edge-visualizer-program";
   const vertexArray = getMostRecentEdgeVertexArray();
   return getPicoApp()
     .createDrawCall(program, vertexArray)
