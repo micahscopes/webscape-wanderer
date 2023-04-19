@@ -1,39 +1,9 @@
 import moize from "moize";
-import { getGPUComposer, getPicoApp } from "./rendering";
+import { getGPUComposer } from "./rendering";
 import { FLOAT, GPULayer, GPULayerType, GPULayerNumComponents, GPUProgram, INT } from "gpu-io";
 import { App } from "picogl";
 import { renderRGBProgram } from "gpu-io/dist/types/Programs";
 import { Texture } from "three";
-
-export const shimPicoTexture = (glTexture, picoApp: App = getPicoApp()) => ({
-  texture: glTexture,
-  bind(unit) {
-    // console.log('binding', unit, this.texture)
-    let currentTexture = picoApp.state.textures[unit];
-
-    if (picoApp.state.activeTexture !== unit) {
-        picoApp.gl.activeTexture(picoApp.gl.TEXTURE0 + unit);
-        picoApp.state.activeTexture = unit;
-    }
-
-    if (currentTexture !== this) {
-        if (currentTexture) {
-            currentTexture.currentUnit = -1;
-        }
-
-        if (this.currentUnit !== -1) {
-            picoApp.state.textures[this.currentUnit] = null;
-        }
-
-        picoApp.gl.bindTexture(picoApp.gl.TEXTURE_2D, this.texture);
-
-        picoApp.state.textures[unit] = this;
-        this.currentUnit = unit;
-    }
-
-    return this;
-  }
-})
 
 export const getLayers = (name, {
   type = FLOAT as GPULayerType,

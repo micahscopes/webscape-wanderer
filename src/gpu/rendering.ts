@@ -1,4 +1,3 @@
-import PicoGL from 'picogl';
 import moize from 'moize';
 import { updateCamerasUniformsGroup } from './camera';
 import {
@@ -77,31 +76,14 @@ export const getGPUComposer = moize.infinite(() => {
   return GPUComposer.initWithThreeRenderer(renderer)
 })
 
-
-export const getPicoApp = moize.infinite(() => {
-  const { width, height } = getWidthAndHeight();
-  return PicoGL.createApp(getCanvasAndGLContext().canvas,
-    {
-      antialias: true,
-      extensions: ['OES_texture_float', 'EXT_color_buffer_float', 'ANGLE_instanced_arrays'],
-    }
-  )
-    .viewport(0, 0, width, height)
-    .enable(PicoGL.BLEND)
-    .blendFunc(PicoGL.SRC_ALPHA, PicoGL.ONE_MINUS_SRC_ALPHA)
-    .enable(PicoGL.DEPTH_TEST)
-    .depthFunc(PicoGL.LEQUAL)
-    .clearColor(...getClearColor())
-});
-
 export const fillCanvasToWindow = () => {
   // const app = getPicoApp();
   const { canvas } = getCanvasAndGLContext();
   const { renderer } = getThreeSetup()
   const { width, height } = getWidthAndHeight();
   // console.log('resizing canvas to', width, height, 'px')
-  renderer.setSize(width, height);
-  getPickerRenderTarget().setSize(width, height);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  getPickerRenderTarget().setSize(window.innerWidth, window.innerHeight);
   globalCamera.resize(width / height);
   canvas.style.position = 'absolute';
   canvas.style.top = '0px';
@@ -174,11 +156,13 @@ export const animateGraph = () => {
   })
     
   gpuComposer.resetThreeState();
-  const { renderer, scene, camera, pickerScene } = getThreeSetup();
-  
+  // initializeNodeVisualizerUniforms();
+  // initializeEdgeVisualizerUniforms();
   updateNodeVisualizerUniforms();
   updateEdgeVisualizerUniforms();
 
+  const { renderer, scene, camera, pickerScene } = getThreeSetup();
+  
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
   

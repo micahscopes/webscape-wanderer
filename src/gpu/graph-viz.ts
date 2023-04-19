@@ -1,4 +1,16 @@
-import { Scene, PerspectiveCamera, WebGLRenderer, InstancedBufferGeometry, InstancedBufferAttribute, ShaderMaterial, RawShaderMaterial, Mesh, Vector2, Color, BoxGeometry, MeshBasicMaterial, DirectionalLight, BufferAttribute, Float32BufferAttribute, DoubleSide, NearestFilter, RGBAFormat, UnsignedByteType, WebGLRenderTarget, LinearFilter } from 'three';
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  InstancedBufferGeometry,
+  InstancedBufferAttribute,
+  RawShaderMaterial,
+  Mesh,
+  BoxGeometry,
+  DoubleSide,
+  WebGLRenderTarget,
+  CylinderGeometry,
+} from 'three';
 
 import nodeVs from '../shaders/node.vert';
 import nodeFs from '../shaders/node.frag';
@@ -9,12 +21,7 @@ import nodePickerFs from '../shaders/node-picker.frag';
 import edgeVs from '../shaders/edge.vert';
 import edgeFs from '../shaders/edge.frag';
 
-import { getCanvasAndGLContext, getPicoApp } from './rendering';
-// import bunny from 'bunny';
-// import icosphere from 'primitive-icosphere';
-import cube from 'primitive-cube';
-// import simplify from 'mesh-simplify';
-import { vertexNormals } from 'normals';
+import { getCanvasAndGLContext } from './rendering';
 import grid from 'grid-mesh';
 import { getCamerasUniformsGroup } from './camera';
 import { getCurrentlyHoveringIndex, getPointerPositionClip } from '../interaction';
@@ -24,25 +31,26 @@ import moize from 'moize';
 
 
 export const getNodeVisualizerMesh = moize.infinite(() => {
-  const geo = cube(1);
-  const positions = geo.positions;
-  const cells = geo.cells;
-  const normals = vertexNormals(cells, positions);
+  let geo = new BoxGeometry(1, 1, 1);
+  // geo = new TorusKnotGeometry(1, 0.3, 20, 8);
+  // geo = new TorusGeometry();
+  // console.log(geo)
 
   const geometry = new InstancedBufferGeometry();
 
   geometry.setAttribute(
     'vertexPosition',
-    new Float32BufferAttribute(new Float32Array(positions.flat()), 3)
+    geo.attributes.position
   );
   geometry.setAttribute(
     'vertexNormal',
-    new Float32BufferAttribute(new Float32Array(normals.flat()), 3)
+    geo.attributes.normal
   );
+  // geometry.setIndex(cells.flat());
+  geometry.setIndex(geo.index);
   geometry.setAttribute('index',
     new InstancedBufferAttribute(new Int32Array([]), 1)
   )
-  geometry.setIndex(cells.flat());
 
   const material = new RawShaderMaterial({
     vertexShader: nodeVs,
@@ -55,7 +63,7 @@ export const getNodeVisualizerMesh = moize.infinite(() => {
   });
 
   geometry.setAttribute('index',
-    new InstancedBufferAttribute(new Int32Array([]), 1)
+    new InstancedBufferAttribute(new Int32Array([1,2,3,4]), 1)
   )
   
   material.uniformsGroups = [getCamerasUniformsGroup()];
@@ -79,7 +87,7 @@ export const initializeNodeVisualizerUniforms = () => {
     hoveringIndex: { value: getCurrentlyHoveringIndex() },
     time: { value: performance.now() / 1000 },
   }
-  console.log('setting uniforms', mesh.material.uniforms)
+  // console.log('setting uniforms', mesh.material.uniforms)
   pickerMesh.material.uniforms = mesh.material.uniforms;
 
   mesh.material.needsUpdate = true;
@@ -111,7 +119,7 @@ const getNodeIndexArray = moize.infinite((size) => {
 });
 
 export const loadNodeVertexArray = (size) => {
-  // console.log('loading node vertex array', size)
+  console.log('loading node vertex array', size)
   const {mesh, pickerMesh} = getNodeVisualizerMesh();
   const indexBuffer = getNodeIndexArray(size);
   mesh.geometry.setAttribute('index', indexBuffer);
@@ -125,25 +133,36 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
   segmentOffsetGeometry.positions = segmentOffsetGeometry.positions.map(
     ([x, y]) => [x / segX, y / segY]
   );
+  console.log('segmentOffsetGeometry', segmentOffsetGeometry)
+  const segmentOffsetGeo = new CylinderGeometry(
+    0.5,
+    0.5,
+    1,
+    4,
+    20,
+    true,
+  )
+
 
   const geometry = new InstancedBufferGeometry();
 
-  geometry.setAttribute('edgeIndices', new InstancedBufferAttribute(new Int32Array([]), 2))
   geometry.setAttribute(
     'segmentOffset',
-    new Float32BufferAttribute(
-      new Float32Array(segmentOffsetGeometry.positions.flat()),
-      3
-    )
+    segmentOffsetGeo.attributes.position
   );
-  geometry.setIndex(segmentOffsetGeometry.cells.flat());
-  // geometry.setAttribute('index', new InstancedBufferAttribute(new Float32Array([1,2,3,4,5,6,7,8,9,10]), 1))
+  geometry.setIndex(segmentOffsetGeo.index);
+
+  geometry.setAttribute('edgeIndices', new InstancedBufferAttribute(new Int32Array([1,2,3]), 2))
+  
+  // console.log('segmentOffsetGeometry', segmentOffsetGeometry)
+
 
   const material = new RawShaderMaterial({
     vertexShader: edgeVs,
     fragmentShader: edgeFs,
     uniforms: {},
     transparent: true,
+    side: DoubleSide,
   });
 
   return new Mesh(geometry, material);

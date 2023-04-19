@@ -2,8 +2,8 @@
 precision highp float;
 precision highp int;
 
-in ivec2 edgeIndices;
 in vec3 segmentOffset;
+in ivec2 edgeIndices;
 
 out vec4 color;
 // flat out vec4 sourceColor;
@@ -68,8 +68,9 @@ vec4 edgeGeometry(
 #include "bump.glsl"
 
 void main() {
-  isSource = segmentOffset.x;
-  isTarget = 1.0-segmentOffset.x;
+  vec3 segmentPosition = segmentOffset.yxz + vec3(0.5, 0.0, 0.0);
+  isSource = segmentPosition.x;
+  isTarget = 1.0-segmentPosition.x;
   
   float sourceEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
   float targetEmphasis = texelFetch(emphasisTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
@@ -77,7 +78,7 @@ void main() {
   emphasis = max(sourceEmphasis, targetEmphasis);
   
   position = vec4(0);
-  vec3 vertexOffset = segmentOffset + vec3(0.0, -0.5, 0.0);
+  vec3 vertexOffset = segmentPosition + vec3(0.0, 0, 0.0);
 
   vec3 sourceNodePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).xyz;
   vec3 targetNodePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).xyz;
@@ -136,7 +137,7 @@ void main() {
 
   gl_Position = position;
   y = vertexOffset.y;
-  v = segmentOffset.y;
+  v = segmentPosition.y;
 
   float distance = length(mousePosition - position.xy);
   // float nearness = bump(distance, 100.0, 20.0);

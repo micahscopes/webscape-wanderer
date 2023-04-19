@@ -4,7 +4,6 @@ import GraphLayoutWorker from './graph-layout-worker.js?worker'
 import { wrap, proxy } from 'comlink'
 import { fromPairs, throttle, uniqWith } from 'lodash-es'
 import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
-import { getPositionBuffers } from './gpu/animation'
 import ColorHash from 'color-hash'
 import { getPositionLayers } from './gpu/interpolation'
 
@@ -184,7 +183,6 @@ export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3
     data, 
     proxy(
       positions => {
-        getPositionBuffers()?.targetData(positions)
         getPositionLayers().target.setFromArray(positions)
         latestTargetPositions = positions
         // console.log('updating target positions', latestTargetPositions)
@@ -193,7 +191,7 @@ export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3
 }
 
 export const getNodePosition = (node) => {
-  const positions = getPositionBuffers().mostRecentData
+  const positions = getLatestTargetPositions() ? getLatestTargetPositions() : []
   const index = node.index
   return [positions[index*3], positions[index*3+1], positions[index*3+2]]
 }

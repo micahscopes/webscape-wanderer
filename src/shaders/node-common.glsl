@@ -67,7 +67,7 @@ void main() {
   #ifdef PICKER
     color = instanceIdToColor();
   #else
-    color = mix(nodeColor, selectedColor, float(index == selectedIndex));
+    color = mix(nodeColor, selectedColor*1.4, float(index == selectedIndex));
   #endif
 
   normal = mat3(orthoFixedView) * vertexNormal;
