@@ -11,9 +11,8 @@ void main() {
   // use the normal to calculate the light direction
   const vec3 lightDirection = normalize(vec3(0.0, 0.0, 1.0));
   float light = dot(normal, lightDirection);
-  // use the light to calculate the color
-
-  // fragColor = vec4(normal, 1.0);
   fragColor = vec4(color.xyz*light, color.a);
-  // fragColor = vec4(color.xyz, 1.0);
+  
+  // override
+  // fragColor = vec4(0.0,1.0,0.0,1.0);
 }

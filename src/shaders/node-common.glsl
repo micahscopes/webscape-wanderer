@@ -1,9 +1,6 @@
-// layout(location=0) in vec3 nodePosition;
-// layout(location=1) in vec4 nodeColor;
-// layout(location=2) in float nodeSize;
-
-layout(location=0) in vec3 vertexPosition;
-layout(location=1) in vec3 vertexNormal;
+in vec3 vertexPosition;
+in vec3 vertexNormal;
+in int index;
 
 #include "graph-common.glsl"
 
@@ -32,20 +29,19 @@ out vec3 normal;
 #include "bump.glsl"
 
 void main() {
-  int id = gl_InstanceID;
+  int id = int(index);
   
   vec3 nodePosition = texelFetch(positionTexture, getTextureIndex(id, textureDimensions), 0).xyz;
   vec4 nodeColor = texelFetch(colorTexture, getTextureIndex(id, textureDimensions), 0);
   float nodeSize = texelFetch(sizeTexture, getTextureIndex(id, textureDimensions), 0).r;
   float nodeEmphasis = texelFetch(emphasisTexture, getTextureIndex(id, textureDimensions), 0).r;
 
-
   float scale = nodeSize;
-  float isSelected = float(gl_InstanceID == selectedIndex);
+  float isSelected = float(index == selectedIndex);
   scale *= mix(1.0, 1.1, isSelected);
   
   #ifdef PICKER
-    scale *= 1.25;
+    scale *= 1.3;
   #endif
 
   NodeGeometryBundle geo = nodeGeometry(
@@ -68,14 +64,10 @@ void main() {
 
   vec4 clipPosition = geo.orthographicClipPosition;
   
-  // vec4 selectedColor = vec4(1.0, 1.0, 1.0, 1.0);
-  // vec4 selectedColor = vec4(240.0/255.0, 128.0/255.0, 128.0/255.0, 1.0);
-
-  
   #ifdef PICKER
     color = instanceIdToColor();
   #else
-    color = mix(nodeColor, selectedColor, float(gl_InstanceID == selectedIndex));
+    color = mix(nodeColor, selectedColor, float(index == selectedIndex));
   #endif
 
   normal = mat3(orthoFixedView) * vertexNormal;

@@ -34,9 +34,9 @@ export const applyVisuals = async ({
   sizeMap = identity,
   immediate = false,
 } = {}) => {
-  const colors = getColorBuffers();
-  const sizes = getRadiusBuffers();
-  const emphasis = getEmphasisBuffers();
+  // const colors = getColorBuffers();
+  // const sizes = getRadiusBuffers();
+  // const emphasis = getEmphasisBuffers();
   const colorData = await getDefaultColors(colorMap)
   const sizeData = await getDefaultSizes(sizeMap)
   const colorsTargetLayer = getColorLayers();
@@ -186,7 +186,7 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
           sizeMap: size => size*2,
           colorMap: color => {
             const c = {r: color[0], g: color[1], b: color[2], a: color[3]}
-            const green = {r: 0, g: 1, b: 0, a: 0.8}
+            const green = {r: 57/255, g: 179/255, b: 83/255, a: 0.8}
             const result = hue(c, green)
             return [result.r, result.g, result.b, result.a]
           }
@@ -200,7 +200,7 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
           sizeMap: size => size*2,
           colorMap: color => {
             const c = {r: color[0], g: color[1], b: color[2], a: color[3]}
-            const blue = {r: 0, g: 0, b: 1, a: 0.8}
+            const blue = {r: 0, g: 102/255, b: 209/255, a: 0.8}
             const result = hue(c, blue)
             return [result.r, result.g, result.b, result.a]
           }
@@ -229,8 +229,12 @@ export const selectNothingAndZoomOut = () => {
 window.initializeSelectionVisuals = initializeSelectionVisuals;
 
 let selectedIndex = -1;
-export const getSelectedIndex = () => selectedIndex;
+export const getSelectedIndex = () => {
+  // console.log('getting selected index:', selectedIndex)
+  return selectedIndex;
+}
 export const setSelectedIndex = (index) => {
+  // console.log('selected index:', index)
   selectedIndex = index
 }
 

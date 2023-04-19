@@ -1,23 +1,27 @@
-import PicoGL, { Texture } from 'picogl';
+import PicoGL from 'picogl';
 import moize from 'moize';
+import { updateCamerasUniformsGroup } from './camera';
 import {
-  getColorBuffers,
-  getEmphasisBuffers,
-  getInterpolationDrawCall,
-  getPositionBuffers,
-  getRadiusBuffers,
-  loadInterpolationFramebuffer,
-  swapInterpolationBuffers,
-} from './animation';
-import { getEdgeVisualizerDrawCall, getMostRecentEdgeVertexArray, getNodePickerSwappableBuffer, getNodeVisualizerDrawCall, loadEdgeVertexArray } from './graph-visualization';
-import { getCamerasUniformBuffer, updateCameraUniforms } from './camera';
-import { drawPickerBuffer, getCurrentlyHoveringIndex, getCurrentlyHoveringNode, getLastOverIndex, getPointerPositionClip, globalCamera, hoveredCursor, hoveredTooltip, selectedCursor, updateCameras } from '../interaction';
-import { debugTexture } from './debug-texture';
+  getCurrentlyHoveringNode,
+  globalCamera,
+  hoveredCursor,
+  hoveredTooltip,
+  selectedCursor,
+  updateCameras,
+  updatePickerColor,
+} from '../interaction';
 import { colord } from 'colord'
-import { getSelectedColor, getSelectedIndex, getSelectedNode } from '../selection';
-import { FLOAT, GPUComposer, GPULayer, NEAREST, REPEAT } from 'gpu-io';
-import { getColorLayers, getEmphasisLayers, getInterpolationProgram, getPositionLayers, getSizeLayers, shimPicoTexture } from './interpolation';
+import { getSelectedNode } from '../selection';
+import { FLOAT, GPUComposer, copyProgram } from 'gpu-io';
+import {
+  getColorLayers,
+  getEmphasisLayers,
+  getInterpolationProgram,
+  getPositionLayers,
+  getSizeLayers,
+} from './interpolation';
 import { renderAmplitudeProgram, renderRGBProgram } from 'gpu-io';
+import { getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
 
 let drawEdges = true;
 let drawNodes = true;
@@ -68,12 +72,9 @@ export const getCanvasAndGLContext = moize.infinite(() => {
 })
 
 export const getGPUComposer = moize.infinite(() => {
-  const { canvas, gl } = getCanvasAndGLContext();
-  getPicoApp();
-  return new GPUComposer({
-    context: gl!, canvas,
-    // contextAttributes: { preserveDrawingBuffer: true },
-  });
+  const { renderer } = getThreeSetup()
+
+  return GPUComposer.initWithThreeRenderer(renderer)
 })
 
 
@@ -94,12 +95,14 @@ export const getPicoApp = moize.infinite(() => {
 });
 
 export const fillCanvasToWindow = () => {
-  const app = getPicoApp();
+  // const app = getPicoApp();
+  const { canvas } = getCanvasAndGLContext();
+  const { renderer } = getThreeSetup()
   const { width, height } = getWidthAndHeight();
-  console.log('resizing canvas to', width, height, 'px')
-  app.resize(width, height);
+  // console.log('resizing canvas to', width, height, 'px')
+  renderer.setSize(width, height);
+  getPickerRenderTarget().setSize(width, height);
   globalCamera.resize(width / height);
-  const canvas = app.canvas as HTMLCanvasElement;
   canvas.style.position = 'absolute';
   canvas.style.top = '0px';
   canvas.style.left = '0px';
@@ -111,15 +114,15 @@ function checkWebGLError(gl) {
   const error = gl.getError();
   if (error !== gl.NO_ERROR) {
     const activeProgram = gl.getParameter(gl.CURRENT_PROGRAM);
-    console.error(`WebGL Error: ${error}, Shader Program: ${activeProgram ? activeProgram.id : 'unknown'}`);
+    console.warn(`WebGL Error: ${error}, Shader Program: ${activeProgram ? activeProgram.id : 'unknown'}`);
   }
 }
-    
+
 const debugPositions = renderRGBProgram(getGPUComposer(), {
     name: 'renderPositions',
     type: FLOAT,
   })
-  
+
 const debugNoise = renderAmplitudeProgram(getGPUComposer(), {
     name: 'renderNoise',
     type: FLOAT,
@@ -127,171 +130,62 @@ const debugNoise = renderAmplitudeProgram(getGPUComposer(), {
   })
 
 
-const canvas = getPicoApp().canvas as HTMLCanvasElement;
 fillCanvasToWindow();
 
-const noise = new Float32Array(canvas.width * canvas.height);
-noise.forEach((el, i) => noise[i] = Math.random());
 
-// console.log(noise)
-const noiseLayer = new GPULayer(getGPUComposer(), {
-  name: 'state',
-  dimensions: [canvas.width, canvas.height],
-  numComponents: 1, // Scalar state has one component.
+const copy = copyProgram(getGPUComposer(), {
+  name: 'copy',
   type: FLOAT,
-  filter: NEAREST,
-  // Use 2 buffers so we can toggle read/write
-  // from one to the other.
-  numBuffers: 2,
-  wrapX: REPEAT,
-  wrapY: REPEAT,
-  array: noise,
-});
+})
+
+initializeNodeVisualizerUniforms();
+initializeEdgeVisualizerUniforms();
 
 // no need to get the picker pixel every frame
 export const animateGraph = () => {
-  // getSelectedNode().then(node => {
-  //   // console.log('highlighting node ...', node)
-  //   selectedCursor.highlightNode(node)
-  // })
-
-  // getCurrentlyHoveringNode().then(node => {
-  //   hoveredTooltip.highlightNode(node)
-  //   hoveredCursor.highlightNode(node)
-  // })
-
-  // interpolation.draw();
-  const app = getPicoApp();  
-  const gpuComposer = getGPUComposer();
-  const gl = app.gl
-  // app.clearColor(0.5,0.5,0.5,0).clear();
-  
-  // const width = getPositionLayers().current.width
-  // const height = getPositionLayers().current.height
-  // app
-  //   // .drawFramebuffer(interpolationFramebuffer)
-  //   .scissor(0, 0, width, height)
-  //   .enable(PicoGL.SCISSOR_TEST)
-  //   .viewport(0, 0, width, height)
-  //   .clearColor(0, 0, 0, 1)
-  app.disable(PicoGL.BLEND)
-  app.clearColor(0,0,0,0).clear();
-  
-  const interpolationLayers = [getPositionLayers(), getColorLayers(), getSizeLayers(), getEmphasisLayers()]
-  const interpolationProgram = getInterpolationProgram()
-  Object.values(interpolationProgram._programs).forEach(program => {
-    program.id = "interpolation"
+  getSelectedNode().then(node => {
+    // console.log('highlighting node ...', node)
+    selectedCursor.highlightNode(node)
   })
-  interpolationProgram.setUniform('uMixRatio', 0.05);
-  gpuComposer.step({
-    program: interpolationProgram,
-    input: interpolationLayers.flatMap(layer => [layer.target, layer.current]),
-    output: interpolationLayers.flatMap(layer => [layer.current]),
+
+  getCurrentlyHoveringNode().then(node => {
+    hoveredTooltip.highlightNode(node)
+    hoveredCursor.highlightNode(node)
   })
-  gpuComposer.step({
-    program: interpolationProgram,
-    input: interpolationLayers.flatMap(layer => [layer.target, layer.current]),
-    output: interpolationLayers.flatMap(layer => [layer.current]),
-  })
-  // gpuComposer.step({
-  //   program: debugNoise,
-  //   input: noiseLayer,
-  // })
-  
-  // gpuComposer.step({
-  //   program: debugPositions,
-  //   input: getPositionLayers().current,
-  // })
-  
 
-  // Reset scissor test
-  gl.disable(gl.SCISSOR_TEST);
-
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-  drawPickerBuffer();
-
-  app.enable(PicoGL.BLEND)
-  app.enable(PicoGL.DEPTH_TEST)
-  app.clearColor(...getClearColor()).disable(PicoGL.SCISSOR_TEST)
-  // app.clearColor(0,0,0,1);
-  // app.clear();
-  app.defaultViewport().defaultDrawFramebuffer()
   fillCanvasToWindow();
   updateCameras(
-    updateCameraUniforms,
+    updateCamerasUniformsGroup,
     window.innerWidth,
     window.innerHeight,
   );
 
-  // console.log(app.state)
 
-  const nodeDrawCall = getNodeVisualizerDrawCall()
-    .uniformBlock('cameras', getCamerasUniformBuffer())
-    .uniform('textureDimensions', [getColorLayers().current.width, getColorLayers().current.height])
-    // @ts-ignore
-    .texture('positionTexture', shimPicoTexture(getPositionLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('colorTexture', shimPicoTexture(getColorLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('sizeTexture', shimPicoTexture(getSizeLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('emphasisTexture', shimPicoTexture(getEmphasisLayers().current.lastState.texture))
-    .uniform('mousePosition', getPointerPositionClip())
-    .uniform("selectedIndex", getSelectedIndex())
-    .uniform("selectedColor", getSelectedColor())
-    .uniform("hoveringIndex", getCurrentlyHoveringIndex())
-    .uniform('time', performance.now() / 1000)
+  const gpuComposer = getGPUComposer();
+  gpuComposer.undoThreeState();
+  
+  const interpolationLayers = [getPositionLayers(), getColorLayers(), getSizeLayers(), getEmphasisLayers()]
+  const interpolationProgram = getInterpolationProgram()
 
-  const edgeDrawCall = getEdgeVisualizerDrawCall()
-    .uniformBlock('cameras', getCamerasUniformBuffer())
-    .uniform('textureDimensions', [getColorLayers().current.width, getColorLayers().current.height])
-    // @ts-ignore
-    .texture('positionTexture', shimPicoTexture(getPositionLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('colorTexture', shimPicoTexture(getColorLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('sizeTexture', shimPicoTexture(getSizeLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('emphasisTexture', shimPicoTexture(getEmphasisLayers().current.lastState.texture))
-    .uniform('mousePosition', getPointerPositionClip())
-    .uniform('selectedIndex', getSelectedIndex())
-    .uniform('time', performance.now() / 1000)
-
+  gpuComposer.step({
+    program: interpolationProgram,
+    input: interpolationLayers.flatMap(layer => [layer.target, layer.current]),
+    output: interpolationLayers.flatMap(layer => [layer.current, layer.view]),
+  })
     
-    // console.log(getColorLayers().current.width, getColorLayers().current.height)
+  gpuComposer.resetThreeState();
+  const { renderer, scene, camera, pickerScene } = getThreeSetup();
   
-  getMostRecentEdgeVertexArray()
+  updateNodeVisualizerUniforms();
+  updateEdgeVisualizerUniforms();
 
-  drawNodes && nodeDrawCall.draw();
-  drawEdges && edgeDrawCall.draw();
+  renderer.setRenderTarget(null);
+  renderer.render(scene, camera);
   
-  // checkWebGLError(app.gl);
-
-  // // debug stuff
-  // window.lolDrawThatThing = (thatThing: string) => {
-  //   if (thatThing === 'color') {
-  //     window.lolDrawThat = getColorBuffers().texture;
-  //   }
-  //   if (thatThing === 'position') {
-  //     window.lolDrawThat = getPositionBuffers().texture;
-  //   }
-  //   if (thatThing === 'size') {
-  //     window.lolDrawThat = getRadiusBuffers().texture;
-  //   }
-  //   if (thatThing === 'picker') {
-  //     window.lolDrawThat = getNodePickerSwappableBuffer().current.colorAttachments[0];
-  //   }
-  //   else {
-  //     window.lolDrawThat = null;
-  //   }
-  // }
-  // if (window.lolDrawThat) {
-  //   debugTexture(window.lolDrawThat)
-  // }
-
-  // swapInterpolationBuffers()
+  renderer.setRenderTarget(getPickerRenderTarget());
+  renderer.render(pickerScene, camera);
+  
+  updatePickerColor();
 
   requestAnimationFrame(animateGraph);
 }

@@ -6,10 +6,13 @@ import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
 import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers, setAllLayerSizes } from "./gpu/interpolation";
+import { getThreeSetup, loadNodeVertexArray, loadEdgeVertexArray } from "./gpu/graph-viz";
 
 
-const app = getPicoApp();
-app.clear();
+// const app = getPicoApp();
+// app.clear();
+
+const { scene, camera, renderer } = getThreeSetup();
 
 setupCameraInteraction();
 setupSelection();
@@ -42,8 +45,11 @@ await pickRandomVisualizer();
 // try out different visualizers:
 // setInterval(pickRandomVisualizer, 10000)
 
-setEdgeIndices(linkIndexPairs)
+// setEdgeIndices(linkIndexPairs)
 // setEdgeIndices(linkIndexPairs.slice(0, 1000))
+
+loadEdgeVertexArray(linkIndexPairs);
+loadNodeVertexArray(nodes.length);
 
 setAllLayerSizes(nodes.length);
 

@@ -1,11 +1,5 @@
 import interactionEvents from "normalized-interaction-events";
-import { getPicoApp } from "./gpu/rendering";
-import {
-  getNodePickerDrawCall,
-  getNodePickerSwappableBuffer,
-} from "./gpu/graph-visualization";
-import PicoGL from "picogl";
-import { getCamerasUniformBuffer } from "./gpu/camera";
+import { getCanvasAndGLContext } from "./gpu/rendering";
 import { getGraphData, getNodePosition } from "./data";
 import moize from "moize";
 import AnimationWorker from "./animation-worker?worker";
@@ -14,12 +8,11 @@ import { setSelectedIndex, getSelectedIndex } from "./selection";
 import { throttle } from "lodash-es";
 import navigation from "./navigation";
 import { render, html, TemplateResult } from "lit-html";
-import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers, shimPicoTexture } from "./gpu/interpolation";
+import { getPickerRenderTarget, getThreeSetup } from "./gpu/graph-viz";
 
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ev: any) => {
-  const app = getPicoApp();
-  const canvas = app.canvas;
+  const { canvas } = getCanvasAndGLContext();
   const rect = canvas.getBoundingClientRect();
   const x = (ev.clientX - rect.left) / rect.width;
   const y = (ev.clientY - rect.top) / rect.height;
@@ -100,13 +93,13 @@ export const getPointerPositionPicker: () => [number, number] = () => [
 
 const collectPointerPositionInfo = ({ x, y }) => {
   // console.log('collectPointerPositionInfo', ev)
-  const app = getPicoApp();
+  const { canvas } = getCanvasAndGLContext();
   pointerPositionInfo.x = x;
   pointerPositionInfo.y = y;
 
   // we'll need to convert from the normalized coordinates to the canvas coordinates
-  pointerPositionInfo.canvasX = ((x + 1) / 2) * app.width;
-  pointerPositionInfo.canvasY = ((y + 1) / 2) * app.height;
+  pointerPositionInfo.canvasX = ((x + 1) / 2) * canvas.width;
+  pointerPositionInfo.canvasY = ((y + 1) / 2) * canvas.height;
 
   const deviceRatio = window.devicePixelRatio || 1;
 
@@ -129,8 +122,7 @@ export const getCurrentlyHoveringNode = async () => {
 }
 
 export const setupSelection = moize.infinite(() => {
-  const app = getPicoApp();
-  const canvas = app.canvas;
+  const { canvas } = getCanvasAndGLContext();
 
   interactionEvents(canvas)
     .on("touchmove", collectPointerPositionInfo)
@@ -207,8 +199,8 @@ export const setupSelection = moize.infinite(() => {
 const radiansPerHalfScreenWidth = Math.PI / 3;
 
 export const setupCameraInteraction = () => {
-  const app = getPicoApp();
-  const canvas = app.canvas;
+  // const app = getPicoApp();
+  const { canvas } = getCanvasAndGLContext();
 
   //@ts-ignore
   canvas.addEventListener(
@@ -294,55 +286,81 @@ export const getNodeIndexFromPickerColor = (color: Uint8Array) => {
   return nodeIndex - 1;
 };
 
-export const drawPickerBuffer = () => {
-  const app = getPicoApp();
-  const pickerBuffers = getNodePickerSwappableBuffer();
-  const area = 100;
-  const scissorRegion: [number, number, number, number] = [
-    getPointerPositionCanvas()[0] - area / 2,
-    getPointerPositionCanvas()[1] - area / 2,
-    area,
-    area,
-  ];
-  app
-    .drawFramebuffer(pickerBuffers.current.resize(app.width, app.height))
-    .enable(PicoGL.SCISSOR_TEST)
-    .scissor(...scissorRegion);
-    
-  // console.log(app.state.drawFramebufferBinding)
+export const updatePickerColor = () => {
+  const { renderer } = getThreeSetup();
+  const { canvas } = getCanvasAndGLContext();
+  const mousePosition = getPointerPositionCanvas();
 
-  const pickerDrawCall = getNodePickerDrawCall()
-    .uniformBlock("cameras", getCamerasUniformBuffer())
-    .uniform("mousePosition", getPointerPositionClip())
-    .uniform("selectedIndex", getSelectedIndex())
-    .uniform('textureDimensions', [getColorLayers().current.width, getColorLayers().current.height])
-    // @ts-ignore
-    .texture('positionTexture', shimPicoTexture(getPositionLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('colorTexture', shimPicoTexture(getColorLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('sizeTexture', shimPicoTexture(getSizeLayers().current.lastState.texture))
-    // @ts-ignore
-    .texture('emphasisTexture', shimPicoTexture(getEmphasisLayers().current.lastState.texture))
-
-  app.defaultViewport().clear();
-  pickerDrawCall.draw();
-
-  if (pickerTime || true) {
-    app
-      .readFramebuffer(pickerBuffers.other)
-      .readPixel(...getPointerPositionCanvas(), pickedColor);
-
-    const overIndex = getNodeIndexFromPickerColor(pickedColor);
-    if (lastOverIndex !== overIndex) {
-      app.canvas.dispatchEvent(new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }));
-    }
-    lastOverIndex = overIndex;
-
-    pickerBuffers.swap();
-    pickerTime = false;
+  const pickerRenderTarget = getPickerRenderTarget();
+  renderer.readRenderTargetPixels(
+    pickerRenderTarget,
+    ...mousePosition,
+    1,
+    1,
+    pickedColor
+  );
+  
+  const overIndex = getNodeIndexFromPickerColor(pickedColor);
+  if (lastOverIndex !== overIndex) {
+    canvas.dispatchEvent(
+      new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
+      )
+    );
   }
-};
+  lastOverIndex = overIndex;
+  return pickedColor;
+}
+
+
+// export const drawPickerBuffer = () => {
+//   const app = getPicoApp();
+//   const pickerBuffers = getNodePickerSwappableBuffer();
+//   const area = 100;
+//   const scissorRegion: [number, number, number, number] = [
+//     getPointerPositionCanvas()[0] - area / 2,
+//     getPointerPositionCanvas()[1] - area / 2,
+//     area,
+//     area,
+//   ];
+//   app
+//     .drawFramebuffer(pickerBuffers.current.resize(app.width, app.height))
+//     .enable(PicoGL.SCISSOR_TEST)
+//     .scissor(...scissorRegion);
+
+//   // console.log(app.state.drawFramebufferBinding)
+
+//   const pickerDrawCall = getNodePickerDrawCall()
+//     .uniformBlock("cameras", getCamerasUniformBuffer())
+//     .uniform("mousePosition", getPointerPositionClip())
+//     .uniform("selectedIndex", getSelectedIndex())
+//     .uniform('textureDimensions', [getColorLayers().current.width, getColorLayers().current.height])
+//     // @ts-ignore
+//     .texture('positionTexture', shimPicoTexture(getPositionLayers().current.lastState.texture))
+//     // @ts-ignore
+//     .texture('colorTexture', shimPicoTexture(getColorLayers().current.lastState.texture))
+//     // @ts-ignore
+//     .texture('sizeTexture', shimPicoTexture(getSizeLayers().current.lastState.texture))
+//     // @ts-ignore
+//     .texture('emphasisTexture', shimPicoTexture(getEmphasisLayers().current.lastState.texture))
+
+//   app.defaultViewport().clear();
+//   pickerDrawCall.draw();
+
+//   if (pickerTime || true) {
+//     app
+//       .readFramebuffer(pickerBuffers.other)
+//       .readPixel(...getPointerPositionCanvas(), pickedColor);
+
+//     const overIndex = getNodeIndexFromPickerColor(pickedColor);
+//     if (lastOverIndex !== overIndex) {
+//       app.canvas.dispatchEvent(new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }));
+//     }
+//     lastOverIndex = overIndex;
+
+//     pickerBuffers.swap();
+//     pickerTime = false;
+//   }
+// };
 
 export const getSelectedInfo = async () => {
   const { nodes } = await getGraphData();

@@ -2,8 +2,8 @@
 precision highp float;
 precision highp int;
 
-layout(location=0) in ivec2 edgeIndices;
-layout(location=1) in vec3 segmentOffset;
+in ivec2 edgeIndices;
+in vec3 segmentOffset;
 
 out vec4 color;
 // flat out vec4 sourceColor;
@@ -33,6 +33,8 @@ uniform ivec2 textureDimensions;
 
 uniform bool selected;
 uniform bool hovered;
+uniform vec4 selectedColor;
+uniform int selectedIndex;
 
 // a function to desaturate a color
 vec3 desaturate(vec3 color, float amount) {
@@ -85,7 +87,7 @@ void main() {
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
   size = sourceSize*isSource + targetSize*isTarget;
-  size *= mix(0.3, 0.1, emphasis);
+  size *= mix(0.5, 0.125, emphasis);
   
   vec4 targetPositionClip = projection * view * vec4(targetNodePosition, 1.0);
   vec4 sourcePositionClip = projection * view * vec4(sourceNodePosition, 1.0);
@@ -99,7 +101,7 @@ void main() {
     vertexOffset,
     edgeDirection,
     size,
-    mix(0.5, 1.0, emphasis),
+    mix(0.4, 1.0, emphasis),
     CameraMatrices(
       projection,
       view,
@@ -114,10 +116,12 @@ void main() {
   position.z += 0.01 * position.w * bump(vertexOffset.x, 4.0, 0.125);
 
   vec4 sourceColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0);
+  sourceColor = mix(sourceColor, selectedColor, float(selectedIndex == edgeIndices.x));
   vec4 targetColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0);
+  targetColor = mix(targetColor, selectedColor, float(selectedIndex == edgeIndices.y));
   color += sourceColor*isSource;
   color += targetColor*isTarget;
-
+  
   // desaturate the color if the emphasis is low
   color.rgb = desaturate(color.rgb, 1.0-emphasis);
   color.a *= mix(0.25, 1.0, emphasis);
