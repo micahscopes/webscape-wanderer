@@ -2,12 +2,14 @@ import moize from 'moize';
 import { updateCamerasUniformsGroup } from './camera';
 import {
   getCurrentlyHoveringNode,
+  getPointerPositionCanvas,
   globalCamera,
   hoveredCursor,
   hoveredTooltip,
   selectedCursor,
   updateCameras,
   updatePickerColor,
+  updatePickerColorThrottled,
 } from '../interaction';
 import { colord } from 'colord'
 import { getSelectedNode } from '../selection';
@@ -163,13 +165,23 @@ export const animateGraph = () => {
 
   const { renderer, scene, camera, pickerScene } = getThreeSetup();
   
+  renderer.setScissorTest(false);
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
   
+  // renderer.setScissorTest(true);
+  const area = 100;
+  const scissorRegion: [number, number, number, number] = [
+    getPointerPositionCanvas()[0] - area / 2,
+    getPointerPositionCanvas()[1] - area / 2,
+    area,
+    area,
+  ];
+  // renderer.setScissor(...scissorRegion);
   renderer.setRenderTarget(getPickerRenderTarget());
   renderer.render(pickerScene, camera);
   
-  updatePickerColor();
+  updatePickerColorThrottled();
 
   requestAnimationFrame(animateGraph);
 }

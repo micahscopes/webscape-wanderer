@@ -36,6 +36,7 @@ export const getOrthographicCamera = moize.infinite((tag) => {
 })
 
 const globalCamera = getGlobalCamera()
+const zoomedOrthographicCamera = getOrthographicCamera('zoomed')
 
 export const updateCameras = (setCameraUniformBuffers, width, height) => {
   const globalCamera = getGlobalCamera();
@@ -55,6 +56,7 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
   
   const orthoCameraZoomed = getOrthographicCamera('zoomed');
   orthoCameraZoomed.params.distance = globalCamera.params.distance;
+  orthoCameraZoomed.params.center = [0,0,0];
   orthoCameraZoomed.resize(width/height);
   orthoCameraZoomed.tick(clippingDistances);
   
@@ -104,6 +106,7 @@ const centerSpringDamper = new SpringDamper(c)
 const centerUpdate = (newCenter) => {
   // console.log('setCameraCenter', newCenter)
   globalCamera.params.center = newCenter;
+  // zoomedOrthographicCamera.params.center = newCenter;
 } 
 
 const startCenterSpring = debounce(() => {
@@ -123,6 +126,7 @@ const distanceSpringDamper = new SpringDamper(globalCamera.params.distance)
 const distanceUpdate = (newDistance) => {
   // console.log('setCameraDistance', newDistance)
   globalCamera.params.distance = newDistance;
+  // zoomedOrthographicCamera.params.distance = newDistance;
 } 
 
 const startDistanceSpring = debounce(() => {

@@ -136,6 +136,7 @@ export const setupSelection = moize.infinite(() => {
 
   canvas.addEventListener("pointerdown", (ev) => {
     // console.log("pointerdown");
+    updatePickerColor();
     collectPointerPositionInfo(normalizedEventCoordinates(ev));
     dragging = true;
     countLastDragEvents = 0;
@@ -153,7 +154,7 @@ export const setupSelection = moize.infinite(() => {
     dragging = false;
 
     if (!wasDrag) {
-      pickerTime = true;
+      updatePickerColor();
       setTimeout(() => {
         // if clicking the same node, deselect
         const selectedIndex = getSelectedIndex()
@@ -166,7 +167,7 @@ export const setupSelection = moize.infinite(() => {
         canvas.dispatchEvent(
           new CustomEvent("tap", { detail: { selectedIndex } })
         );
-      }, 50);
+      }, 100);
     }
   });
 
@@ -290,12 +291,12 @@ export const getNodeIndexFromPickerColor = (color: Uint8Array) => {
 export const updatePickerColor = () => {
   const { renderer } = getThreeSetup();
   const { canvas } = getCanvasAndGLContext();
-  const mousePosition = getPointerPositionPicker();
+  const pointerPosition = getPointerPositionPicker();
 
   const pickerRenderTarget = getPickerRenderTarget();
   renderer.readRenderTargetPixels(
     pickerRenderTarget,
-    ...mousePosition,
+    ...pointerPosition,
     1,
     1,
     pickedColor
@@ -310,8 +311,9 @@ export const updatePickerColor = () => {
   }
   lastOverIndex = overIndex;
   return pickedColor;
-}
+};
 
+export const updatePickerColorThrottled = throttle(updatePickerColor, 1000/4);
 
 // export const drawPickerBuffer = () => {
 //   const app = getPicoApp();

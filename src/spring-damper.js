@@ -1,4 +1,4 @@
-import requestAnimationFrame from 'raf';
+import raf from 'raf';
 
 export default class SpringDamper {
   constructor(target, stiffness = 15, damping = 15) {
@@ -112,11 +112,11 @@ export default class SpringDamper {
     const loop = () => {
       const interpolatedValues = this.step(stepDuration);
       onUpdate(interpolatedValues);
-      this.animationFrameId = requestAnimationFrame(loop);
+      this.animationFrameId = raf(loop);
     };
 
     this.stop(); // Stop any ongoing animation before starting a new loop
-    this.animationFrameId = requestAnimationFrame(loop);
+    this.animationFrameId = raf(loop);
   
   }
 
@@ -129,7 +129,7 @@ export default class SpringDamper {
   }
 
   stop() {
-    cancelAnimationFrame(this.animationFrameId);
+    raf.cancel(this.animationFrameId);
   }
 }
 

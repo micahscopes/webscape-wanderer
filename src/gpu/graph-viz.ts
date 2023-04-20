@@ -127,19 +127,19 @@ export const loadNodeVertexArray = (size) => {
 }
 
 const getEdgeVisualizerMesh = moize.infinite(() => {
-  const segX = 20;
-  const segY = 1;
-  const segmentOffsetGeometry = grid(segX, segY);
-  segmentOffsetGeometry.positions = segmentOffsetGeometry.positions.map(
-    ([x, y]) => [x / segX, y / segY]
-  );
-  console.log('segmentOffsetGeometry', segmentOffsetGeometry)
+  // const segX = 5;
+  // const segY = 1;
+  // const segmentOffsetGeometry = grid(segX, segY);
+  // segmentOffsetGeometry.positions = segmentOffsetGeometry.positions.map(
+  //   ([x, y]) => [x / segX, y / segY]
+  // );
+  // console.log('segmentOffsetGeometry', segmentOffsetGeometry)
   const segmentOffsetGeo = new CylinderGeometry(
-    0.5,
-    0.5,
+    0.3,
+    0.3,
     1,
     4,
-    20,
+    2,
     true,
   )
 
@@ -162,7 +162,7 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
     fragmentShader: edgeFs,
     uniforms: {},
     transparent: true,
-    side: DoubleSide,
+    // side: DoubleSide,
   });
 
   return new Mesh(geometry, material);
