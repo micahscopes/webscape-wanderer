@@ -99,48 +99,75 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
 let centerTween : TWEEN.Tween<any>;
 let distanceTween : TWEEN.Tween<any>;
 
+const c = globalCamera.params.center
+const centerSpringDamper = new SpringDamper(c)
+const centerUpdate = (newCenter) => {
+  // console.log('setCameraCenter', newCenter)
+  globalCamera.params.center = newCenter;
+} 
+
+const startCenterSpring = debounce(() => {
+  // centerSpringDamper.updateTarget(globalCamera.params.center)
+  centerSpringDamper.updateInitialValues(globalCamera.params.center)
+  centerSpringDamper.animate(centerUpdate)
+}, 100)
+
 const setCameraCenter = (newCenter, duration=3000) => {
-  centerTween?.stop();
-  centerTween = (new TWEEN.Tween(globalCamera.params.center))
-    .to(newCenter, duration)
-    .easing(TWEEN.Easing.Cubic.InOut)
-  centerTween.start();
+  // console.log('setCameraCenter, updating target', [...newCenter])
   globalCamera.params.rotationCenter = newCenter;
+  centerSpringDamper.updateTarget(newCenter)
+  startCenterSpring()
 }
+
+const distanceSpringDamper = new SpringDamper(globalCamera.params.distance)
+const distanceUpdate = (newDistance) => {
+  // console.log('setCameraDistance', newDistance)
+  globalCamera.params.distance = newDistance;
+} 
+
+const startDistanceSpring = debounce(() => {
+  distanceSpringDamper.updateTarget(globalCamera.params.distance)
+  distanceSpringDamper.updateInitialValues(globalCamera.params.distance)
+  distanceSpringDamper.animate(distanceUpdate)
+}, 100)
 
 const setCameraDistance = (distance, duration=5000) => {
-  distanceTween?.stop();
-  distanceTween = (new TWEEN.Tween(globalCamera.params))
-    .to({distance}, duration)
-    .easing(TWEEN.Easing.Cubic.InOut)
-  distanceTween.start();
+  // console.log('setCameraDistance', distance)
+  distanceSpringDamper.updateTarget(distance)
 }
 
-const animateTween = () => {
-  requestAnimationFrame(animateTween);
-  TWEEN.update();
-}
-animateTween();
+// const animateTween = () => {
+//   requestAnimationFrame(animateTween);
+//   TWEEN.update();
+// }
+// animateTween();
+
+startCenterSpring()
+startDistanceSpring()
 
 let panning = false
 let zooming = false
 
 const startPanning = () => {
   panning = true
-  centerTween?.stop()
+  // centerTween?.stop()
+  centerSpringDamper.stop()
 }
 
 const stopPanning = () => {
   panning = false
+  // startCenterSpring()
 }
 
 const startZooming = () => {
   zooming = true
-  distanceTween?.stop()
+  // distanceTween?.stop()
+  distanceSpringDamper.stop()
 }
 
 const stopZooming = () => {
   zooming = false
+  startDistanceSpring()
 }
 
 const zoomGlobalCamera = (x,y,delta) => {
@@ -159,6 +186,8 @@ const getGlobalCameraParams = () => {
 }
 
 import { mat4, vec4, vec2 } from 'gl-matrix';
+import SpringDamper from './spring-damper'
+import { debounce } from 'lodash-es'
 
 const computeScreenPosition = ([x,y,z]) => {
   const {projection, view} = getGlobalCamera().state;

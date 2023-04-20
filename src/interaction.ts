@@ -92,11 +92,10 @@ export const getPointerPositionPicker: () => [number, number] = () => [
 ];
 
 const collectPointerPositionInfo = ({ x, y }) => {
-  // console.log('collectPointerPositionInfo', ev)
   const { canvas } = getCanvasAndGLContext();
   pointerPositionInfo.x = x;
   pointerPositionInfo.y = y;
-
+  
   // we'll need to convert from the normalized coordinates to the canvas coordinates
   pointerPositionInfo.canvasX = ((x + 1) / 2) * canvas.width;
   pointerPositionInfo.canvasY = ((y + 1) / 2) * canvas.height;
@@ -110,7 +109,9 @@ const collectPointerPositionInfo = ({ x, y }) => {
     pointerPositionInfo.canvasY / deviceRatio
   );
 
-  // console.log("pointerPositionInfo", pointerPositionInfo, ev.originalEvent.clientX, ev.originalEvent.clientY)
+  // console.log('collectPointerPositionInfo', x,y,
+  // "canvas", pointerPositionInfo.canvasX, pointerPositionInfo.canvasY,
+  // "picker", pointerPositionInfo.pickerX, pointerPositionInfo.pickerY)
 };
 
 let currentlyHoveringIndex = -1;
@@ -289,7 +290,7 @@ export const getNodeIndexFromPickerColor = (color: Uint8Array) => {
 export const updatePickerColor = () => {
   const { renderer } = getThreeSetup();
   const { canvas } = getCanvasAndGLContext();
-  const mousePosition = getPointerPositionCanvas();
+  const mousePosition = getPointerPositionPicker();
 
   const pickerRenderTarget = getPickerRenderTarget();
   renderer.readRenderTargetPixels(
