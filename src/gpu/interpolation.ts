@@ -43,6 +43,8 @@ export const getColorLayers = moize.infinite(() => getLayers('color', { numCompo
 export const getSizeLayers = moize.infinite(() => getLayers('size', { numComponents: 1}));
 export const getEmphasisLayers = moize.infinite(() => getLayers('emphasis', { numComponents: 1}));
 
+export const getViewMatrixLayers = moize.infinite(() => getLayers('viewMatrix', { numComponents: 4, type: FLOAT, dimensions: 4}));
+
 export const setAllLayerSizes = (size) => {
   const layers = [
     getPositionLayers(),
@@ -75,6 +77,8 @@ export const getInterpolationProgram = moize.infinite(() => {
       uniform sampler2D uCurrentSizes;
       uniform sampler2D uTargetEmphasis;
       uniform sampler2D uCurrentEmphasis;
+      // uniform sampler2D uTargetViewMatrix;
+      // uniform sampler2D uCurrentViewMatrix;
 
       // the interpolation ratio
       uniform float uMixRatio;
@@ -87,6 +91,8 @@ export const getInterpolationProgram = moize.infinite(() => {
       layout(location = 5) out float viewSizes;
       layout(location = 6) out float outEmphasis;
       layout(location = 7) out float viewEmphasis;
+      // layout(location = 8) out vec4 outViewMatrix;
+      // layout(location = 9) out vec4 viewViewMatrix;
 
       void main() {
         vec3 targetPosition = texture(uTargetPositions, v_uv).xyz;
@@ -108,6 +114,11 @@ export const getInterpolationProgram = moize.infinite(() => {
         float currentEmphasis = texture(uCurrentEmphasis, v_uv).r;
         outEmphasis = mix(currentEmphasis, targetEmphasis, uMixRatio);
         viewEmphasis = outEmphasis;
+        
+        // vec4 targetViewMatrix = texture(uCurrentViewMatrix, v_uv);
+        // vec4 currentViewMatrix = texture(uCurrentViewMatrix, v_uv);
+        // outViewMatrix = mix(currentViewMatrix, targetViewMatrix, uMixRatio);
+        // viewViewMatrix = outViewMatrix;
       }
     `,
     uniforms: [
@@ -151,10 +162,64 @@ export const getInterpolationProgram = moize.infinite(() => {
         type: INT,
         value: 7,
       },
+      // {
+      //   name: 'uTargetViewMatrix',
+      //   type: INT,
+      //   value: 8,
+      // },
+      // {
+      //   name: 'uCurrentViewMatrix',
+      //   type: INT,
+      //   value: 9,
+      // },
       {
         name: 'uMixRatio',
         type: FLOAT,
         value: 0.05,
+      },
+    ]
+  })
+})
+
+// unfortunately there aren't enough outputs to include the view matrix so we have to do it in a separate pass
+export const interpolateCameraMatricesProgram = moize.infinite(() => {
+  return new GPUProgram(getGPUComposer(), {
+    name: 'interpolateViewMatrix',
+    fragmentShader: `
+      in vec2 v_uv;
+
+      // the current and target textures
+      uniform sampler2D uTargetViewMatrix;
+      uniform sampler2D uCurrentViewMatrix;
+
+      // the interpolation ratio
+      uniform float uMixRatio;
+
+      layout(location = 0) out vec4 outViewMatrix;
+      layout(location = 1) out vec4 viewViewMatrix;
+
+      void main() {
+        vec4 targetViewMatrix = texture(uTargetViewMatrix, v_uv);
+        vec4 currentViewMatrix = texture(uCurrentViewMatrix, v_uv);
+        outViewMatrix = mix(currentViewMatrix, targetViewMatrix, uMixRatio);
+        viewViewMatrix = outViewMatrix;
+      }
+    `,
+    uniforms: [
+      {
+        name: 'uTargetViewMatrix',
+        type: INT,
+        value: 0,
+      },
+      {
+        name: 'uCurrentViewMatrix',
+        type: INT,
+        value: 1,
+      },
+      {
+        name: 'uMixRatio',
+        type: FLOAT,
+        value: 0.15,
       },
     ]
   })

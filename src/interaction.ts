@@ -313,7 +313,7 @@ export const updatePickerColor = () => {
   return pickedColor;
 };
 
-export const updatePickerColorThrottled = throttle(updatePickerColor, 1000/4);
+export const updatePickerColorThrottled = throttle(updatePickerColor, 1000/8);
 
 // export const drawPickerBuffer = () => {
 //   const app = getPicoApp();
@@ -406,7 +406,7 @@ const makeCursor = ({classes, htmlTemplate, applyScreenPositionStyle} : cursorOp
     const nodePosition = getNodePosition(node);
     const screenPositionNDC = await computeScreenPosition(nodePosition);
     alignToNDCPosition(screenPositionNDC);
-  }, 50)
+  }, 1000/5)
 
   const highlightNode = throttle(async (node) => {
     if (node) {

@@ -20,6 +20,8 @@ import {
   getInterpolationProgram,
   getPositionLayers,
   getSizeLayers,
+  getViewMatrixLayers,
+  interpolateCameraMatricesProgram,
 } from './interpolation';
 import { renderAmplitudeProgram, renderRGBProgram } from 'gpu-io';
 import { getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
@@ -157,6 +159,15 @@ export const animateGraph = () => {
     output: interpolationLayers.flatMap(layer => [layer.current, layer.view]),
   })
     
+  
+  const cameraLayers = [getViewMatrixLayers()]
+  const cameraInterpolationProgram = interpolateCameraMatricesProgram()
+  gpuComposer.step({
+    program: cameraInterpolationProgram,
+    input: cameraLayers.flatMap(layer => [layer.target, layer.current]),
+    output: cameraLayers.flatMap(layer => [layer.current, layer.view]),    
+  })
+
   gpuComposer.resetThreeState();
   // initializeNodeVisualizerUniforms();
   // initializeEdgeVisualizerUniforms();

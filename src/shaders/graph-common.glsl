@@ -8,6 +8,9 @@ uniform cameras {
   mat4 orthoZoomedView;
 };
 
+// override the view matrix for smoother transitions
+uniform sampler2D viewMatrixTexture;
+
 struct CameraMatrices {
   mat4 projection;
   mat4 view;

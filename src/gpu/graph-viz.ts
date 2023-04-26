@@ -26,7 +26,7 @@ import grid from 'grid-mesh';
 import { getCamerasUniformsGroup } from './camera';
 import { getCurrentlyHoveringIndex, getPointerPositionClip } from '../interaction';
 import { getSelectedColor, getSelectedIndex } from '../selection';
-import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers } from './interpolation';
+import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers, getViewMatrixLayers } from './interpolation';
 import moize from 'moize';
 
 
@@ -81,6 +81,7 @@ export const initializeNodeVisualizerUniforms = () => {
     sizeTexture: { value: getSizeLayers().viewTexture },
     emphasisTexture: { value: getEmphasisLayers().viewTexture },
     textureDimensions: { value: [getColorLayers().view.width, getColorLayers().view.height] },
+    viewMatrixTexture: { value: getViewMatrixLayers().viewTexture },
     mousePosition: { value: getPointerPositionClip() },
     selectedIndex: { value: -1 },
     selectedColor: { value: getSelectedColor() },
@@ -102,6 +103,7 @@ export const updateNodeVisualizerUniforms = () => {
     uniforms.sizeTexture.value = getSizeLayers().viewTexture;
     uniforms.emphasisTexture.value = getEmphasisLayers().viewTexture;
     uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
+    uniforms.viewMatrixTexture.value = getViewMatrixLayers().viewTexture;
     uniforms.mousePosition.value = getPointerPositionClip();
     uniforms.selectedIndex.value = getSelectedIndex();
     uniforms.selectedColor.value = getSelectedColor();
@@ -191,6 +193,7 @@ export const initializeEdgeVisualizerUniforms = () => {
     sizeTexture: { value: getSizeLayers().viewTexture },
     emphasisTexture: { value: getEmphasisLayers().viewTexture },
     textureDimensions: { value: [getColorLayers().current.width, getColorLayers().current.height] },
+    viewMatrixTexture: { value: getViewMatrixLayers().viewTexture },
     mousePosition: { value: getPointerPositionClip() },
     selectedIndex: { value: getSelectedIndex() },
     selectedColor: { value: getSelectedColor() },
@@ -208,6 +211,7 @@ export const updateEdgeVisualizerUniforms = () => {
     uniforms.sizeTexture.value = getSizeLayers().viewTexture;
     uniforms.emphasisTexture.value = getEmphasisLayers().viewTexture;
     uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
+    uniforms.viewMatrixTexture.value = getViewMatrixLayers().viewTexture;
     uniforms.mousePosition.value = getPointerPositionClip();
     uniforms.selectedIndex.value = getSelectedIndex();
     uniforms.selectedColor.value = getSelectedColor();
