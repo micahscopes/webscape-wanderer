@@ -406,7 +406,7 @@ const makeCursor = ({classes, htmlTemplate, applyScreenPositionStyle} : cursorOp
     const nodePosition = getNodePosition(node);
     const screenPositionNDC = await computeScreenPosition(nodePosition);
     alignToNDCPosition(screenPositionNDC);
-  }, 50)
+  }, 1000/20)
 
   const highlightNode = throttle(async (node) => {
     if (node) {

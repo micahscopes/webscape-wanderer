@@ -13,7 +13,6 @@ uniform sampler2D positionTexture;
 uniform sampler2D colorTexture;
 uniform sampler2D sizeTexture;
 uniform sampler2D emphasisTexture;
-
 uniform ivec2 textureDimensions;
 
 #ifdef PICKER
@@ -41,8 +40,15 @@ void main() {
   scale *= mix(1.0, 1.1, isSelected);
   
   #ifdef PICKER
-    scale *= 1.3;
+    scale = max(scale, 0.05);
   #endif
+
+  mat4 viewFromTexture = mat4(
+    texelFetch(viewMatrixTexture, ivec2(0, 0), 0),
+    texelFetch(viewMatrixTexture, ivec2(1, 0), 0),
+    texelFetch(viewMatrixTexture, ivec2(0, 1), 0),
+    texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
+  );
 
   NodeGeometryBundle geo = nodeGeometry(
     nodePosition,
@@ -50,7 +56,7 @@ void main() {
     scale,
     CameraMatrices(
       projection,
-      view,
+      viewFromTexture,
       orthoFixedProjection,
       orthoFixedView,
       orthoZoomedProjection,

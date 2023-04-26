@@ -97,6 +97,13 @@ void main() {
   edgeLength = length(targetNodePosition.xyz - sourceNodePosition.xyz);
   edgeLength2D = length((targetPositionClip.xy/targetPositionClip.w - sourcePositionClip.xy/sourcePositionClip.w));
 
+  mat4 viewFromTexture = mat4(
+    texelFetch(viewMatrixTexture, ivec2(0, 0), 0),
+    texelFetch(viewMatrixTexture, ivec2(1, 0), 0),
+    texelFetch(viewMatrixTexture, ivec2(0, 1), 0),
+    texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
+  );
+
   position = edgeGeometry(
     nodePosition,
     vertexOffset,
@@ -105,7 +112,7 @@ void main() {
     mix(0.4, 1.0, emphasis),
     CameraMatrices(
       projection,
-      view,
+      viewFromTexture,
       orthoFixedProjection,
       orthoFixedView,
       orthoZoomedProjection,
