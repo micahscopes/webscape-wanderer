@@ -52,7 +52,7 @@ NodeGeometryBundle nodeGeometry(
   vec4 orthoZoomedClipPosition = cam.orthoZoomedProjection * cam.orthoZoomedView * vec4(vertexPosition*scale, 1.0)*0.5;
   vec3 orthoZoomedNDC = orthoZoomedClipPosition.xyz / orthoZoomedClipPosition.w;
 
-  vec3 localNDC = mix(orthoZoomedNDC, orthoFixedNDC, 0.5);
+  vec3 localNDC = mix(orthoZoomedNDC, orthoFixedNDC, 0.3);
 
   // here's the trick, combine in NDC space in a way that preserves depth
   vec3 orthographicNDC = vec3(localNDC.xy + globalNDC.xy, globalNDC.z + (localNDC.z - 0.99)*0.2 );

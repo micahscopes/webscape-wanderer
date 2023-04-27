@@ -10,6 +10,7 @@ import {
   DoubleSide,
   WebGLRenderTarget,
   CylinderGeometry,
+  TorusKnotGeometry,
 } from 'three';
 
 import nodeVs from '../shaders/node.vert';
@@ -32,7 +33,7 @@ import moize from 'moize';
 
 export const getNodeVisualizerMesh = moize.infinite(() => {
   let geo = new BoxGeometry(1, 1, 1);
-  // geo = new TorusKnotGeometry(1, 0.3, 20, 8);
+  // geo = new TorusKnotGeometry(1, 0.3, 128, 64);
   // geo = new TorusGeometry();
   // console.log(geo)
 
@@ -137,8 +138,8 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
   // );
   // console.log('segmentOffsetGeometry', segmentOffsetGeometry)
   const segmentOffsetGeo = new CylinderGeometry(
-    0.3,
-    0.3,
+    0.4,
+    0.4,
     1,
     4,
     2,

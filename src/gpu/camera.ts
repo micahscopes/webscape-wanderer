@@ -47,5 +47,5 @@ export const updateCamerasUniformsGroup = proxy(
     uniforms.zoomedView.value.fromArray(zoomedView)
     uniforms.fixedPerspective.value.fromArray(fixedPerspective)
     uniforms.fixedView.value.fromArray(fixedView)
-  }, 1000/120)
+  }, 1000/45)
 )
