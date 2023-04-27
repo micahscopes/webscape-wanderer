@@ -181,14 +181,16 @@ export const animateGraph = () => {
   renderer.render(scene, camera);
   
   // renderer.setScissorTest(true);
-  const area = 100;
-  const scissorRegion: [number, number, number, number] = [
-    getPointerPositionCanvas()[0] - area / 2,
-    getPointerPositionCanvas()[1] - area / 2,
-    area,
-    area,
-  ];
+  // const area = 100;
+  // const scissorRegion: [number, number, number, number] = [
+  //   getPointerPositionCanvas()[0] - area / 2,
+  //   getPointerPositionCanvas()[1] - area / 2,
+  //   area,
+  //   area,
+  // ];
   // renderer.setScissor(...scissorRegion);
+  
+  // todo: consolidate this into the earlier pass
   renderer.setRenderTarget(getPickerRenderTarget());
   renderer.render(pickerScene, camera);
   

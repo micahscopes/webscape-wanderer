@@ -138,8 +138,8 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
   // );
   // console.log('segmentOffsetGeometry', segmentOffsetGeometry)
   const segmentOffsetGeo = new CylinderGeometry(
-    0.4,
-    0.4,
+    0.5,
+    0.5,
     1,
     4,
     2,
@@ -199,12 +199,18 @@ export const initializeEdgeVisualizerUniforms = () => {
     selectedIndex: { value: getSelectedIndex() },
     selectedColor: { value: getSelectedColor() },
     time: { value: performance.now() / 1000 },
+    viewport: { value: [0, 0] },
   }
   edgeVisualizerMesh.material.uniformsGroups = [getCamerasUniformsGroup()];
   edgeVisualizerMesh.material.needsUpdate = true;
 }
 
+import { Vector2 } from 'three';
+const viewport = new Vector2();
+
 export const updateEdgeVisualizerUniforms = () => {
+  const { renderer } = getThreeSetup();
+  renderer.getSize(viewport);
   const edgeVisualizerMesh = getEdgeVisualizerMesh();
   for (const uniforms of [edgeVisualizerMesh.material.uniforms]) {
     uniforms.positionTexture.value = getPositionLayers().viewTexture;
@@ -217,6 +223,7 @@ export const updateEdgeVisualizerUniforms = () => {
     uniforms.selectedIndex.value = getSelectedIndex();
     uniforms.selectedColor.value = getSelectedColor();
     uniforms.time.value = performance.now() / 1000;
+    uniforms.viewport.value = viewport.toArray();
   }
 }
 

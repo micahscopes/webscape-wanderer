@@ -20,15 +20,6 @@ struct CameraMatrices {
   mat4 orthoZoomedView;
 };
 
-// Cameras cameras = Cameras(
-//   projection,
-//   view,
-//   orthoFixedProjection,
-//   orthoFixedView,
-//   orthoZoomedProjection,
-//   orthoZoomedView
-// );
-
 struct NodeGeometryBundle {
   vec3 globalNDC;
   vec4 globalClipPosition;
@@ -52,10 +43,10 @@ NodeGeometryBundle nodeGeometry(
   vec4 orthoZoomedClipPosition = cam.orthoZoomedProjection * cam.orthoZoomedView * vec4(vertexPosition*scale, 1.0)*0.5;
   vec3 orthoZoomedNDC = orthoZoomedClipPosition.xyz / orthoZoomedClipPosition.w;
 
-  vec3 localNDC = mix(orthoZoomedNDC, orthoFixedNDC, 0.3);
+  vec3 localNDC = mix(orthoZoomedNDC, orthoFixedNDC, 0.5);
 
   // here's the trick, combine in NDC space in a way that preserves depth
-  vec3 orthographicNDC = vec3(localNDC.xy + globalNDC.xy, globalNDC.z + (localNDC.z - 0.99)*0.2 );
+  vec3 orthographicNDC = vec3(localNDC.xy + globalNDC.xy, globalNDC.z + (localNDC.z - 0.99)*0.1 );
   // then convert back to clip space
   vec4 orthographicClipPosition = vec4(orthographicNDC * globalClipPosition.w, globalClipPosition.w);
   

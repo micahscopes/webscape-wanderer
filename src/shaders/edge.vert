@@ -13,9 +13,13 @@ out float size;
 flat out vec2 edgeDirection;
 flat out float edgeLength;
 flat out float edgeLength2D;
+flat out float isAnySelected;
+flat out vec2 sourcePosition2D;
+flat out vec2 targetPosition2D;
 out float isSource;
 out float isTarget;
 out float emphasis;
+out float selected;
 out float v;
 out float y;
 
@@ -31,8 +35,8 @@ uniform sampler2D sizeTexture;
 uniform sampler2D emphasisTexture;
 uniform ivec2 textureDimensions;
 
-uniform bool selected;
-uniform bool hovered;
+uniform vec2 viewport;
+
 uniform vec4 selectedColor;
 uniform int selectedIndex;
 
@@ -68,6 +72,9 @@ vec4 edgeGeometry(
 #include "bump.glsl"
 
 void main() {
+  selected = float(selectedIndex == edgeIndices.x || selectedIndex == edgeIndices.y);
+  isAnySelected = float(selectedIndex > -1);
+  
   vec3 segmentPosition = segmentOffset.yxz + vec3(0.5, 0.0, 0.0);
   isSource = segmentPosition.x;
   isTarget = 1.0-segmentPosition.x;
@@ -82,20 +89,28 @@ void main() {
 
   vec3 sourceNodePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).xyz;
   vec3 targetNodePosition = texelFetch(positionTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).xyz;
+  
   vec3 nodePosition = sourceNodePosition*isSource + targetNodePosition*isTarget;
   
   float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
   size = sourceSize*isSource + targetSize*isTarget;
-  size *= mix(0.5, 0.125, emphasis);
+  size *= mix(0.4, 0.2, emphasis);
   
-  vec4 targetPositionClip = projection * view * vec4(targetNodePosition, 1.0);
   vec4 sourcePositionClip = projection * view * vec4(sourceNodePosition, 1.0);
+  vec4 targetPositionClip = projection * view * vec4(targetNodePosition, 1.0);
   
+  vec2 sourcePosition2DNDC = sourcePositionClip.xy/sourcePositionClip.w;
+  vec2 targetPosition2DNDC = targetPositionClip.xy/targetPositionClip.w;
+  
+  // in window space (i.e. gl_FragCoord)
+  sourcePosition2D = (sourcePosition2DNDC + 1.0) * 0.5 * viewport;
+  targetPosition2D = (targetPosition2DNDC + 1.0) * 0.5 * viewport;
+  edgeLength2D = length(targetPosition2D - sourcePosition2D);
+
   edgeDirection = normalize(targetPositionClip.xyz/targetPositionClip.w - sourcePositionClip.xyz/sourcePositionClip.w).xy;
   edgeLength = length(targetNodePosition.xyz - sourceNodePosition.xyz);
-  edgeLength2D = length((targetPositionClip.xy/targetPositionClip.w - sourcePositionClip.xy/sourcePositionClip.w));
 
   mat4 viewFromTexture = mat4(
     texelFetch(viewMatrixTexture, ivec2(0, 0), 0),
@@ -122,21 +137,21 @@ void main() {
 
   // apply a slight z offset to push edges back a bit
   position.z += 0.01 * position.w * bump(vertexOffset.x, 4.0, 0.125);
+  
+  // push back non-selected edges if there is any selected node, otherwise do nothing
+  // position.z += 0.1 * position.w * isAnySelected * (1.0-pow(emphasis, 4.0)); //float(emphasis < 0.1);
 
+  // colors
   vec4 sourceColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0);
   sourceColor = mix(sourceColor, selectedColor, float(selectedIndex == edgeIndices.x));
   vec4 targetColor = texelFetch(colorTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0);
   targetColor = mix(targetColor, selectedColor, float(selectedIndex == edgeIndices.y));
   color += sourceColor*isSource;
   color += targetColor*isTarget;
-  
-  // desaturate the color if the emphasis is low
-  color.rgb = desaturate(color.rgb, 1.0-emphasis);
-  color.a *= mix(0.25, 1.0, emphasis);
 
-  // color = mix(sourceColor, targetColor, segmentOffset.x*(-1.0*isSource));
-  
-  // color = smoothstep(sourceColor, targetColor, vec4(vertexOffset.x)); 
+  // desaturate the color if the emphasis is low
+  color.rgb = desaturate(color.rgb, mix(1.0, 0.4, emphasis));
+  color.a *= mix(0.7, 1.0, emphasis);
   
 
   // add fog using the NDC z coordinate
@@ -146,6 +161,6 @@ void main() {
   y = vertexOffset.y;
   v = segmentPosition.y;
 
-  float distance = length(mousePosition - position.xy);
+  // float distance = length(mousePosition - position.xy);
   // float nearness = bump(distance, 100.0, 20.0);
 }
