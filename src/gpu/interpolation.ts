@@ -219,7 +219,7 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
       {
         name: 'uMixRatio',
         type: FLOAT,
-        value: 0.15,
+        value: 0.1,
       },
     ]
   })
