@@ -5,7 +5,7 @@ fpsIndicator.classList.add('overlay');
 fpsIndicator.classList.add('debug');
 fpsIndicator.innerHTML = `
 <div class="value">FPS: 0</div>
-<canvas width="60" height="20" class="graph"></canvas>
+<canvas width="60" height="100" class="graph"></canvas>
 `
 fpsIndicator.style.position = 'absolute';
 fpsIndicator.style.top = '0px';
@@ -21,7 +21,7 @@ let lastTime = performance.now();
 let lastIndicatorUpdate = performance.now();
 let frames = 0;
 let fpsHistory: number[] = [];
-const smaWindow = 5
+const smaWindow = 1
 
 export const getFPS = () => fpsHistory.slice(0, smaWindow).reduce((a, b) => a + b, 0) / smaWindow;
 

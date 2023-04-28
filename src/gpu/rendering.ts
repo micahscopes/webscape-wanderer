@@ -169,28 +169,15 @@ export const animateGraph = () => {
   })
 
   gpuComposer.resetThreeState();
-  // initializeNodeVisualizerUniforms();
-  // initializeEdgeVisualizerUniforms();
   updateNodeVisualizerUniforms();
   updateEdgeVisualizerUniforms();
 
   const { renderer, scene, camera, pickerScene } = getThreeSetup();
   
-  renderer.setScissorTest(false);
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
   
-  // renderer.setScissorTest(true);
-  // const area = 100;
-  // const scissorRegion: [number, number, number, number] = [
-  //   getPointerPositionCanvas()[0] - area / 2,
-  //   getPointerPositionCanvas()[1] - area / 2,
-  //   area,
-  //   area,
-  // ];
-  // renderer.setScissor(...scissorRegion);
-  
-  // todo: consolidate this into the earlier pass
+  // todo: consolidate this into a single pass using multiple render targets
   renderer.setRenderTarget(getPickerRenderTarget());
   renderer.render(pickerScene, camera);
   

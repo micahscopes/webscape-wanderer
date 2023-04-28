@@ -288,29 +288,55 @@ export const getNodeIndexFromPickerColor = (color: Uint8Array) => {
   return nodeIndex - 1;
 };
 
-export const updatePickerColor = () => {
-  const { renderer } = getThreeSetup();
-  const { canvas } = getCanvasAndGLContext();
-  const pointerPosition = getPointerPositionPicker();
-
-  const pickerRenderTarget = getPickerRenderTarget();
-  renderer.readRenderTargetPixels(
-    pickerRenderTarget,
-    ...pointerPosition,
-    1,
-    1,
-    pickedColor
-  );
-  
-  const overIndex = getNodeIndexFromPickerColor(pickedColor);
-  if (lastOverIndex !== overIndex) {
-    canvas.dispatchEvent(
-      new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
-      )
-    );
+export let pickerSync: WebGLSync | null = null;
+export const checkPickerSync = () => {
+  // check if the fence sync is finished and make a new one if necessary
+  const gl = getCanvasAndGLContext().gl as WebGL2RenderingContext;
+  const makeSync = () => gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+  if (!pickerSync) {
+    pickerSync = makeSync();
+    return false
+  } else {
+    const status = gl?.clientWaitSync(pickerSync, 0, 0)
+    if (status === gl?.CONDITION_SATISFIED) {
+      gl.deleteSync(pickerSync);
+      pickerSync = makeSync();
+      return true;
+    } else {
+      return false;
+    }
   }
-  lastOverIndex = overIndex;
-  return pickedColor;
+}
+
+export const updatePickerColor = () => {
+  const pickerReady = checkPickerSync();
+  const { canvas } = getCanvasAndGLContext();
+  const gl = getCanvasAndGLContext().gl as WebGL2RenderingContext;
+  if (!pickerReady) {
+    console.log('not ready to read picker pixel yet')
+  } else {
+    console.log('reading pixel')
+    const { renderer } = getThreeSetup();
+    const pointerPosition = getPointerPositionPicker();
+
+    const pickerRenderTarget = getPickerRenderTarget();
+    renderer.readRenderTargetPixels(
+      pickerRenderTarget,
+      ...pointerPosition,
+      1,
+      1,
+      pickedColor
+    );
+    
+    const overIndex = getNodeIndexFromPickerColor(pickedColor);
+    if (lastOverIndex !== overIndex) {
+      canvas.dispatchEvent(
+        new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
+        )
+      );
+    }
+    lastOverIndex = overIndex;
+  }
 };
 
 export const updatePickerColorThrottled = throttle(updatePickerColor, 1000/5);

@@ -74,6 +74,7 @@ vec4 edgeGeometry(
 void main() {
   selected = float(selectedIndex == edgeIndices.x || selectedIndex == edgeIndices.y);
   isAnySelected = float(selectedIndex > -1);
+
   
   vec3 segmentPosition = segmentOffset.yxz + vec3(0.5, 0.0, 0.0);
   isSource = segmentPosition.x;
@@ -96,7 +97,13 @@ void main() {
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
   size = sourceSize*isSource + targetSize*isTarget;
-  size *= mix(0.4, 0.2, emphasis);
+  size *= mix(0.4, 0.1, emphasis);
+
+  // let's throw out non-selected edges below a certain emphasis threshold if there is any selected node
+  size *= float(emphasis > 0.1 || isAnySelected < 0.5);
+
+  // push back non-selected edges if there is any selected node, otherwise do nothing
+  // position.z += 0.1 * position.w * isAnySelected * (1.0-pow(emphasis, 4.0)); //float(emphasis < 0.1);
   
   vec4 sourcePositionClip = projection * view * vec4(sourceNodePosition, 1.0);
   vec4 targetPositionClip = projection * view * vec4(targetNodePosition, 1.0);
