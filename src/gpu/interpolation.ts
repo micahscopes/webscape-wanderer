@@ -44,6 +44,7 @@ export const getSizeLayers = moize.infinite(() => getLayers('size', { numCompone
 export const getEmphasisLayers = moize.infinite(() => getLayers('emphasis', { numComponents: 1}));
 
 export const getViewMatrixLayers = moize.infinite(() => getLayers('viewMatrix', { numComponents: 4, type: FLOAT, dimensions: 4}));
+export const getFixedViewMatrixLayers = moize.infinite(() => getLayers('fixedViewMatrix', { numComponents: 4, type: FLOAT, dimensions: 4}));
 
 export const setAllLayerSizes = (size) => {
   const layers = [
@@ -192,17 +193,28 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
       uniform sampler2D uTargetViewMatrix;
       uniform sampler2D uCurrentViewMatrix;
 
+      uniform sampler2D uTargetFixedViewMatrix;
+      uniform sampler2D uCurrentFixedViewMatrix;
+
       // the interpolation ratio
       uniform float uMixRatio;
 
       layout(location = 0) out vec4 outViewMatrix;
       layout(location = 1) out vec4 viewViewMatrix;
 
+      layout(location = 2) out vec4 outFixedViewMatrix;
+      layout(location = 3) out vec4 viewFixedViewMatrix;
+
       void main() {
         vec4 targetViewMatrix = texture(uTargetViewMatrix, v_uv);
         vec4 currentViewMatrix = texture(uCurrentViewMatrix, v_uv);
         outViewMatrix = mix(currentViewMatrix, targetViewMatrix, uMixRatio);
         viewViewMatrix = outViewMatrix;
+        
+        vec4 targetFixedViewMatrix = texture(uTargetFixedViewMatrix, v_uv);
+        vec4 currentFixedViewMatrix = texture(uCurrentFixedViewMatrix, v_uv);
+        outFixedViewMatrix = mix(currentFixedViewMatrix, targetFixedViewMatrix, uMixRatio);
+        viewFixedViewMatrix = outFixedViewMatrix;
       }
     `,
     uniforms: [
@@ -215,6 +227,16 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
         name: 'uCurrentViewMatrix',
         type: INT,
         value: 1,
+      },
+      {
+        name: 'uTargetFixedViewMatrix',
+        type: INT,
+        value: 2,
+      },
+      {
+        name: 'uCurrentFixedViewMatrix',
+        type: INT,
+        value: 3,
       },
       {
         name: 'uMixRatio',

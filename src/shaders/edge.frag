@@ -21,12 +21,18 @@ const float PI = 3.1415926535897932384626433832795;
 const float freq = 1.0;
 
 uniform float time;
+uniform sampler2D nodeDepthTexture;
+
 
 #include "bump.glsl"
 
 
 float wave(float t, float freq){ return pow(sin(t * freq * PI), 2.0); }
 void main() {
+  // check the depth of the nodes at this same fragment coordinate
+  float nodeDepth = texelFetch(nodeDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
+  gl_FragDepth = max(gl_FragCoord.z, nodeDepth); // - 0.01;
+
   // paramaterize the edge in screen space
   float u_2D = length(gl_FragCoord.xy - sourcePosition2D)/edgeLength2D;
   fragColor = color;
@@ -61,4 +67,7 @@ void main() {
   // debugging parameters
   // fragColor = vec4(y+0.5, 0,0, 1);
   // fragColor = vec4(u, 0,0, u);
+
+  // fragColor = vec4(gl_FragDepth, 0,0,1);
+  // gl_FragDepth = -1.0;
 }

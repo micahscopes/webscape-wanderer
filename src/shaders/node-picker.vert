@@ -1,5 +1,5 @@
 #version 300 es
-precision lowp float;
+precision highp float;
 
 // a shader that visualizes nodes as spheres with position, color and radius
 vec4 instanceIdToColor() {

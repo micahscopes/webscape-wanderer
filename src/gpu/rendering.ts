@@ -17,6 +17,7 @@ import { FLOAT, GPUComposer, copyProgram } from 'gpu-io';
 import {
   getColorLayers,
   getEmphasisLayers,
+  getFixedViewMatrixLayers,
   getInterpolationProgram,
   getPositionLayers,
   getSizeLayers,
@@ -24,7 +25,7 @@ import {
   interpolateCameraMatricesProgram,
 } from './interpolation';
 import { renderAmplitudeProgram, renderRGBProgram } from 'gpu-io';
-import { getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
+import { getNodeDepthRenderTarget, getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
 
 let drawEdges = true;
 let drawNodes = true;
@@ -88,6 +89,7 @@ export const fillCanvasToWindow = () => {
   // console.log('resizing canvas to', width, height, 'px')
   renderer.setSize(window.innerWidth, window.innerHeight);
   getPickerRenderTarget().setSize(window.innerWidth, window.innerHeight);
+  getNodeDepthRenderTarget().setSize(window.innerWidth, window.innerHeight);
   globalCamera.resize(width / height);
   canvas.style.position = 'absolute';
   canvas.style.top = '0px';
@@ -160,7 +162,7 @@ export const animateGraph = () => {
   })
     
   
-  const cameraLayers = [getViewMatrixLayers()]
+  const cameraLayers = [getViewMatrixLayers(), getFixedViewMatrixLayers()]
   const cameraInterpolationProgram = interpolateCameraMatricesProgram()
   gpuComposer.step({
     program: cameraInterpolationProgram,
@@ -172,16 +174,18 @@ export const animateGraph = () => {
   updateNodeVisualizerUniforms();
   updateEdgeVisualizerUniforms();
 
-  const { renderer, scene, camera, pickerScene } = getThreeSetup();
+  const { renderer, scene, camera, nodeVisualizerMesh, nodePickerMesh, edgeVisualizerMesh } = getThreeSetup();
+
+  renderer.setRenderTarget(getNodeDepthRenderTarget());
+  renderer.render(nodeVisualizerMesh, camera);
   
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
   
-  // todo: consolidate this into a single pass using multiple render targets
-  renderer.setRenderTarget(getPickerRenderTarget());
-  renderer.render(pickerScene, camera);
-  
-  updatePickerColorThrottled();
 
+  renderer.setRenderTarget(getPickerRenderTarget());
+  renderer.render(nodePickerMesh, camera);
+  updatePickerColorThrottled();
+  
   requestAnimationFrame(animateGraph);
 }

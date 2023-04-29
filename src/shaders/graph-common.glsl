@@ -10,6 +10,7 @@ uniform cameras {
 
 // override the view matrix for smoother transitions
 uniform sampler2D viewMatrixTexture;
+uniform sampler2D fixedViewMatrixTexture;
 
 struct CameraMatrices {
   mat4 projection;

@@ -97,10 +97,10 @@ void main() {
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
   size = sourceSize*isSource + targetSize*isTarget;
-  size *= mix(0.4, 0.1, emphasis);
+  size *= mix(0.4, 0.2, emphasis);
 
   // let's throw out non-selected edges below a certain emphasis threshold if there is any selected node
-  size *= float(emphasis > 0.1 || isAnySelected < 0.5);
+  // size *= float(emphasis > 0.1 || isAnySelected < 0.5);
 
   // push back non-selected edges if there is any selected node, otherwise do nothing
   // position.z += 0.1 * position.w * isAnySelected * (1.0-pow(emphasis, 4.0)); //float(emphasis < 0.1);
@@ -126,24 +126,32 @@ void main() {
     texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
   );
 
+  mat4 orthoFixedViewFromTexture = mat4(
+    texelFetch(fixedViewMatrixTexture, ivec2(0, 0), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(1, 0), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(0, 1), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(1, 1), 0)
+  );
+
   position = edgeGeometry(
     nodePosition,
     vertexOffset,
     edgeDirection,
     size,
-    mix(0.4, 1.0, emphasis),
+    mix(0.4, 0.5, emphasis),
     CameraMatrices(
       projection,
       viewFromTexture,
       orthoFixedProjection,
-      orthoFixedView,
+      orthoFixedViewFromTexture,
+      // orthoFixedView,
       orthoZoomedProjection,
       orthoZoomedView
     )
   );
 
   // apply a slight z offset to push edges back a bit
-  position.z += 0.01 * position.w * bump(vertexOffset.x, 4.0, 0.125);
+  // position.z += 0.01 * position.w * bump(vertexOffset.x, 4.0, 0.125);
   
   // push back non-selected edges if there is any selected node, otherwise do nothing
   // position.z += 0.1 * position.w * isAnySelected * (1.0-pow(emphasis, 4.0)); //float(emphasis < 0.1);

@@ -13,6 +13,7 @@ uniform sampler2D positionTexture;
 uniform sampler2D colorTexture;
 uniform sampler2D sizeTexture;
 uniform sampler2D emphasisTexture;
+
 uniform ivec2 textureDimensions;
 
 #ifdef PICKER
@@ -50,6 +51,13 @@ void main() {
     texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
   );
 
+  mat4 orthoFixedViewFromTexture = mat4(
+    texelFetch(fixedViewMatrixTexture, ivec2(0, 0), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(1, 0), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(0, 1), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(1, 1), 0)
+  );
+
   NodeGeometryBundle geo = nodeGeometry(
     nodePosition,
     vertexPosition,
@@ -58,7 +66,8 @@ void main() {
       projection,
       viewFromTexture,
       orthoFixedProjection,
-      orthoFixedView,
+      orthoFixedViewFromTexture,
+      // orthoFixedView,
       orthoZoomedProjection,
       orthoZoomedView
     )
