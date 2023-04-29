@@ -164,6 +164,8 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
     vertexShader: edgeVs,
     fragmentShader: edgeFs,
     uniforms: {},
+    depthTest: false,
+    depthWrite: true,
     transparent: true,
     // side: DoubleSide,
   });

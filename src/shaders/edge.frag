@@ -2,7 +2,7 @@
 precision highp float;
 
 in float selected;
-// in float isTarget;
+in float isTarget;
 // in float isSource;
 
 in vec4 color;
@@ -10,7 +10,7 @@ in vec4 color;
 in float emphasis;
 // in float size;
 // flat in vec2 edgeDirection;
-// flat in float edgeLength;
+flat in float edgeLength;
 flat in float edgeLength2D;
 flat in vec2 sourcePosition2D;
 in float y;
@@ -28,8 +28,10 @@ uniform float time;
 float wave(float t, float freq){ return pow(sin(t * freq * PI), 2.0); }
 void main() {
   // paramaterize the edge in screen space
-  float u = length(gl_FragCoord.xy - sourcePosition2D)/edgeLength2D;
+  float u_2D = length(gl_FragCoord.xy - sourcePosition2D)/edgeLength2D;
   fragColor = color;
+  
+  float u_3D = isTarget;
   
   fragColor.a *= bump(y, 1.0, 1.0);
 
@@ -39,11 +41,15 @@ void main() {
   float waveSpeed = 4.0;
   fragColor.a *= mix(
     1.0,
-    wave(u + time/frequency * waveSpeed, frequency), 
+    wave(u_2D + time/frequency * waveSpeed, frequency), 
     mix(0.3, 1.0, emphasis) // waves more pronounced for emphasized edges
   );
   
   fragColor.a *= mix(0.2, 1.0, selected);
+  
+  // fade ends of edges near nodes
+  float u_hybrid = mix(u_2D, u_3D, 0.7);
+  fragColor.a *= bump(u_hybrid-0.5, 2.0, 1.2);
   
   // soften edges near nodes
   // fragColor.a *= mix(1.0, bump(u-0.5, 5.0, 1.0), (1.0 - emphasis)*0.8);
