@@ -72,6 +72,20 @@ vec4 edgeGeometry(
 #include "bump.glsl"
 
 void main() {
+  mat4 viewFromTexture = mat4(
+    texelFetch(viewMatrixTexture, ivec2(0, 0), 0),
+    texelFetch(viewMatrixTexture, ivec2(1, 0), 0),
+    texelFetch(viewMatrixTexture, ivec2(0, 1), 0),
+    texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
+  );
+
+  mat4 orthoFixedViewFromTexture = mat4(
+    texelFetch(fixedViewMatrixTexture, ivec2(0, 0), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(1, 0), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(0, 1), 0),
+    texelFetch(fixedViewMatrixTexture, ivec2(1, 1), 0)
+  );
+
   selected = float(selectedIndex == edgeIndices.x || selectedIndex == edgeIndices.y);
   isAnySelected = float(selectedIndex > -1);
 
@@ -93,12 +107,6 @@ void main() {
   
   vec3 nodePosition = sourceNodePosition*isSource + targetNodePosition*isTarget;
   
-  float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
-  float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
-
-  size = sourceSize*isSource + targetSize*isTarget;
-  size *= mix(0.4, 0.2, emphasis);
-
   // let's throw out non-selected edges below a certain emphasis threshold if there is any selected node
   // size *= float(emphasis > 0.1 || isAnySelected < 0.5);
 
@@ -119,26 +127,18 @@ void main() {
   edgeDirection = normalize(targetPositionClip.xyz/targetPositionClip.w - sourcePositionClip.xyz/sourcePositionClip.w).xy;
   edgeLength = length(targetNodePosition.xyz - sourceNodePosition.xyz);
 
-  mat4 viewFromTexture = mat4(
-    texelFetch(viewMatrixTexture, ivec2(0, 0), 0),
-    texelFetch(viewMatrixTexture, ivec2(1, 0), 0),
-    texelFetch(viewMatrixTexture, ivec2(0, 1), 0),
-    texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
-  );
+  float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
+  float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
-  mat4 orthoFixedViewFromTexture = mat4(
-    texelFetch(fixedViewMatrixTexture, ivec2(0, 0), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(1, 0), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(0, 1), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(1, 1), 0)
-  );
+  size = sourceSize*isSource + targetSize*isTarget;
+  size *= mix(0.8, 1.0, emphasis);
 
   position = edgeGeometry(
     nodePosition,
     vertexOffset,
     edgeDirection,
     size,
-    mix(0.4, 0.5, emphasis),
+    mix(0.4, 0.95, emphasis),
     CameraMatrices(
       projection,
       viewFromTexture,
@@ -165,7 +165,7 @@ void main() {
   color += targetColor*isTarget;
 
   // desaturate the color if the emphasis is low
-  color.rgb = desaturate(color.rgb, mix(1.0, 0.4, emphasis));
+  color.rgb = desaturate(color.rgb, mix(1.0, 0.1, emphasis));
   color.a *= mix(0.7, 1.0, emphasis);
   
 

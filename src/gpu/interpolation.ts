@@ -176,7 +176,7 @@ export const getInterpolationProgram = moize.infinite(() => {
       {
         name: 'uMixRatio',
         type: FLOAT,
-        value: 0.05,
+        value: 0.1,
       },
     ]
   })

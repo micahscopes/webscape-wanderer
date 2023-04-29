@@ -47,7 +47,7 @@ NodeGeometryBundle nodeGeometry(
   vec3 localNDC = mix(orthoZoomedNDC, orthoFixedNDC, 0.5);
 
   // here's the trick, combine in NDC space in a way that preserves depth
-  vec3 orthographicNDC = vec3(localNDC.xy + globalNDC.xy, globalNDC.z + (localNDC.z - 0.99)*0.1 );
+  vec3 orthographicNDC = vec3(localNDC.xy + globalNDC.xy, globalNDC.z + (localNDC.z - 0.99)*0.0001 );
   // then convert back to clip space
   vec4 orthographicClipPosition = vec4(orthographicNDC * globalClipPosition.w, globalClipPosition.w);
   
