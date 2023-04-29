@@ -98,14 +98,8 @@ navigation.start()
 
 // toggle debug panel
 window.addEventListener('keydown', (e) => {
-    const debugStylesheet = (document.querySelector('#debug-style') as HTMLStyleElement).sheet!;
-    // @ts-ignore
-    const showing = debugStylesheet.cssRules[0]!.styleMap.get('display').value !== 'none'
-
-    // console.log(debugStylesheet, showing, debugStylesheet.cssRules[0]!.styleMap.get('display'))
-
+    const showing = document.querySelector('html')!.classList.contains('debug')
     if (e.key === 'd') {
-        // @ts-ignore
-        debugStylesheet.cssRules[0]!.styleMap.set('display', showing ? 'none' : 'block')
+        document.querySelector('html')!.classList.toggle('debug', !showing)
     }
 })
