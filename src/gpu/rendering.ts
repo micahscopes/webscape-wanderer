@@ -89,7 +89,7 @@ export const fillCanvasToWindow = () => {
   // console.log('resizing canvas to', width, height, 'px')
   renderer.setSize(window.innerWidth, window.innerHeight);
   getPickerRenderTarget().setSize(window.innerWidth, window.innerHeight);
-  getNodeDepthRenderTarget().setSize(window.innerWidth, window.innerHeight);
+  getNodeDepthRenderTarget().setSize(width, height);
   globalCamera.resize(width / height);
   canvas.style.position = 'absolute';
   canvas.style.top = '0px';
@@ -106,16 +106,16 @@ function checkWebGLError(gl) {
   }
 }
 
-const debugPositions = renderRGBProgram(getGPUComposer(), {
-    name: 'renderPositions',
-    type: FLOAT,
-  })
+// const debugPositions = renderRGBProgram(getGPUComposer(), {
+//     name: 'renderPositions',
+//     type: FLOAT,
+//   })
 
-const debugNoise = renderAmplitudeProgram(getGPUComposer(), {
-    name: 'renderNoise',
-    type: FLOAT,
-    components: 'x',
-  })
+// const debugNoise = renderAmplitudeProgram(getGPUComposer(), {
+//     name: 'renderNoise',
+//     type: FLOAT,
+//     components: 'x',
+//   })
 
 
 fillCanvasToWindow();
@@ -129,26 +129,9 @@ const copy = copyProgram(getGPUComposer(), {
 initializeNodeVisualizerUniforms();
 initializeEdgeVisualizerUniforms();
 
-// no need to get the picker pixel every frame
-export const animateGraph = () => {
-  getSelectedNode().then(node => {
-    // console.log('highlighting node ...', node)
-    selectedCursor.highlightNode(node)
-  })
+const {gl} = getCanvasAndGLContext();
 
-  getCurrentlyHoveringNode().then(node => {
-    hoveredTooltip.highlightNode(node)
-    hoveredCursor.highlightNode(node)
-  })
-
-  fillCanvasToWindow();
-  updateCameras(
-    updateCamerasUniformsGroup,
-    window.innerWidth,
-    window.innerHeight,
-  );
-
-
+const interpolate = () => {
   const gpuComposer = getGPUComposer();
   gpuComposer.undoThreeState();
   
@@ -171,6 +154,29 @@ export const animateGraph = () => {
   })
 
   gpuComposer.resetThreeState();
+}
+
+// no need to get the picker pixel every frame
+export const animateGraph = () => {
+  getSelectedNode().then(node => {
+    // console.log('highlighting node ...', node)
+    selectedCursor.highlightNode(node)
+  })
+
+  getCurrentlyHoveringNode().then(node => {
+    hoveredTooltip.highlightNode(node)
+    hoveredCursor.highlightNode(node)
+  })
+
+  fillCanvasToWindow();
+  updateCameras(
+    updateCamerasUniformsGroup,
+    window.innerWidth,
+    window.innerHeight,
+  );
+
+  interpolate();
+
   updateNodeVisualizerUniforms();
   updateEdgeVisualizerUniforms();
 

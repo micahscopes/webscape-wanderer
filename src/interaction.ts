@@ -312,7 +312,7 @@ export const updatePickerColor = () => {
   const pickerReady = checkPickerSync();
   const { canvas } = getCanvasAndGLContext();
   const gl = getCanvasAndGLContext().gl as WebGL2RenderingContext;
-  if (!pickerReady) {
+  if (!pickerReady && false) { // TODO: fix this, it's not working on FireFox
     console.log('not ready to read picker pixel yet')
   } else {
     console.log('reading pixel')
@@ -327,7 +327,7 @@ export const updatePickerColor = () => {
       1,
       pickedColor
     );
-    
+    gl.flush();
     const overIndex = getNodeIndexFromPickerColor(pickedColor);
     if (lastOverIndex !== overIndex) {
       canvas.dispatchEvent(
@@ -339,7 +339,7 @@ export const updatePickerColor = () => {
   }
 };
 
-export const updatePickerColorThrottled = throttle(updatePickerColor, 1000/5);
+export const updatePickerColorThrottled = throttle(updatePickerColor, 1000/2);
 
 // export const drawPickerBuffer = () => {
 //   const app = getPicoApp();

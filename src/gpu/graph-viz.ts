@@ -15,6 +15,8 @@ import {
   LessEqualDepth,
   GreaterEqualDepth,
   EqualDepth,
+  AddEquation,
+  LessDepth,
 } from 'three';
 
 import nodeVs from '../shaders/node.vert';
@@ -149,7 +151,7 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
     0.5,
     1,
     4,
-    2,
+    10,
     true,
   )
 
@@ -210,8 +212,10 @@ export const initializeEdgeVisualizerUniforms = () => {
     mousePosition: { value: getPointerPositionClip() },
     selectedIndex: { value: getSelectedIndex() },
     selectedColor: { value: getSelectedColor() },
+    hoveringIndex: { value: getCurrentlyHoveringIndex() },
     time: { value: performance.now() / 1000 },
     viewport: { value: [0, 0] },
+    devicePixelRatio: { value: window.devicePixelRatio },
   }
   edgeVisualizerMesh.material.uniformsGroups = [getCamerasUniformsGroup()];
   edgeVisualizerMesh.material.needsUpdate = true;
@@ -236,6 +240,7 @@ export const updateEdgeVisualizerUniforms = () => {
     uniforms.mousePosition.value = getPointerPositionClip();
     uniforms.selectedIndex.value = getSelectedIndex();
     uniforms.selectedColor.value = getSelectedColor();
+    uniforms.hoveringIndex.value = getCurrentlyHoveringIndex();
     uniforms.time.value = performance.now() / 1000;
     uniforms.viewport.value = viewport.toArray();
   }

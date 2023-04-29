@@ -67,15 +67,15 @@ void main() {
       viewFromTexture,
       orthoFixedProjection,
       orthoFixedViewFromTexture,
-      // orthoFixedView,
       orthoZoomedProjection,
       orthoZoomedView
     )
   );
   
   // compute the nearness of the node to the mouse position
-  float distance = length(geo.globalNDC.xy - mousePosition);
-  float nearness = bump(distance, 2.0, 1.0);
+  // float distance = length(geo.globalNDC.xy - mousePosition);
+  // float nearness = bump(distance, 2.0, 1.0);
+  
 
   vec4 clipPosition = geo.orthographicClipPosition;
   
@@ -83,6 +83,14 @@ void main() {
     color = instanceIdToColor();
   #else
     color = mix(nodeColor, selectedColor*1.4, float(index == selectedIndex));
+
+    // distance to selected node
+    vec3 selectedNodePosition = texelFetch(positionTexture, getTextureIndex(selectedIndex, textureDimensions), 0).xyz;
+
+    // if a node is selected, we want to emphasize the nodes that are close to it
+    float selectedDistance = length(nodePosition - selectedNodePosition);
+    float anythingSelected = float(selectedIndex > -1);
+    color.rgb *= mix(0.4, 1.0, bump(selectedDistance*anythingSelected, 1.0, 1000.0));
   #endif
 
   normal = mat3(orthoFixedView) * vertexNormal;
