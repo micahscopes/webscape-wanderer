@@ -16,7 +16,7 @@ uniform vec4 selectedColor;
 #include "bump.glsl"
 
 float defaultFogVisibility = 0.3;
-float defaultFogBoundaryClipZ = 1000.0;
+float defaultFogBoundaryClipZ = 700.0;
 
 // preliminary fog, needs organization
 float computeFog(float positionClipZ, float fogBoundaryClipZ) {

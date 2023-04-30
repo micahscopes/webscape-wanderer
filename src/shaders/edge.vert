@@ -185,15 +185,14 @@ void main() {
   color += targetColor*isTarget;
 
   // desaturate the color if the emphasis is low
-  color.rgb = desaturate(color.rgb, mix(1.0, 0.1, emphasis));
-  color.a *= mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected));
-  color.a *= mix(0.4, 1.0, mix(1.0, selected, isAnySelected));
-  color.a *= mix(0.2, 1.0, isAnySelected);
+  color.rgb = desaturate(color.rgb, mix(1.0, 0.2, emphasis));
+  // color.a *= mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected));
+  // color.a *= mix(0.4, 1.0, mix(1.0, selected, isAnySelected));
   
-  float fog = computeFog(position.z, defaultFogBoundaryClipZ/3.0);
+  float fog = computeFog(position.z, defaultFogBoundaryClipZ);
   fog = min(fog, 1.0 - selected);
   fog = min(fog, 1.0 - emphasis);
-  color.a *= mix(1.0, 0.2, fog);
+  color.a *= mix(1.0, 0.1, fog);
   
   // color.a = 1.0*hovering;
   
