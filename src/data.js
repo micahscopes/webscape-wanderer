@@ -2,8 +2,7 @@ import moize from 'moize'
 import GraphDbWorker from './graph-db-worker.js?worker'
 import GraphLayoutWorker from './graph-layout-worker.js?worker'
 import { wrap, proxy } from 'comlink'
-import { fromPairs, throttle, uniqWith } from 'lodash-es'
-import init, { ForceGraphSimulator } from "../lib/fdg-wasm/fdg-wasm.js";
+import { fromPairs, uniqWith } from 'lodash-es';
 import ColorHash from 'color-hash'
 import { getPositionLayers } from './gpu/interpolation'
 
@@ -196,8 +195,8 @@ export const getNodePosition = (node) => {
   return [positions[index*3], positions[index*3+1], positions[index*3+2]]
 }
 
-export const useD3ForceSimulator = async (data) => await prepareGraphLayoutWorker(data || await prepareVisualizerData(), graphLayoutWorker.useD3ForceSimulator)
-export const useFDGSimulator = async (data) => await prepareGraphLayoutWorker(data || await prepareVisualizerData(), graphLayoutWorker.useFDGSimulator)
-export const useNgraphForceSimulator = async (data) => await prepareGraphLayoutWorker(data || await prepareVisualizerData(), graphLayoutWorker.useNgraphForceSimulator)
+export const useD3ForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useD3ForceSimulator)
+export const useFDGSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useFDGSimulator)
+export const useNgraphForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useNgraphForceSimulator)
 
 export const { doQuery, buildGraph } = graphWorker
