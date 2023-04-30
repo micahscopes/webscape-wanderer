@@ -41,19 +41,6 @@ void main() {
     scale = max(scale, 0.05);
   #endif
 
-  mat4 viewFromTexture = mat4(
-    texelFetch(viewMatrixTexture, ivec2(0, 0), 0),
-    texelFetch(viewMatrixTexture, ivec2(1, 0), 0),
-    texelFetch(viewMatrixTexture, ivec2(0, 1), 0),
-    texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
-  );
-
-  mat4 orthoFixedViewFromTexture = mat4(
-    texelFetch(fixedViewMatrixTexture, ivec2(0, 0), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(1, 0), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(0, 1), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(1, 1), 0)
-  );
 
   NodeGeometryBundle geo = nodeGeometry(
     nodePosition,
@@ -61,9 +48,9 @@ void main() {
     scale,
     CameraMatrices(
       projection,
-      viewFromTexture,
+      view,
       orthoFixedProjection,
-      orthoFixedViewFromTexture,
+      orthoFixedView,
       orthoZoomedProjection,
       orthoZoomedView
     )

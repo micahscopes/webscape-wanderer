@@ -7,17 +7,10 @@ import {
   RawShaderMaterial,
   Mesh,
   BoxGeometry,
-  DoubleSide,
   WebGLRenderTarget,
   CylinderGeometry,
-  TorusKnotGeometry,
   DepthTexture,
   LessEqualDepth,
-  GreaterEqualDepth,
-  EqualDepth,
-  AddEquation,
-  LessDepth,
-  AlwaysDepth,
 } from 'three';
 
 import nodeVs from '../shaders/node.vert';
@@ -30,11 +23,10 @@ import edgeVs from '../shaders/edge.vert';
 import edgeFs from '../shaders/edge.frag';
 
 import { getCanvasAndGLContext } from './rendering';
-import grid from 'grid-mesh';
 import { getCamerasUniformsGroup } from './camera';
-import { getCurrentlyHoveringIndex, getPointerPositionClip } from '../interaction';
+import { deviceHasMouse, getCurrentlyHoveringIndex, getPointerPositionClip } from '../interaction';
 import { getSelectedColor, getSelectedIndex } from '../selection';
-import { getCameraParametersLayers, getColorLayers, getEmphasisLayers, getFixedViewMatrixLayers, getPositionLayers, getSizeLayers, getViewMatrixLayers } from './interpolation';
+import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers } from './interpolation';
 import moize from 'moize';
 
 
@@ -90,9 +82,6 @@ export const initializeNodeVisualizerUniforms = () => {
     sizeTexture: { value: getSizeLayers().viewTexture },
     emphasisTexture: { value: getEmphasisLayers().viewTexture },
     textureDimensions: { value: [getColorLayers().view.width, getColorLayers().view.height] },
-    viewMatrixTexture: { value: getViewMatrixLayers().viewTexture },
-    cameraParametersTexture: { value: getCameraParametersLayers().viewTexture },
-    fixedViewMatrixTexture: { value: getFixedViewMatrixLayers().viewTexture },
     mousePosition: { value: getPointerPositionClip() },
     selectedIndex: { value: -1 },
     selectedColor: { value: getSelectedColor() },
@@ -114,9 +103,6 @@ export const updateNodeVisualizerUniforms = () => {
     uniforms.sizeTexture.value = getSizeLayers().viewTexture;
     uniforms.emphasisTexture.value = getEmphasisLayers().viewTexture;
     uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
-    uniforms.viewMatrixTexture.value = getViewMatrixLayers().viewTexture;
-    uniforms.fixedViewMatrixTexture.value = getFixedViewMatrixLayers().viewTexture;
-    uniforms.cameraParametersTexture.value = getCameraParametersLayers().viewTexture;
     uniforms.mousePosition.value = getPointerPositionClip();
     uniforms.selectedIndex.value = getSelectedIndex();
     uniforms.selectedColor.value = getSelectedColor();
@@ -176,7 +162,7 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
     vertexShader: edgeVs,
     fragmentShader: edgeFs,
     uniforms: {},
-    depthTest: true,
+    depthTest: deviceHasMouse() ? true : false,
     depthWrite: true,
     depthFunc: LessEqualDepth,
     transparent: true,
@@ -203,16 +189,12 @@ export const loadEdgeVertexArray = (
 export const initializeEdgeVisualizerUniforms = () => {
   const edgeVisualizerMesh = getEdgeVisualizerMesh();
   edgeVisualizerMesh.material.uniforms = {
-    // cameras: { value: getCamerasUniformBuffer() },
     positionTexture: { value: getPositionLayers().viewTexture },
     colorTexture: { value: getColorLayers().viewTexture },
     sizeTexture: { value: getSizeLayers().viewTexture },
     nodeDepthTexture: { value: getNodeDepthRenderTarget().depthTexture },
     emphasisTexture: { value: getEmphasisLayers().viewTexture },
     textureDimensions: { value: [getColorLayers().current.width, getColorLayers().current.height] },
-    viewMatrixTexture: { value: getViewMatrixLayers().viewTexture },
-    fixedViewMatrixTexture: { value: getFixedViewMatrixLayers().viewTexture },
-    cameraParametersTexture: { value: getCameraParametersLayers().viewTexture },
     mousePosition: { value: getPointerPositionClip() },
     selectedIndex: { value: getSelectedIndex() },
     selectedColor: { value: getSelectedColor() },
@@ -239,9 +221,6 @@ export const updateEdgeVisualizerUniforms = () => {
     uniforms.emphasisTexture.value = getEmphasisLayers().viewTexture;
     uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
     uniforms.nodeDepthTexture.value = getNodeDepthRenderTarget().depthTexture;
-    uniforms.cameraParametersTexture.value = getCameraParametersLayers().viewTexture;
-    uniforms.viewMatrixTexture.value = getViewMatrixLayers().viewTexture;
-    uniforms.fixedViewMatrixTexture.value = getFixedViewMatrixLayers().viewTexture;
     uniforms.mousePosition.value = getPointerPositionClip();
     uniforms.selectedIndex.value = getSelectedIndex();
     uniforms.selectedColor.value = getSelectedColor();
@@ -269,16 +248,12 @@ export const getThreeSetup = moize.infinite(() => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   
-  // depthScene.add(getNodeVisualizerMesh().mesh);
-
   // Visible scene
   const edgeVisualizerMesh = getEdgeVisualizerMesh();
   scene.add(edgeVisualizerMesh);
   
   const nodeVisualizerMesh = getNodeVisualizerMesh().mesh;
   scene.add(nodeVisualizerMesh);
-
-  // depthScene.add(nodeVisualizerMesh);
 
   // Picker scene
   const nodePickerMesh = getNodeVisualizerMesh().pickerMesh;

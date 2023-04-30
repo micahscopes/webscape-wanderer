@@ -2,7 +2,7 @@ import moize from 'moize'
 import { proxy } from 'comlink'
 import { throttle } from 'lodash-es'
 
-import { UniformsGroup, Uniform, Matrix4 } from 'three'
+import { UniformsGroup, Uniform, Matrix4, Vector3 } from 'three'
 import { getCameraParametersLayers, getFixedViewMatrixLayers, getViewMatrixLayers } from './interpolation'
 
 const getCamerasUniforms = moize.infinite(() => {
@@ -13,6 +13,9 @@ const getCamerasUniforms = moize.infinite(() => {
     zoomedView:         new Uniform(new Matrix4()),
     fixedPerspective:   new Uniform(new Matrix4()),
     fixedView:          new Uniform(new Matrix4()),
+    distance:           new Uniform(0),
+    center:             new Uniform(new Vector3(0, 0, 0)),
+    rotationCenter:     new Uniform(new Vector3(0, 0, 0)),
   }
 })
 
@@ -29,8 +32,7 @@ export const getCamerasUniformsGroup = moize.infinite(() => {
 })
 
 export const updateCamerasUniformsGroup = proxy(
-  // throttle to prevent backpressure
-  throttle((
+  (
     globalPerspective,
     globalView,
     zoomedProjection,
@@ -39,10 +41,6 @@ export const updateCamerasUniformsGroup = proxy(
     fixedView,
     packedCameraParams
   ) => {
-    getViewMatrixLayers().target.setFromArray(globalView)
-    getFixedViewMatrixLayers().target.setFromArray(fixedView)
-    getCameraParametersLayers().target.setFromArray(packedCameraParams)
-
     const uniforms = getCamerasUniforms()
     uniforms.globalPerspective.value.fromArray(globalPerspective)
     uniforms.globalView.value.fromArray(globalView)
@@ -50,5 +48,9 @@ export const updateCamerasUniformsGroup = proxy(
     uniforms.zoomedView.value.fromArray(zoomedView)
     uniforms.fixedPerspective.value.fromArray(fixedPerspective)
     uniforms.fixedView.value.fromArray(fixedView)
-  }, 1000/45)
+    uniforms.distance.value = packedCameraParams[0]
+    uniforms.center.value.fromArray(packedCameraParams.slice(1, 4))
+    uniforms.rotationCenter.value.fromArray(packedCameraParams.slice(4, 7))
+
+  }
 )

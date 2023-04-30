@@ -146,14 +146,14 @@ export const setupSelection = moize.infinite(() => {
 
   canvas.addEventListener("pointerdown", async (ev) => {
     const clickHandler = async ([pointerUpResult, hoverUpdateResult]) => {
-      console.log('pointer clickHandler', pointerUpResult, hoverUpdateResult)
+      // console.log('pointer clickHandler', pointerUpResult, hoverUpdateResult)
       const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
-      console.log(
-        "was drag",
-        wasDrag,
-        cumulativeDragDistance,
-        countLastDragEvents
-      );
+      // console.log(
+      //   "was drag",
+      //   wasDrag,
+      //   cumulativeDragDistance,
+      //   countLastDragEvents
+      // );
       dragging = false;
 
       if (!wasDrag) {
@@ -176,7 +176,7 @@ export const setupSelection = moize.infinite(() => {
     // canvas.addEventListener("pointerup", pointerUpHandler, { once: true });
     const pointerUp = new Promise((resolve, reject) => {
       canvas.addEventListener("pointerup", resolve, { once: true });
-      setTimeout(() => reject('pointer event timed out after 100ms'), 100);
+      setTimeout(() => reject('pointer event timed out after 100ms'), 200);
     });
     
     dragging = true;
@@ -189,7 +189,7 @@ export const setupSelection = moize.infinite(() => {
       if (!wasDrag) {
         updatePickerColor()
       }
-    }, 10); // ugh.... but at least it works.
+    }, 2); // ugh.... but at least it works.
     collectPointerPositionInfo(normalizedEventCoordinates(ev));
   });
 
@@ -366,7 +366,7 @@ export const updatePickerColor = () => {
           new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
           )
         );
-      }, 5);
+      }, 1);
       
       if (overIndex > -1) {
         setTimeout(() => {
@@ -374,7 +374,7 @@ export const updatePickerColor = () => {
             new CustomEvent("hoveron", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
             )
           );
-        }, 5);
+        }, 1);
       }
         
     // }
@@ -397,55 +397,6 @@ export const getNextHoverOnUpdate = async () => {
   });
 };
 
-// export const drawPickerBuffer = () => {
-//   const app = getPicoApp();
-//   const pickerBuffers = getNodePickerSwappableBuffer();
-//   const area = 100;
-//   const scissorRegion: [number, number, number, number] = [
-//     getPointerPositionCanvas()[0] - area / 2,
-//     getPointerPositionCanvas()[1] - area / 2,
-//     area,
-//     area,
-//   ];
-//   app
-//     .drawFramebuffer(pickerBuffers.current.resize(app.width, app.height))
-//     .enable(PicoGL.SCISSOR_TEST)
-//     .scissor(...scissorRegion);
-
-//   // console.log(app.state.drawFramebufferBinding)
-
-//   const pickerDrawCall = getNodePickerDrawCall()
-//     .uniformBlock("cameras", getCamerasUniformBuffer())
-//     .uniform("mousePosition", getPointerPositionClip())
-//     .uniform("selectedIndex", getSelectedIndex())
-//     .uniform('textureDimensions', [getColorLayers().current.width, getColorLayers().current.height])
-//     // @ts-ignore
-//     .texture('positionTexture', shimPicoTexture(getPositionLayers().current.lastState.texture))
-//     // @ts-ignore
-//     .texture('colorTexture', shimPicoTexture(getColorLayers().current.lastState.texture))
-//     // @ts-ignore
-//     .texture('sizeTexture', shimPicoTexture(getSizeLayers().current.lastState.texture))
-//     // @ts-ignore
-//     .texture('emphasisTexture', shimPicoTexture(getEmphasisLayers().current.lastState.texture))
-
-//   app.defaultViewport().clear();
-//   pickerDrawCall.draw();
-
-//   if (pickerTime || true) {
-//     app
-//       .readFramebuffer(pickerBuffers.other)
-//       .readPixel(...getPointerPositionCanvas(), pickedColor);
-
-//     const overIndex = getNodeIndexFromPickerColor(pickedColor);
-//     if (lastOverIndex !== overIndex) {
-//       app.canvas.dispatchEvent(new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }));
-//     }
-//     lastOverIndex = overIndex;
-
-//     pickerBuffers.swap();
-//     pickerTime = false;
-//   }
-// };
 
 export const getSelectedInfo = async () => {
   const { nodes } = await getGraphData();

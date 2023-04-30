@@ -28,7 +28,7 @@ import {
   interpolateCameraParametersProgram,
 } from './interpolation';
 import { renderAmplitudeProgram, renderRGBProgram } from 'gpu-io';
-import { getNodeDepthRenderTarget, getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
+import { getNodeDepthRenderTarget, getNodeVisualizerMesh, getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
 
 let drawEdges = true;
 let drawNodes = true;
@@ -147,23 +147,6 @@ const interpolate = () => {
     input: interpolationLayers.flatMap(layer => [layer.target, layer.current]),
     output: interpolationLayers.flatMap(layer => [layer.current, layer.view]),
   })
-  
-  const cameraLayers = [getViewMatrixLayers(), getFixedViewMatrixLayers()]
-  const cameraInterpolationProgram = interpolateCameraMatricesProgram()
-  gpuComposer.step({
-    program: cameraInterpolationProgram,
-    input: cameraLayers.flatMap(layer => [layer.target, layer.current]),
-    output: cameraLayers.flatMap(layer => [layer.current, layer.view]),    
-  })
-    
-  const cameraParametersLayers = getCameraParametersLayers()
-  const cameraParametersInterpolationProgram = interpolateCameraParametersProgram()
-  
-  gpuComposer.step({
-    program: cameraParametersInterpolationProgram,
-    input: [cameraParametersLayers.target, cameraParametersLayers.current],
-    output: [cameraParametersLayers.current, cameraParametersLayers.view],
-  })
 
   gpuComposer.resetThreeState();
 }
@@ -194,8 +177,10 @@ export const animateGraph = () => {
   updateNodeVisualizerUniforms();
   updateEdgeVisualizerUniforms();
 
-  renderer.setRenderTarget(getNodeDepthRenderTarget());
-  renderer.render(nodeVisualizerMesh, camera);
+  if (nodeVisualizerMesh.material.depthTest) {
+    renderer.setRenderTarget(getNodeDepthRenderTarget());
+    renderer.render(nodeVisualizerMesh, camera);
+  }
   
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);

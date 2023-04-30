@@ -64,20 +64,6 @@ vec4 edgeGeometry(
 #include "desaturate.glsl"
 
 void main() {
-  mat4 viewFromTexture = mat4(
-    texelFetch(viewMatrixTexture, ivec2(0, 0), 0),
-    texelFetch(viewMatrixTexture, ivec2(1, 0), 0),
-    texelFetch(viewMatrixTexture, ivec2(0, 1), 0),
-    texelFetch(viewMatrixTexture, ivec2(1, 1), 0)
-  );
-
-  mat4 orthoFixedViewFromTexture = mat4(
-    texelFetch(fixedViewMatrixTexture, ivec2(0, 0), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(1, 0), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(0, 1), 0),
-    texelFetch(fixedViewMatrixTexture, ivec2(1, 1), 0)
-  );
-
   selected = float(selectedIndex == edgeIndices.x || selectedIndex == edgeIndices.y);
   hovering = float(hoveringIndex == edgeIndices.x || hoveringIndex == edgeIndices.y);
   isAnySelected = float(selectedIndex > -1);
@@ -169,7 +155,7 @@ void main() {
   size = sourceSize*isSource + targetSize*isTarget;
   // size *= 2.0;
   // size *= mix(0.1, 0.1, emphasis);
-  size *= 0.175;
+  size *= 0.2;
 
   position = edgeGeometry(
     nodePosition,
@@ -180,10 +166,11 @@ void main() {
     // mix(0.95, 0.95, emphasis),
     CameraMatrices(
       projection,
-      viewFromTexture,
+      // viewFromTexture,
+      view,
       orthoFixedProjection,
-      orthoFixedViewFromTexture,
-      // orthoFixedView,
+      // orthoFixedViewFromTexture,
+      orthoFixedView,
       orthoZoomedProjection,
       orthoZoomedView
     )

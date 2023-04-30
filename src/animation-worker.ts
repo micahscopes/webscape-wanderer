@@ -89,14 +89,14 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
   
   const packedCameraParams = new Float32Array([
     globalCamera.params.distance,
-    globalCamera.params.phi,
-    globalCamera.params.theta,
     globalCamera.params.rotationCenter[0],
     globalCamera.params.rotationCenter[1],
     globalCamera.params.rotationCenter[2],
     globalCamera.params.center[0],
     globalCamera.params.center[1],
     globalCamera.params.center[2],
+    globalCamera.params.phi,
+    globalCamera.params.theta,
   ])
   
   setCameraUniformBuffers(
