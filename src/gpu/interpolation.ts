@@ -11,6 +11,7 @@ export const getLayers = (name, {
   dimensions = 1,
 } = {}) => {
   const gpuComposer = getGPUComposer();
+  console.log(name, "making layers")
 
   const current = new GPULayer(gpuComposer, {
     name: `current_${name}`,
@@ -46,6 +47,9 @@ export const getEmphasisLayers = moize.infinite(() => getLayers('emphasis', { nu
 export const getViewMatrixLayers = moize.infinite(() => getLayers('viewMatrix', { numComponents: 4, type: FLOAT, dimensions: 4}));
 export const getFixedViewMatrixLayers = moize.infinite(() => getLayers('fixedViewMatrix', { numComponents: 4, type: FLOAT, dimensions: 4}));
 
+// pack camera parameters into a single layer
+export const getCameraParametersLayers = moize.infinite(() => getLayers('cameraParameters', { numComponents: 1, type: FLOAT, dimensions: 9}));
+
 export const setAllLayerSizes = (size) => {
   const layers = [
     getPositionLayers(),
@@ -78,8 +82,6 @@ export const getInterpolationProgram = moize.infinite(() => {
       uniform sampler2D uCurrentSizes;
       uniform sampler2D uTargetEmphasis;
       uniform sampler2D uCurrentEmphasis;
-      // uniform sampler2D uTargetViewMatrix;
-      // uniform sampler2D uCurrentViewMatrix;
 
       // the interpolation ratio
       uniform float uMixRatio;
@@ -92,8 +94,6 @@ export const getInterpolationProgram = moize.infinite(() => {
       layout(location = 5) out float viewSizes;
       layout(location = 6) out float outEmphasis;
       layout(location = 7) out float viewEmphasis;
-      // layout(location = 8) out vec4 outViewMatrix;
-      // layout(location = 9) out vec4 viewViewMatrix;
 
       void main() {
         vec3 targetPosition = texture(uTargetPositions, v_uv).xyz;
@@ -115,11 +115,6 @@ export const getInterpolationProgram = moize.infinite(() => {
         float currentEmphasis = texture(uCurrentEmphasis, v_uv).r;
         outEmphasis = mix(currentEmphasis, targetEmphasis, uMixRatio);
         viewEmphasis = outEmphasis;
-        
-        // vec4 targetViewMatrix = texture(uCurrentViewMatrix, v_uv);
-        // vec4 currentViewMatrix = texture(uCurrentViewMatrix, v_uv);
-        // outViewMatrix = mix(currentViewMatrix, targetViewMatrix, uMixRatio);
-        // viewViewMatrix = outViewMatrix;
       }
     `,
     uniforms: [
@@ -163,16 +158,6 @@ export const getInterpolationProgram = moize.infinite(() => {
         type: INT,
         value: 7,
       },
-      // {
-      //   name: 'uTargetViewMatrix',
-      //   type: INT,
-      //   value: 8,
-      // },
-      // {
-      //   name: 'uCurrentViewMatrix',
-      //   type: INT,
-      //   value: 9,
-      // },
       {
         name: 'uMixRatio',
         type: FLOAT,
@@ -195,6 +180,9 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
 
       uniform sampler2D uTargetFixedViewMatrix;
       uniform sampler2D uCurrentFixedViewMatrix;
+      
+      // uniform sampler2D uTargetCameraParameters;
+      // uniform sampler2D uCurrentCameraParameters;
 
       // the interpolation ratio
       uniform float uMixRatio;
@@ -204,6 +192,10 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
 
       layout(location = 2) out vec4 outFixedViewMatrix;
       layout(location = 3) out vec4 viewFixedViewMatrix;
+      
+      // layout(location = 4) out float outCameraParameters;
+      // layout(location = 5) out float viewCameraParameters;
+
 
       void main() {
         vec4 targetViewMatrix = texture(uTargetViewMatrix, v_uv);
@@ -215,6 +207,11 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
         vec4 currentFixedViewMatrix = texture(uCurrentFixedViewMatrix, v_uv);
         outFixedViewMatrix = mix(currentFixedViewMatrix, targetFixedViewMatrix, uMixRatio);
         viewFixedViewMatrix = outFixedViewMatrix;
+        
+        // float targetCameraParameters = texture(uTargetCameraParameters, v_uv).r;
+        // float currentCameraParameters = texture(uCurrentCameraParameters, v_uv).r;
+        // outCameraParameters = mix(currentCameraParameters, targetCameraParameters, uMixRatio);
+        // viewCameraParameters = outCameraParameters;
       }
     `,
     uniforms: [
@@ -238,6 +235,16 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
         type: INT,
         value: 3,
       },
+      // {
+      //   name: 'uTargetCameraParameters',
+      //   type: INT,
+      //   value: 4,
+      // },
+      // {
+      //   name: 'uCurrentCameraParameters',
+      //   type: INT,
+      //   value: 5,
+      // },
       {
         name: 'uMixRatio',
         type: FLOAT,
@@ -247,64 +254,110 @@ export const interpolateCameraMatricesProgram = moize.infinite(() => {
   })
 })
 
-// export const debugLayer = moize.infinite((layer) => {
-//   const gpuComposer = getGPUComposer();
-  
-//   return renderRGBProgram(gpuComposer)
-// })
-
-export const getViewProgram = moize.infinite(() => {
+// yet another pass to interpolate the camera parameters
+export const interpolateCameraParametersProgram = moize.infinite(() => {
   return new GPUProgram(getGPUComposer(), {
-    name: 'interpolation',
+    name: 'interpolateCameraParameters',
     fragmentShader: `
       in vec2 v_uv;
 
       // the current and target textures
-      uniform sampler2D uCurrentPositions;
-      uniform sampler2D uCurrentColors;
-      uniform sampler2D uCurrentSizes;
-      uniform sampler2D uCurrentEmphasis;
-      
-      layout (location = 0) out vec3 outPositions;
-      layout (location = 1) out vec4 outColors;
-      layout (location = 2) out float outSizes;
-      layout (location = 3) out float outEmphasis;
+      uniform sampler2D uTargetCameraParameters;
+      uniform sampler2D uCurrentCameraParameters;
+
+      // the interpolation ratio
+      uniform float uMixRatio;
+
+      layout(location = 0) out float outCameraParameters;
+      layout(location = 1) out float viewCameraParameters;
+
 
       void main() {
-        vec3 currentPositions = texture(uCurrentPositions, v_uv).xyz;
-        outPositions = vec3(currentPositions);
-
-        vec4 currentColors = texture(uCurrentColors, v_uv);
-        outColors = vec4(currentColors);
-
-        float currentSizes = texture(uCurrentSizes, v_uv).r;
-        outSizes = float(currentSizes);
-
-        float currentEmphasis = texture(uCurrentEmphasis, v_uv).r;
-        outEmphasis = float(currentEmphasis);
+        float targetCameraParameters = texture(uTargetCameraParameters, v_uv).r;
+        float currentCameraParameters = texture(uCurrentCameraParameters, v_uv).r;
+        outCameraParameters = mix(currentCameraParameters, targetCameraParameters, uMixRatio);
+        viewCameraParameters = outCameraParameters;
       }
     `,
     uniforms: [
       {
-        name: 'uCurrentPositions',
+        name: 'uTargetCameraParameters',
         type: INT,
         value: 0,
       },
       {
-        name: 'uCurrentColors',
+        name: 'uCurrentCameraParameters',
         type: INT,
         value: 1,
       },
       {
-        name: 'uCurrentSizes',
-        type: INT,
-        value: 2,
-      },
-      {
-        name: 'uCurrentEmphasis',
-        type: INT,
-        value: 3,
+        name: 'uMixRatio',
+        type: FLOAT,
+        value: 0.1,
       },
     ]
   })
 })
+
+
+// // export const debugLayer = moize.infinite((layer) => {
+// //   const gpuComposer = getGPUComposer();
+  
+// //   return renderRGBProgram(gpuComposer)
+// // })
+
+// export const getViewProgram = moize.infinite(() => {
+//   return new GPUProgram(getGPUComposer(), {
+//     name: 'interpolation',
+//     fragmentShader: `
+//       in vec2 v_uv;
+
+//       // the current and target textures
+//       uniform sampler2D uCurrentPositions;
+//       uniform sampler2D uCurrentColors;
+//       uniform sampler2D uCurrentSizes;
+//       uniform sampler2D uCurrentEmphasis;
+      
+//       layout (location = 0) out vec3 outPositions;
+//       layout (location = 1) out vec4 outColors;
+//       layout (location = 2) out float outSizes;
+//       layout (location = 3) out float outEmphasis;
+
+//       void main() {
+//         vec3 currentPositions = texture(uCurrentPositions, v_uv).xyz;
+//         outPositions = vec3(currentPositions);
+
+//         vec4 currentColors = texture(uCurrentColors, v_uv);
+//         outColors = vec4(currentColors);
+
+//         float currentSizes = texture(uCurrentSizes, v_uv).r;
+//         outSizes = float(currentSizes);
+
+//         float currentEmphasis = texture(uCurrentEmphasis, v_uv).r;
+//         outEmphasis = float(currentEmphasis);
+//       }
+//     `,
+//     uniforms: [
+//       {
+//         name: 'uCurrentPositions',
+//         type: INT,
+//         value: 0,
+//       },
+//       {
+//         name: 'uCurrentColors',
+//         type: INT,
+//         value: 1,
+//       },
+//       {
+//         name: 'uCurrentSizes',
+//         type: INT,
+//         value: 2,
+//       },
+//       {
+//         name: 'uCurrentEmphasis',
+//         type: INT,
+//         value: 3,
+//       },
+//     ]
+//   })
+// })

@@ -1,6 +1,7 @@
 import moize from 'moize';
 import { updateCamerasUniformsGroup } from './camera';
 import {
+  deviceHasMouse,
   getCurrentlyHoveringNode,
   getPointerPositionCanvas,
   globalCamera,
@@ -15,6 +16,7 @@ import { colord } from 'colord'
 import { getSelectedNode } from '../selection';
 import { FLOAT, GPUComposer, copyProgram } from 'gpu-io';
 import {
+  getCameraParametersLayers,
   getColorLayers,
   getEmphasisLayers,
   getFixedViewMatrixLayers,
@@ -23,6 +25,7 @@ import {
   getSizeLayers,
   getViewMatrixLayers,
   interpolateCameraMatricesProgram,
+  interpolateCameraParametersProgram,
 } from './interpolation';
 import { renderAmplitudeProgram, renderRGBProgram } from 'gpu-io';
 import { getNodeDepthRenderTarget, getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
@@ -41,7 +44,6 @@ window.addEventListener('keydown', (e) => {
 })
 
 
-
 export const PRIMITIVE_RESTART_INDEX = 65535;
 // export const CLEAR_COLOR : [number,number,number,number] = [0.1,0.1,0.1, 1.0];
 
@@ -52,7 +54,7 @@ const getClearColor = () =>
 const getWidthAndHeight = () => {
   // Calculate the device pixel ratio
   const devicePixelRatio = window.devicePixelRatio || 1;
-
+  // const devicePixelRatio = 1;
   // Get the desired display size (in CSS pixels)
   const displayWidth = window.innerWidth;
   const displayHeight = window.innerHeight;
@@ -68,7 +70,9 @@ export const getCanvasAndGLContext = moize.infinite(() => {
   const canvas = document.createElement('canvas');
   document.body.appendChild(canvas);
 
-  const gl = canvas.getContext('webgl2');
+  const gl = canvas.getContext('webgl2', {
+    powerPreference: "high-performance",
+  });
   if (gl) console.log('WebGL2 initialized')
   else console.error('WebGL2 failed to initialize')
   
@@ -143,7 +147,6 @@ const interpolate = () => {
     input: interpolationLayers.flatMap(layer => [layer.target, layer.current]),
     output: interpolationLayers.flatMap(layer => [layer.current, layer.view]),
   })
-    
   
   const cameraLayers = [getViewMatrixLayers(), getFixedViewMatrixLayers()]
   const cameraInterpolationProgram = interpolateCameraMatricesProgram()
@@ -152,6 +155,15 @@ const interpolate = () => {
     input: cameraLayers.flatMap(layer => [layer.target, layer.current]),
     output: cameraLayers.flatMap(layer => [layer.current, layer.view]),    
   })
+    
+  const cameraParametersLayers = getCameraParametersLayers()
+  const cameraParametersInterpolationProgram = interpolateCameraParametersProgram()
+  
+  gpuComposer.step({
+    program: cameraParametersInterpolationProgram,
+    input: [cameraParametersLayers.target, cameraParametersLayers.current],
+    output: [cameraParametersLayers.current, cameraParametersLayers.view],
+  })
 
   gpuComposer.resetThreeState();
 }
@@ -159,16 +171,14 @@ const interpolate = () => {
 // no need to get the picker pixel every frame
 export const animateGraph = () => {
   getSelectedNode().then(node => {
-    // console.log('highlighting node ...', node)
     selectedCursor.highlightNode(node)
   })
 
-  getCurrentlyHoveringNode().then(node => {
+  deviceHasMouse() && getCurrentlyHoveringNode().then(node => {
     hoveredTooltip.highlightNode(node)
     hoveredCursor.highlightNode(node)
   })
 
-  fillCanvasToWindow();
   updateCameras(
     updateCamerasUniformsGroup,
     window.innerWidth,
@@ -177,21 +187,23 @@ export const animateGraph = () => {
 
   interpolate();
 
-  updateNodeVisualizerUniforms();
-  updateEdgeVisualizerUniforms();
+  fillCanvasToWindow();
 
   const { renderer, scene, camera, nodeVisualizerMesh, nodePickerMesh, edgeVisualizerMesh } = getThreeSetup();
+
+  updateNodeVisualizerUniforms();
+  updateEdgeVisualizerUniforms();
 
   renderer.setRenderTarget(getNodeDepthRenderTarget());
   renderer.render(nodeVisualizerMesh, camera);
   
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
-  
 
   renderer.setRenderTarget(getPickerRenderTarget());
   renderer.render(nodePickerMesh, camera);
-  updatePickerColorThrottled();
+  
+  if (deviceHasMouse()) updatePickerColorThrottled();
   
   requestAnimationFrame(animateGraph);
 }

@@ -87,6 +87,7 @@ document.body.appendChild(statsPanel);
 statsPanel.innerHTML = `
     <div>Nodes: ${nodes.length}</div>
     <div>Edges: ${linkIndexPairs.length}</div>
+    <div id="debug-message"></div>
 `;
 
 document.querySelector('html')!.classList.remove('loading')
@@ -101,5 +102,32 @@ window.addEventListener('keydown', (e) => {
     const showing = document.querySelector('html')!.classList.contains('debug')
     if (e.key === 'd') {
         document.querySelector('html')!.classList.toggle('debug', !showing)
+    }
+})
+
+import queuedThrottle from 'throttled-queue'
+const debugMessageQueue = queuedThrottle(1, 1000)
+export const logDebugMessage = message => debugMessageQueue(() => {
+    const debugMessageArea = document.querySelector('#debug-message')
+    if(debugMessageArea){
+        debugMessageArea.innerHTML = message
+    }
+    console.log(message)
+})
+
+// detect a quadruple tap to enable debugging on mobile
+let lastTap = 0;
+let tapCount = 0;
+document.addEventListener('pointerup', (e) => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+        tapCount++;
+    } else {
+        tapCount = 1;
+    }
+    lastTap = now;
+    if (tapCount === 4) {
+        tapCount = 0;
+        document.querySelector('html')!.classList.toggle('debug')
     }
 })

@@ -11,6 +11,29 @@ uniform cameras {
 // override the view matrix for smoother transitions
 uniform sampler2D viewMatrixTexture;
 uniform sampler2D fixedViewMatrixTexture;
+uniform sampler2D cameraParametersTexture;
+
+uniform int selectedIndex;
+uniform vec4 selectedColor;
+#include "bump.glsl"
+
+float getCameraDistance() {
+  return texelFetch(cameraParametersTexture, ivec2(0, 0), 0).r;
+}
+
+float defaultFogVisibility = 0.3;
+float defaultFogBoundaryClipZ = 1000.0;
+
+// preliminary fog, needs organization
+float computeFog(float positionClipZ, float fogBoundaryClipZ) {
+  float fogLevel = 1.0 - bump(positionClipZ, 1.0, fogBoundaryClipZ);
+  fogLevel = mix(
+    fogLevel, 
+    0.0,
+    smoothstep(400.0, 800.0, getCameraDistance()));
+  
+  return fogLevel;
+}
 
 struct CameraMatrices {
   mat4 projection;

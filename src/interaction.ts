@@ -5,10 +5,11 @@ import moize from "moize";
 import AnimationWorker from "./animation-worker?worker";
 import { Remote, wrap } from "comlink";
 import { setSelectedIndex, getSelectedIndex } from "./selection";
-import { throttle } from "lodash-es";
+import { throttle, debounce} from "lodash-es";
 import navigation from "./navigation";
 import { render, html, TemplateResult } from "lit-html";
 import { getPickerRenderTarget, getThreeSetup } from "./gpu/graph-viz";
+import { logDebugMessage } from "./main";
 
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ev: any) => {
@@ -35,6 +36,10 @@ const {
 } = animationWorker
 
 export { globalCamera, updateCameras, setCameraCenter, setCameraDistance };
+
+export const deviceHasMouse = moize.infinite(() => {
+  return window.matchMedia('(pointer:fine)').matches;
+})
 
 export let selectedZoom: number;
 export let deselectedZoom: number;
@@ -127,38 +132,34 @@ export const setupSelection = moize.infinite(() => {
 
   interactionEvents(canvas)
     .on("touchmove", collectPointerPositionInfo)
-    .on("mousemove", collectPointerPositionInfo);
+    .on("mousemove", collectPointerPositionInfo)
+    
+  interactionEvents(canvas)
+    .on("mousemove", () => {
+      !dragging && updatePickerColorDebounced();
+    });
 
   interactionEvents(canvas)
     .on("touchmove", incrementDragEvents)
     .on("pinchmove", incrementDragEvents)
     .on("mousemove", incrementDragEvents);
 
-  canvas.addEventListener("pointerdown", (ev) => {
-    // console.log("pointerdown");
-    updatePickerColor();
-    collectPointerPositionInfo(normalizedEventCoordinates(ev));
-    dragging = true;
-    countLastDragEvents = 0;
-    cumulativeDragDistance = 0;
-  });
+  canvas.addEventListener("pointerdown", async (ev) => {
+    const clickHandler = async ([pointerUpResult, hoverUpdateResult]) => {
+      console.log('pointer clickHandler', pointerUpResult, hoverUpdateResult)
+      const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
+      console.log(
+        "was drag",
+        wasDrag,
+        cumulativeDragDistance,
+        countLastDragEvents
+      );
+      dragging = false;
 
-  canvas.addEventListener("pointerup", () => {
-    const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
-    // console.log(
-    //   "was drag",
-    //   wasDrag,
-    //   cumulativeDragDistance,
-    //   countLastDragEvents
-    // );
-    dragging = false;
+      if (!wasDrag) {
+        const selectedIndex = getCurrentlyHoveringIndex();
+        setSelectedIndex(selectedIndex);
 
-    if (!wasDrag) {
-      updatePickerColor();
-      setTimeout(() => {
-        // if clicking the same node, deselect
-        const selectedIndex = getSelectedIndex()
-        setSelectedIndex(lastOverIndex === selectedIndex ? -1 : lastOverIndex);
         getSelectedInfo().then((info) => {
           canvas.dispatchEvent(
             new CustomEvent("selected", { detail: { selectedIndex, info } })
@@ -167,14 +168,36 @@ export const setupSelection = moize.infinite(() => {
         canvas.dispatchEvent(
           new CustomEvent("tap", { detail: { selectedIndex } })
         );
-      }, 100);
-    }
+        // }
+        // , 150);
+      }
+    };
+    
+    // canvas.addEventListener("pointerup", pointerUpHandler, { once: true });
+    const pointerUp = new Promise((resolve, reject) => {
+      canvas.addEventListener("pointerup", resolve, { once: true });
+      setTimeout(() => reject('pointer event timed out after 100ms'), 100);
+    });
+    
+    dragging = true;
+    countLastDragEvents = 0;
+    cumulativeDragDistance = 0;
+
+    Promise.all([pointerUp, getNextHoverOnUpdate()]).then(clickHandler).catch(() =>{});
+    setTimeout(() => {
+      const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
+      if (!wasDrag) {
+        updatePickerColor()
+      }
+    }, 10); // ugh.... but at least it works.
+    collectPointerPositionInfo(normalizedEventCoordinates(ev));
   });
+
 
   canvas.addEventListener("selected", (ev) => {
     //@ts-ignore
     const node = ev.detail.info;
-    // console.log('preparing to navigate:', node)
+    console.log('preparing to navigate:', node)
     navigation.push(
       node ? `#project/${node?.navId}` : '#-'
     );
@@ -190,7 +213,7 @@ export const setupSelection = moize.infinite(() => {
     const nowHoveredNode = nowHoveredIndex > -1 ? nodes[nowHoveredIndex] : null;
     const selectedNode = getSelectedIndex() > -1 ? nodes[getSelectedIndex()] : null;
     
-    if (nowHoveredNode && activelyWanderingMouse()) {
+    if (nowHoveredNode) {
       currentlyHoveringIndex = nowHoveredNode?.index || -1
     } else {
       currentlyHoveringIndex = -1
@@ -308,14 +331,22 @@ export const checkPickerSync = () => {
   }
 }
 
+let pickerFailures = 0
+let pickerGuardFailed = false
 export const updatePickerColor = () => {
   const pickerReady = checkPickerSync();
   const { canvas } = getCanvasAndGLContext();
   const gl = getCanvasAndGLContext().gl as WebGL2RenderingContext;
-  if (!pickerReady && false) { // TODO: fix this, it's not working on FireFox
+  if (pickerFailures > 10) {
+    pickerGuardFailed = true
+    console.warn('picker guard failed')
+  }
+  if (!pickerReady && !pickerGuardFailed) { // TODO: fix this, it's not working on FireFox
     console.log('not ready to read picker pixel yet')
+    pickerFailures += 1
   } else {
-    console.log('reading pixel')
+    pickerFailures = 0;
+    // console.log('reading pixel')
     const { renderer } = getThreeSetup();
     const pointerPosition = getPointerPositionPicker();
 
@@ -329,17 +360,42 @@ export const updatePickerColor = () => {
     );
     gl.flush();
     const overIndex = getNodeIndexFromPickerColor(pickedColor);
-    if (lastOverIndex !== overIndex) {
-      canvas.dispatchEvent(
-        new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
-        )
-      );
-    }
+    // if (lastOverIndex !== overIndex) {
+      setTimeout(() => {
+        canvas.dispatchEvent(
+          new CustomEvent("hover", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
+          )
+        );
+      }, 5);
+      
+      if (overIndex > -1) {
+        setTimeout(() => {
+          canvas.dispatchEvent(
+            new CustomEvent("hoveron", { detail: { wasHoveredIndex: lastOverIndex, nowHoveredIndex: overIndex } }
+            )
+          );
+        }, 5);
+      }
+        
+    // }
     lastOverIndex = overIndex;
   }
 };
 
-export const updatePickerColorThrottled = throttle(updatePickerColor, 1000/2);
+export const updatePickerColorThrottled = throttle(updatePickerColor, 5000);
+export const updatePickerColorDebounced = debounce(updatePickerColor, 400);
+
+export const getNextHoverOnUpdate = async () => {
+  // wait for the next 'hover' event
+  return new Promise((resolve) => {
+    const canvas = getCanvasAndGLContext().canvas!;
+    const listener = (ev: CustomEvent) => {
+      // console.log('got hover event', ev.detail)
+      resolve(ev.detail);
+    };
+    canvas.addEventListener("hover", listener, { once: true });
+  });
+};
 
 // export const drawPickerBuffer = () => {
 //   const app = getPicoApp();

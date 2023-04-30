@@ -17,6 +17,7 @@ import {
   EqualDepth,
   AddEquation,
   LessDepth,
+  AlwaysDepth,
 } from 'three';
 
 import nodeVs from '../shaders/node.vert';
@@ -33,7 +34,7 @@ import grid from 'grid-mesh';
 import { getCamerasUniformsGroup } from './camera';
 import { getCurrentlyHoveringIndex, getPointerPositionClip } from '../interaction';
 import { getSelectedColor, getSelectedIndex } from '../selection';
-import { getColorLayers, getEmphasisLayers, getFixedViewMatrixLayers, getPositionLayers, getSizeLayers, getViewMatrixLayers } from './interpolation';
+import { getCameraParametersLayers, getColorLayers, getEmphasisLayers, getFixedViewMatrixLayers, getPositionLayers, getSizeLayers, getViewMatrixLayers } from './interpolation';
 import moize from 'moize';
 
 
@@ -90,6 +91,7 @@ export const initializeNodeVisualizerUniforms = () => {
     emphasisTexture: { value: getEmphasisLayers().viewTexture },
     textureDimensions: { value: [getColorLayers().view.width, getColorLayers().view.height] },
     viewMatrixTexture: { value: getViewMatrixLayers().viewTexture },
+    cameraParametersTexture: { value: getCameraParametersLayers().viewTexture },
     fixedViewMatrixTexture: { value: getFixedViewMatrixLayers().viewTexture },
     mousePosition: { value: getPointerPositionClip() },
     selectedIndex: { value: -1 },
@@ -114,6 +116,7 @@ export const updateNodeVisualizerUniforms = () => {
     uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
     uniforms.viewMatrixTexture.value = getViewMatrixLayers().viewTexture;
     uniforms.fixedViewMatrixTexture.value = getFixedViewMatrixLayers().viewTexture;
+    uniforms.cameraParametersTexture.value = getCameraParametersLayers().viewTexture;
     uniforms.mousePosition.value = getPointerPositionClip();
     uniforms.selectedIndex.value = getSelectedIndex();
     uniforms.selectedColor.value = getSelectedColor();
@@ -151,7 +154,7 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
     0.5,
     1,
     4,
-    10,
+    4,
     true,
   )
 
@@ -177,7 +180,7 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
     depthWrite: true,
     depthFunc: LessEqualDepth,
     transparent: true,
-    side: DoubleSide,
+    // side: DoubleSide,
   });
 
   return new Mesh(geometry, material);
@@ -209,6 +212,7 @@ export const initializeEdgeVisualizerUniforms = () => {
     textureDimensions: { value: [getColorLayers().current.width, getColorLayers().current.height] },
     viewMatrixTexture: { value: getViewMatrixLayers().viewTexture },
     fixedViewMatrixTexture: { value: getFixedViewMatrixLayers().viewTexture },
+    cameraParametersTexture: { value: getCameraParametersLayers().viewTexture },
     mousePosition: { value: getPointerPositionClip() },
     selectedIndex: { value: getSelectedIndex() },
     selectedColor: { value: getSelectedColor() },
@@ -235,6 +239,7 @@ export const updateEdgeVisualizerUniforms = () => {
     uniforms.emphasisTexture.value = getEmphasisLayers().viewTexture;
     uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
     uniforms.nodeDepthTexture.value = getNodeDepthRenderTarget().depthTexture;
+    uniforms.cameraParametersTexture.value = getCameraParametersLayers().viewTexture;
     uniforms.viewMatrixTexture.value = getViewMatrixLayers().viewTexture;
     uniforms.fixedViewMatrixTexture.value = getFixedViewMatrixLayers().viewTexture;
     uniforms.mousePosition.value = getPointerPositionClip();
@@ -293,7 +298,9 @@ export const getThreeSetup = moize.infinite(() => {
 
 export const getPickerRenderTarget = moize.infinite(() => {
   const { canvas } = getCanvasAndGLContext();
-  const pickerRenderTarget = new WebGLRenderTarget(canvas.width, canvas.height);
+  const pickerRenderTarget = new WebGLRenderTarget(canvas.width, canvas.height, {
+    stencilBuffer: false,
+  });
   return pickerRenderTarget;
 })
 
@@ -302,6 +309,7 @@ export const getNodeDepthRenderTarget = moize.infinite(() => {
   const nodeDepthRenderTarget = new WebGLRenderTarget(canvas.width, canvas.height, {
     depthTexture: new DepthTexture(canvas.width, canvas.height),
     depthBuffer: true,
+    stencilBuffer: false,
   });
   return nodeDepthRenderTarget;
 });

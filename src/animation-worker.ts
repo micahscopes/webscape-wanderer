@@ -52,7 +52,8 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
     fovY: Math.PI/3,
     ...clippingDistances
   });
-  // console.log(globalCamera.params.distance)
+  // console.log(globalCamera.params.distance, globalCamera.state.view[0]+globalCamera.state.view[5])
+  // console.log(globalCamera.params)
   
   const orthoCameraZoomed = getOrthographicCamera('zoomed');
   orthoCameraZoomed.params.distance = globalCamera.params.distance;
@@ -86,6 +87,18 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
   const orthoProjectionFixed = new Float32Array(orthoCameraFixed.state.projection);
   const orthoViewFixed = new Float32Array(orthoCameraFixed.state.view);
   
+  const packedCameraParams = new Float32Array([
+    globalCamera.params.distance,
+    globalCamera.params.phi,
+    globalCamera.params.theta,
+    globalCamera.params.rotationCenter[0],
+    globalCamera.params.rotationCenter[1],
+    globalCamera.params.rotationCenter[2],
+    globalCamera.params.center[0],
+    globalCamera.params.center[1],
+    globalCamera.params.center[2],
+  ])
+  
   setCameraUniformBuffers(
     transfer(globalProjection, [globalProjection.buffer]),
     transfer(globalView, [globalView.buffer]),
@@ -93,6 +106,7 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
     transfer(orthoViewZoomed, [orthoViewZoomed.buffer]),
     transfer(orthoProjectionFixed, [orthoProjectionFixed.buffer]),
     transfer(orthoViewFixed, [orthoViewFixed.buffer]),
+    transfer(packedCameraParams, [packedCameraParams.buffer]),
   )
 }
 

@@ -37,15 +37,8 @@ uniform ivec2 textureDimensions;
 
 uniform vec2 viewport;
 
-uniform vec4 selectedColor;
-uniform int selectedIndex;
 uniform int hoveringIndex;
 
-// a function to desaturate a color
-vec3 desaturate(vec3 color, float amount) {
-  float average = (color.r + color.g + color.b) / 3.0;
-  return mix(color, vec3(average), amount);
-}
 
 vec4 edgeGeometry(
   in vec3 nodePosition,
@@ -68,7 +61,7 @@ vec4 edgeGeometry(
   return mix(positionClip, positionFixedStrokeClip, flatness);
 }
 
-#include "bump.glsl"
+#include "desaturate.glsl"
 
 void main() {
   mat4 viewFromTexture = mat4(
@@ -172,9 +165,11 @@ void main() {
   float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
+
   size = sourceSize*isSource + targetSize*isTarget;
   // size *= 2.0;
-  size *= mix(2.0, 1.0, emphasis);
+  // size *= mix(0.1, 0.1, emphasis);
+  size *= 0.175;
 
   position = edgeGeometry(
     nodePosition,
@@ -207,6 +202,11 @@ void main() {
   color.a *= mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected));
   color.a *= mix(0.4, 1.0, mix(1.0, selected, isAnySelected));
   color.a *= mix(0.2, 1.0, isAnySelected);
+  
+  float fog = computeFog(position.z, defaultFogBoundaryClipZ/3.0);
+  fog = min(fog, 1.0 - selected);
+  fog = min(fog, 1.0 - emphasis);
+  color.a *= mix(1.0, 0.2, fog);
   
   // color.a = 1.0*hovering;
   

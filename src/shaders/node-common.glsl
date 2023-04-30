@@ -6,8 +6,6 @@ in int index;
 
 uniform vec2 mousePosition;
 
-uniform int selectedIndex;
-uniform vec4 selectedColor;
 
 uniform sampler2D positionTexture;
 uniform sampler2D colorTexture;
@@ -25,8 +23,7 @@ uniform ivec2 textureDimensions;
 out vec3 position;
 out vec3 normal;
 
-
-#include "bump.glsl"
+#include "desaturate.glsl"
 
 void main() {
   int id = int(index);
@@ -87,10 +84,19 @@ void main() {
     // distance to selected node
     vec3 selectedNodePosition = texelFetch(positionTexture, getTextureIndex(selectedIndex, textureDimensions), 0).xyz;
 
+    float fogVisibility = 0.2;
+
     // if a node is selected, we want to emphasize the nodes that are close to it
     float selectedDistance = length(nodePosition - selectedNodePosition);
     float anythingSelected = float(selectedIndex > -1);
-    color.rgb *= mix(0.4, 1.0, bump(selectedDistance*anythingSelected, 1.0, 1000.0));
+    // color.rgb *= mix(fogVisibility, 1.0, bump(selectedDistance*anythingSelected, 1.0, 1000.0));
+    
+    float fog = min(computeFog(geo.globalClipPosition.z, defaultFogBoundaryClipZ), 1.0-isSelected);
+    fog = min(fog, 1.0-nodeEmphasis);
+    color.rgb *= mix(1.0, 0.5, fog);
+    color.rgb = desaturate(color.rgb, (1.0-fogVisibility)*fog);
+    
+    
   #endif
 
   normal = mat3(orthoFixedView) * vertexNormal;

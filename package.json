@@ -60,6 +60,7 @@
     "rdf-data-factory": "^1.1.1",
     "three": "^0.151.3",
     "three-forcegraph": "^1.41.4",
+    "throttled-queue": "^2.1.4",
     "tiny-spring": "^1.0.0",
     "tween.js": "^16.6.0",
     "very-tiny-router": "^1.1.0"

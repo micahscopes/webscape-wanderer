@@ -83,7 +83,7 @@ void main() {
   fragColor.a *= bump(
     v, 
     1.0, 
-    (pulse * mix(0.1, 0.3, selected) * wave(u_3D, highFrequency)) + 0.1
+    (pulse * mix(0.2, 0.4, selected) * wave(u_3D, highFrequency)) + 0.6
   );
   
   // fragColor.rgb = mix(fragColor.rgb, vec3(1.0, 0.0, 0.0), y);
@@ -98,7 +98,7 @@ void main() {
   // check the depth of the nodes at this same fragment coordinate
   float nodeDepth = texelFetch(nodeDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
   // float nodeDepth = texture(nodeDepthTexture, gl_FragCoord.xy).r;
-  gl_FragDepth = max(gl_FragCoord.z, nodeDepth) - 0.02;
+  gl_FragDepth = max(gl_FragCoord.z, nodeDepth) - 0.0001;
 
 
   // debugging parameters
