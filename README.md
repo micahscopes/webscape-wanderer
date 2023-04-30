@@ -20,8 +20,6 @@ This means that even if the layout engine is taking five seconds for every frame
 
 Additionally, data such as node positions and colors are smoothly interpolated on the GPU using the amazing [gpu-io](https://github.com/amandaghassaei/gpu-io) library.
 
-The camera view matrix is also interpolated on the GPU to smooth over timing hiccups.
-
 Rendering happens with THREE.js via `InstancedBufferGeometry` and `RawShaderMaterial`.  Due to the custom camera it's not currently straightforward to use other THREE.js stuff with this, but maybe someday it will be!  Originally rendering was done with PicoGL but there were some difficult issues with WebGL state management.  Since GPU-IO cooperates well with THREE.js, it was easier to switch to THREE.js.
 
 ## Features & Project Goals
@@ -31,7 +29,6 @@ Rendering happens with THREE.js via `InstancedBufferGeometry` and `RawShaderMate
 - [x] Graph layout worker
 - [x] Camera animation worker
 - [x] GPU interpolation of graph data
-- [x] GPU interpolation of camera view matrix
 - [ ] General purpose features and API
   - [ ] More formalized modularization of the architecture to support better pluggability.
   - [ ] Support generic graph data
@@ -51,6 +48,11 @@ Rendering happens with THREE.js via `InstancedBufferGeometry` and `RawShaderMate
     - [ ] Support for small graphs and non-instanced rendering
 - [ ] Examples and documentation
 - [ ] GPU rendered cursors and UI feedback widgets (currently these are rendered as HTML element overlays)
+- [ ] Implement PBO based picker pixel download for potentially better picker performance
+- [ ] Less jittery camera (using AudioWorklet or GPU?)
+  - [x] tried GPU interpolation and found that texture lookups for camera parameters were expensive
+  - [ ] try using pixel buffer
+- [ ] Investigate reading interpolated graph data from GPU-IO framebuffer to pixel buffers to reduce texture lookups in node and edge shaders
 - [ ] Pin camera center to nodes or clusters of nodes
   - (potentially moving more of the camera stuff to the GPU)
 - [ ] Investigate performance bottlenecks with the query worker
