@@ -382,8 +382,8 @@ export const updatePickerColor = () => {
   }
 };
 
-export const updatePickerColorThrottled = throttle(updatePickerColor, 5000);
-export const updatePickerColorDebounced = debounce(updatePickerColor, 400);
+export const updatePickerColorThrottled = throttle(updatePickerColor, 1000);
+export const updatePickerColorDebounced = debounce(updatePickerColor, 300);
 
 export const getNextHoverOnUpdate = async () => {
   // wait for the next 'hover' event
