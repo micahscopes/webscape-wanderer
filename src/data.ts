@@ -204,8 +204,10 @@ export const updateNodePositionTargets = async () => {
   const sim = await getLayoutSimulator()
   sim.getPositions(proxy(
     positions => {
-      latestTargetPositions = positions
-      getPositionLayers().target.setFromArray(positions)
+      if (positions.length > 0) {
+        latestTargetPositions = positions
+        getPositionLayers().target.setFromArray(positions)
+      }
     }
   ))
 }

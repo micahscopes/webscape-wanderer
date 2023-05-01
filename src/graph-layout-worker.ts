@@ -34,7 +34,7 @@ class GraphLayoutSim implements GraphLayoutSimulator {
 
   getPositions(callback) {
     const positions = this.positionsBuffer;
-    callback(transfer(positions, [positions.buffer]));
+    callback(positions);
   }
 }
 
