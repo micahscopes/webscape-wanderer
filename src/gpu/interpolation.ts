@@ -8,7 +8,7 @@ import { Texture } from "three";
 export const getLayers = (name, {
   type = FLOAT as GPULayerType,
   numComponents = 1 as GPULayerNumComponents, 
-  dimensions = 1,
+  dimensions = 32,
 } = {}) => {
   const gpuComposer = getGPUComposer();
   console.log(name, "making layers")
@@ -43,9 +43,6 @@ export const getPositionLayers = moize.infinite(() => getLayers('position', { nu
 export const getColorLayers = moize.infinite(() => getLayers('color', { numComponents: 4}));
 export const getSizeLayers = moize.infinite(() => getLayers('size', { numComponents: 1}));
 export const getEmphasisLayers = moize.infinite(() => getLayers('emphasis', { numComponents: 1}));
-
-// pack camera parameters into a single layer
-export const getCameraParametersLayers = moize.infinite(() => getLayers('cameraParameters', { numComponents: 1, type: FLOAT, dimensions: 9}));
 
 export const setAllLayerSizes = (size) => {
   const layers = [
