@@ -1,5 +1,5 @@
 import { animateGraph } from './gpu/rendering';
-import { useD3ForceSimulator, getGraphData, prepareGraphDBWorker } from "./data";
+import { D3ForceLayout, getGraphData, prepareGraphDBWorker } from "./data";
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
@@ -24,21 +24,16 @@ await prepareGraphDBWorker();
 // graphData = randomGraphData(2000,2000);
 // graphData = randomTreesData(1, 7, 5,8, 10000)
 const { nodes, linkIndexPairs } = graphData;
-console.log('nodes', nodes)
 
-const visualizers = [
-    useD3ForceSimulator,
-    // useNgraphForceSimulator,
-    // useFDGSimulator
-]
 
-const pickRandomVisualizer = async () => {
-    // pick a random visualizer
-    const visualizer = visualizers[Math.floor(Math.random() * visualizers.length)];
-    await visualizer(graphData);
-}
+// let positions
+// setTimeout(async () => {
+//     await layout.getPositions(proxy(p => positions = p));
+//     console.log(positions)
+// }, 100)
+// layout.getPositions(proxy(console.log))
 
-await pickRandomVisualizer();
+// await pickRandomVisualizer();
 
 // try out different visualizers:
 // setInterval(pickRandomVisualizer, 10000)
@@ -106,6 +101,8 @@ window.addEventListener('keydown', (e) => {
 })
 
 import queuedThrottle from 'throttled-queue'
+import { GraphLayoutSimulator } from './graph-layout-simulator';
+import { proxy } from 'comlink';
 const debugMessageQueue = queuedThrottle(1, 1000)
 export const logDebugMessage = message => debugMessageQueue(() => {
     const debugMessageArea = document.querySelector('#debug-message')

@@ -334,6 +334,7 @@ export const checkPickerSync = () => {
 let pickerFailures = 0
 let pickerGuardFailed = false
 export const updatePickerColor = () => {
+  // return
   const pickerReady = checkPickerSync();
   const { canvas } = getCanvasAndGLContext();
   const gl = getCanvasAndGLContext().gl as WebGL2RenderingContext;

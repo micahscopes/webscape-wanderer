@@ -29,6 +29,7 @@ import {
 } from './interpolation';
 import { renderAmplitudeProgram, renderRGBProgram } from 'gpu-io';
 import { getNodeDepthRenderTarget, getNodeVisualizerMesh, getPickerRenderTarget, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from './graph-viz';
+import { getLayoutSimulator, updateNodePositionTargets } from '../data';
 
 let drawEdges = true;
 let drawNodes = true;
@@ -151,8 +152,15 @@ const interpolate = () => {
   gpuComposer.resetThreeState();
 }
 
+//   updateCameras(
+//     updateCamerasUniformsGroup,
+//     window.innerWidth,
+//     window.innerHeight,
+//   );
+
 // no need to get the picker pixel every frame
 export const animateGraph = () => {
+  updateNodePositionTargets();
   getSelectedNode().then(node => {
     selectedCursor.highlightNode(node)
   })

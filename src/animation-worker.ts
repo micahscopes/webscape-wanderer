@@ -1,4 +1,5 @@
-import { expose, transfer } from 'comlink'
+import { expose } from 'comlink'
+import { transfer } from './transfer-but-not-on-webkit'
 import createCamera from 'inertial-turntable-camera'
 import moize from 'moize'
 import * as TWEEN from '@tweenjs/tween.js'
@@ -68,17 +69,6 @@ export const updateCameras = (setCameraUniformBuffers, width, height) => {
     far: orthoCameraFixed.params.distance*10000, 
   })
 
-  // camerasUniformBuffer
-  //   .set(0, transfer(globalCamera.state.projection, [globalCamera.state.projection.buffer]))
-  //   .set(1, transfer(globalCamera.state.view, [globalCamera.state.view.buffer]))
-  //   .set(2, transfer(orthoCameraZoomed.state.projection, [orthoCameraZoomed.state.projection.buffer]))
-  //   .set(3, transfer(orthoCameraZoomed.state.view, [orthoCameraZoomed.state.view.buffer]))
-  //   .set(4, transfer(orthoCameraFixed.state.projection, [orthoCameraFixed.state.projection.buffer]))
-  //   .set(5, transfer(orthoCameraFixed.state.view, [orthoCameraFixed.state.view.buffer]))
-  //   .update();
-
-  // copy them instead of transfering them
-  
   // manually copy the matrices here
   const globalProjection = new Float32Array(globalCamera.state.projection);
   const globalView = new Float32Array(globalCamera.state.view);
@@ -153,12 +143,6 @@ const setCameraDistance = (distance, duration=5000) => {
   // console.log('setCameraDistance', distance)
   distanceSpringDamper.updateTarget(distance)
 }
-
-// const animateTween = () => {
-//   requestAnimationFrame(animateTween);
-//   TWEEN.update();
-// }
-// animateTween();
 
 startCenterSpring()
 startDistanceSpring()

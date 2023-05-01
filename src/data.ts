@@ -1,10 +1,11 @@
 import moize from 'moize'
 import GraphDbWorker from './graph-db-worker.js?worker'
-import GraphLayoutWorker from './graph-layout-worker.js?worker'
+import GraphLayoutWorker from './graph-layout-worker.ts?worker'
 import { wrap, proxy } from 'comlink'
 import { fromPairs, uniqWith } from 'lodash-es';
 import ColorHash from 'color-hash'
 import { getPositionLayers } from './gpu/interpolation'
+import { GraphLayoutSimulator } from './graph-layout-simulator';
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
@@ -174,18 +175,40 @@ export const prepareGraphDBWorker = async () => {
   return await graphWorker.buildGraph(data)
 }
 
+// export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3ForceSimulator) => {
+//   return await sim(
+//     data, 
+//     proxy(
+//       positions => {
+//         getPositionLayers().target.setFromArray(positions)
+//         latestTargetPositions = positions
+//         // console.log('updating target positions', latestTargetPositions)
+//       }
+//   ))
+// }
+// 
+const { NgraphForceLayout, D3ForceLayout } = graphLayoutWorker
+// export {
+//   NgraphForceLayout,
+//   D3ForceLayout
+// }
+
+export const getLayoutSimulator = moize.infinite(async () => {
+  const engine: GraphLayoutSimulator = await new D3ForceLayout(await getGraphData());
+  engine.start()
+  return engine
+})
+
 let latestTargetPositions;
 export const getLatestTargetPositions = () => latestTargetPositions
 
-export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3ForceSimulator) => {
-  return await sim(
-    data, 
-    proxy(
-      positions => {
-        getPositionLayers().target.setFromArray(positions)
-        latestTargetPositions = positions
-        // console.log('updating target positions', latestTargetPositions)
-      }
+export const updateNodePositionTargets = async () => {
+  const sim = await getLayoutSimulator()
+  sim.getPositions(proxy(
+    positions => {
+      latestTargetPositions = positions
+      getPositionLayers().target.setFromArray(positions)
+    }
   ))
 }
 
@@ -195,8 +218,8 @@ export const getNodePosition = (node) => {
   return [positions[index*3], positions[index*3+1], positions[index*3+2]]
 }
 
-export const useD3ForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useD3ForceSimulator)
-export const useFDGSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useFDGSimulator)
-export const useNgraphForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useNgraphForceSimulator)
+// export const useD3ForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useD3ForceSimulator)
+// export const useFDGSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useFDGSimulator)
+// export const useNgraphForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useNgraphForceSimulator)
 
 export const { doQuery, buildGraph } = graphWorker
