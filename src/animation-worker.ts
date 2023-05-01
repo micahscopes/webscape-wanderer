@@ -5,7 +5,7 @@ import moize from 'moize'
 import * as TWEEN from '@tweenjs/tween.js'
 import requestAnimationFrame from 'raf'
 
-export const getGlobalCamera = moize.infinite(() => {
+const getGlobalCamera = moize.infinite(() => {
   const camera = createCamera({
     // phi: 0.5,
     // theta: 1,
@@ -21,7 +21,7 @@ export const getGlobalCamera = moize.infinite(() => {
 
 
 // an orthographic camera for the local node projection
-export const getOrthographicCamera = moize.infinite((tag) => {
+const getOrthographicCamera = moize.infinite((tag) => {
   const distance = 200
   const camera = createCamera({
     phi: Math.PI/4,
@@ -39,7 +39,7 @@ export const getOrthographicCamera = moize.infinite((tag) => {
 const globalCamera = getGlobalCamera()
 const zoomedOrthographicCamera = getOrthographicCamera('zoomed')
 
-export const updateCameras = (setCameraUniformBuffers, width, height) => {
+const updateCameras = (setCameraUniformBuffers, width, height) => {
   const globalCamera = getGlobalCamera();
   const clippingDistances = {
     // near: clamp(globalCamera.params.distance*0.1, 10, 50),
@@ -212,7 +212,7 @@ const computeScreenPosition = ([x,y,z]) => {
 }
 
 
-expose({
+export {
   startPanning,
   stopPanning,
   startZooming,
@@ -225,4 +225,4 @@ expose({
   zoomGlobalCamera,
   panGlobalCamera,
   computeScreenPosition,
-})
+}

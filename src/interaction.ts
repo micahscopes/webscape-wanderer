@@ -2,7 +2,6 @@ import interactionEvents from "normalized-interaction-events";
 import { getCanvasAndGLContext } from "./gpu/rendering";
 import { getGraphData, getNodePosition } from "./data";
 import moize from "moize";
-import AnimationWorker from "./animation-worker?worker";
 import { Remote, wrap } from "comlink";
 import { setSelectedIndex, getSelectedIndex } from "./selection";
 import { throttle, debounce} from "lodash-es";
@@ -20,11 +19,10 @@ const normalizedEventCoordinates = (ev: any) => {
   return { x: x * 2 - 1, y: -(y * 2 - 1) };
 };
 
-const animationWorker = wrap(new AnimationWorker()) as Remote<any>;
-// window.animationWorker = wrap(new AnimationWorker())
-const {
+import {
   globalCamera,
   updateCameras,
+  getGlobalCameraParams,
   setCameraCenter,
   setCameraDistance,
   zoomGlobalCamera,
@@ -33,7 +31,7 @@ const {
   startPanning,
   stopPanning,
   computeScreenPosition
-} = animationWorker
+} from "./animation-worker";
 
 export { globalCamera, updateCameras, setCameraCenter, setCameraDistance };
 
@@ -47,10 +45,10 @@ const maxSelectedZoom = 500;
 const minUnselectedZoom = maxSelectedZoom;
 
 const stopZooming = async () => {
-  animationWorker.stopZooming();
+  // stopZooming();
   const selected = getSelectedIndex();
-  const distance = (await animationWorker.getGlobalCameraParams()).distance;
-  if (selected > -1) {  
+  const distance = (await getGlobalCameraParams()).distance;
+  if (selected > -1) {
     selectedZoom = Math.min(distance, maxSelectedZoom);
     // console.log('setting selected zoom', selectedZoom)
   } else {

@@ -81,7 +81,7 @@ const doQuery = async (
   })
 }
 
-expose({
+export {
   buildGraph,
   doQuery,
-})
+}

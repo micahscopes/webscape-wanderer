@@ -123,7 +123,7 @@ class NgraphForceLayout extends GraphLayoutSim {
   }
 }
 
-expose({
-  NgraphForceLayout: proxy(NgraphForceLayout),
-  D3ForceLayout: proxy(D3ForceLayout),
-});
+export {
+  NgraphForceLayout,
+  D3ForceLayout,
+}

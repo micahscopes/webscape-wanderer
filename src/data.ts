@@ -1,6 +1,6 @@
 import moize from 'moize'
-import GraphDbWorker from './graph-db-worker.js?worker'
-import GraphLayoutWorker from './graph-layout-worker.ts?worker'
+import * as graphWorker from './graph-db-worker.js'
+import * as graphLayoutWorker from './graph-layout-worker.ts'
 import { wrap, proxy } from 'comlink'
 import { fromPairs, uniqWith } from 'lodash-es';
 import ColorHash from 'color-hash'
@@ -24,8 +24,6 @@ const fetchData =
   }
 
 export const datEcosystemData = moize.promise(fetchData)
-export const graphWorker = wrap(new GraphDbWorker())
-export const graphLayoutWorker = wrap(new GraphLayoutWorker())
 
 export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*(dependents?.length || 1.0)**1.2), 2)
 
@@ -223,3 +221,4 @@ export const getNodePosition = (node) => {
 // export const useNgraphForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useNgraphForceSimulator)
 
 export const { doQuery, buildGraph } = graphWorker
+export { graphWorker, graphLayoutWorker }
