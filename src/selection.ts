@@ -162,19 +162,20 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
     // console.log("selected node:", node);
     const { nodesByProject, links } = await getGraphData();
     const resultHandler = ({sizeMap=identity, emphasis=1, colorMap=identity}) => (data, get) => {
-          // if (node !== selectedNode) return;
-        let {dependent, dependency} = get(["dependent", "dependency"]);
-        // console.log("query result:", dependent.value, dependency.value);
-        applyVisualsToNode(nodesByProject[dependent?.value || node.project], {
-            sizeMap,
-            emphasis,
-            colorMap
-        });
-        applyVisualsToNode(nodesByProject[dependency?.value || node.project], {
-            sizeMap,
-            emphasis,
-            colorMap
-        });
+      // if (node !== selectedNode) return;
+      get(["dependent", "dependency"]).then(({dependent, dependency}) => {
+      //  console.log("query result:", data);
+       applyVisualsToNode(nodesByProject[dependent?.value || node.project], {
+           sizeMap,
+           emphasis,
+           colorMap
+       });
+       applyVisualsToNode(nodesByProject[dependency?.value || node.project], {
+           sizeMap,
+           emphasis,
+           colorMap
+       });
+      });
     }
     initializeSelectionVisuals().then(() => {
       doQuery(

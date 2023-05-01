@@ -21,6 +21,7 @@ out float selected;
 out float hovering; 
 out float v;
 out float y;
+out float fog;
 
 out float offsetRadius2D;
 
@@ -106,56 +107,13 @@ void main() {
   edgeDirection = normalize(targetPositionClip.xyz/targetPositionClip.w - sourcePositionClip.xyz/sourcePositionClip.w).xy;
   edgeLength = length(targetNodePosition.xyz - sourceNodePosition.xyz);
 
-
-  // attempted to get the size of the node but our camera setup
-  // is way too fancy so this is TODO.
-
-  // vec3 edgeDirection3D = normalize(targetNodePosition - sourceNodePosition);
-
-  // vec4 sourceOffset = nodeGeometry(
-  //   sourceNodePosition,
-  //   vec3(0),
-  //   sourceSize,
-  //   CameraMatrices(
-  //     projection,
-  //     viewFromTexture,
-  //     orthoFixedProjection,
-  //     orthoFixedViewFromTexture,
-  //     orthoZoomedProjection,
-  //     orthoZoomedView
-  //   )
-  // ).orthographicClipPosition;
-
-  // vec4 targetOffset = nodeGeometry(
-  //   targetNodePosition,
-  //   vec3(0),
-  //   targetSize,
-  //   CameraMatrices(
-  //     projection,
-  //     viewFromTexture,
-  //     orthoFixedProjection,
-  //     orthoFixedViewFromTexture,
-  //     orthoZoomedProjection,
-  //     orthoZoomedView
-  //   )
-  // ).orthographicClipPosition;  
-
-  // we need to apply the inverse of the view matrix to the offset to get it in world space
-  // offsetRadius2D = length(inverse(viewFromTexture) * inverse(projection) * (isSource*sourceOffset + isTarget*targetOffset));
-
-  // vec2 radialOffset2D = 
-  //   ((sourceOffset.xy/sourceOffset.w + 1.0) * 0.5 * viewport)*isSource +
-  //   ((targetOffset.xy/targetOffset.w + 1.0) * 0.5 * viewport)*isTarget;
-  // offsetRadius2D = length(radialOffset2D);
-
   float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
   float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
-
 
   size = sourceSize*isSource + targetSize*isTarget;
   // size *= 2.0;
   // size *= mix(0.1, 0.1, emphasis);
-  size *= 0.2;
+  size *= 0.4;
 
   position = edgeGeometry(
     nodePosition,
@@ -186,10 +144,10 @@ void main() {
 
   // desaturate the color if the emphasis is low
   color.rgb = desaturate(color.rgb, mix(1.0, 0.2, emphasis));
-  // color.a *= mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected));
-  // color.a *= mix(0.4, 1.0, mix(1.0, selected, isAnySelected));
+  color.a *= mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected));
+  color.a *= mix(0.4, 1.0, mix(1.0, selected, isAnySelected));
   
-  float fog = computeFog(position.z, defaultFogBoundaryClipZ);
+  fog = computeFog(position.z, defaultFogBoundaryClipZ/2.0);
   fog = min(fog, 1.0 - selected);
   fog = min(fog, 1.0 - emphasis);
   color.a *= mix(1.0, 0.1, fog);

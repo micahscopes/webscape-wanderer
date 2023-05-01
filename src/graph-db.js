@@ -2,7 +2,7 @@ import { MemoryLevel } from 'memory-level';
 import { DataFactory } from 'rdf-data-factory';
 import { Quadstore } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
-import { expose, proxy } from 'comlink'
+import { proxy } from 'comlink'
 
 import { OWNS, DEPENDS_ON} from './query-helpers';
 import { fromPairs } from 'lodash-es';
@@ -13,6 +13,7 @@ const store = new Quadstore({ backend, dataFactory: df });
 const engine = new Engine(store);
 
 async function buildGraph(data) {
+  console.log("BUILDING GRAPH", data)
   const {valueNetworkData, projectsData, organizationsData} = data
   
   const valueNetworkQuads = Object.entries(valueNetworkData)
@@ -66,7 +67,7 @@ async function buildGraph(data) {
   console.log('inserted', entries.length, 'entries')
 }
 
-const getProps = data => (props => {
+const getProps = data => (async props => {
   return fromPairs([props].flat().map(prop => [prop, data.get(prop)]))
 }).bind(data)
 

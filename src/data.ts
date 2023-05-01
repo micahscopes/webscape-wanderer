@@ -1,11 +1,12 @@
 import moize from 'moize'
-import * as graphWorker from './graph-db-worker.js'
-import * as graphLayoutWorker from './graph-layout-worker.ts'
-import { wrap, proxy } from 'comlink'
+import { graphLayout, graphDb} from './get-workers'
+import { proxy } from 'comlink'
 import { fromPairs, uniqWith } from 'lodash-es';
 import ColorHash from 'color-hash'
 import { getPositionLayers } from './gpu/interpolation'
 import { GraphLayoutSimulator } from './graph-layout-simulator';
+
+console.log(graphLayout, 'graphLayout???')
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
@@ -170,26 +171,10 @@ export const randomTreesData = (trunks, numLevels, minChildren, maxChildren, max
 
 export const prepareGraphDBWorker = async () => {
   const data = await datEcosystemData()
-  return await graphWorker.buildGraph(data)
+  return await graphDb.buildGraph(data)
 }
 
-// export const prepareGraphLayoutWorker = async (data, sim=graphLayoutWorker.useD3ForceSimulator) => {
-//   return await sim(
-//     data, 
-//     proxy(
-//       positions => {
-//         getPositionLayers().target.setFromArray(positions)
-//         latestTargetPositions = positions
-//         // console.log('updating target positions', latestTargetPositions)
-//       }
-//   ))
-// }
-// 
-const { NgraphForceLayout, D3ForceLayout } = graphLayoutWorker
-// export {
-//   NgraphForceLayout,
-//   D3ForceLayout
-// }
+const { NgraphForceLayout, D3ForceLayout } = graphLayout
 
 export const getLayoutSimulator = moize.infinite(async () => {
   const engine: GraphLayoutSimulator = await new D3ForceLayout(await getGraphData());
@@ -218,9 +203,5 @@ export const getNodePosition = (node) => {
   return [positions[index*3], positions[index*3+1], positions[index*3+2]]
 }
 
-// export const useD3ForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useD3ForceSimulator)
-// export const useFDGSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useFDGSimulator)
-// export const useNgraphForceSimulator = async (data) => await prepareGraphLayoutWorker(data || (await prepareVisualizerData()), graphLayoutWorker.useNgraphForceSimulator)
-
-export const { doQuery, buildGraph } = graphWorker
-export { graphWorker, graphLayoutWorker }
+export const { doQuery, buildGraph } = graphDb
+export { graphDb as graphWorker, graphLayout as graphLayoutWorker }

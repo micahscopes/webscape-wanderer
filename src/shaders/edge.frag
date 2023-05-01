@@ -5,7 +5,7 @@ precision highp float;
 in float selected;
 in float isTarget;
 // in float isSource;
-
+in float fog;
 in vec4 color;
 // in vec4 position;
 in float emphasis;
@@ -41,7 +41,7 @@ void main() {
   float u_3D = isTarget;
   
   // softness
-  // fragColor.a *= mix(1.0, bump(y, 1.0, 1.0), 1.0);
+  fragColor.a *= mix(bump(v, 2.0*(1.0 - fog), 1.0), 1.0, fog);
 
   // end bumps
   float u_hybrid = mix(u_2D, u_3D, 0.5);

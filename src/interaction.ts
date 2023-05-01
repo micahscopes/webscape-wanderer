@@ -2,14 +2,12 @@ import interactionEvents from "normalized-interaction-events";
 import { getCanvasAndGLContext } from "./gpu/rendering";
 import { getGraphData, getNodePosition } from "./data";
 import moize from "moize";
-import { Remote, wrap } from "comlink";
 import { setSelectedIndex, getSelectedIndex } from "./selection";
 import { throttle, debounce} from "lodash-es";
 import navigation from "./navigation";
 import { render, html, TemplateResult } from "lit-html";
 import { getPickerRenderTarget, getThreeSetup } from "./gpu/graph-viz";
-import { logDebugMessage } from "./main";
-
+import { graphCameraAnimation } from "./get-workers";
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ev: any) => {
   const { canvas } = getCanvasAndGLContext();
@@ -19,7 +17,7 @@ const normalizedEventCoordinates = (ev: any) => {
   return { x: x * 2 - 1, y: -(y * 2 - 1) };
 };
 
-import {
+const {
   globalCamera,
   updateCameras,
   getGlobalCameraParams,
@@ -31,7 +29,7 @@ import {
   startPanning,
   stopPanning,
   computeScreenPosition
-} from "./animation-worker";
+} = graphCameraAnimation
 
 export { globalCamera, updateCameras, setCameraCenter, setCameraDistance };
 

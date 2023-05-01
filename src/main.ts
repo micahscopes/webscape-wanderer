@@ -17,8 +17,7 @@ setupSelection();
 
 document.querySelector('html')?.classList.add('loading')
 
-let graphData
-graphData = await getGraphData();
+let graphData = await getGraphData();
 await prepareGraphDBWorker();
 
 // graphData = randomGraphData(2000,2000);
@@ -101,8 +100,6 @@ window.addEventListener('keydown', (e) => {
 })
 
 import queuedThrottle from 'throttled-queue'
-import { GraphLayoutSimulator } from './graph-layout-simulator';
-import { proxy } from 'comlink';
 const debugMessageQueue = queuedThrottle(1, 1000)
 export const logDebugMessage = message => debugMessageQueue(() => {
     const debugMessageArea = document.querySelector('#debug-message')

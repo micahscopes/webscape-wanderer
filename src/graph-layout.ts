@@ -1,4 +1,3 @@
-import { expose, proxy } from "comlink";
 import requestAnimationFrame from 'raf';
 import {
   forceSimulation,
@@ -9,8 +8,12 @@ import {
 
 import forceLayout from "ngraph.forcelayout";
 import createGraph from "ngraph.graph";
-import { GraphLayoutSimulator } from "./graph-layout-simulator";
-import { transfer } from "./transfer-but-not-on-webkit";
+
+export interface GraphLayoutSimulator {
+  start: () => void;
+  stop: () => void;
+  getPositions: (callback: (positions: Float32Array) => void) => void;
+}
 
 class GraphLayoutSim implements GraphLayoutSimulator {
   positions: Float32Array = new Float32Array(0);
