@@ -3,7 +3,7 @@ import { graphLayout, graphDb} from './get-workers'
 import { proxy } from 'comlink'
 import { fromPairs, uniqWith } from 'lodash-es';
 import ColorHash from 'color-hash'
-import { getPositionLayers } from './gpu/interpolation'
+import { getPositionLayers, hasEnoughFramebufferAttachments } from './gpu/interpolation'
 import { GraphLayoutSimulator } from './graph-layout-simulator';
 
 console.log(graphLayout, 'graphLayout???')
@@ -191,7 +191,11 @@ export const updateNodePositionTargets = async () => {
     positions => {
       if (positions.length > 0) {
         latestTargetPositions = positions
-        getPositionLayers().target.setFromArray(positions)
+        if (hasEnoughFramebufferAttachments()) {
+          getPositionLayers().target.setFromArray(positions)
+        } else {
+          getPositionLayers().view.setFromArray(positions)
+        }
       }
     }
   ))

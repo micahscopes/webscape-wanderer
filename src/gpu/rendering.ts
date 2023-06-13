@@ -24,6 +24,7 @@ import {
   getPositionLayers,
   getSizeLayers,
   getViewMatrixLayers,
+  hasEnoughFramebufferAttachments,
   interpolateCameraMatricesProgram,
   interpolateCameraParametersProgram,
 } from './interpolation';
@@ -134,7 +135,7 @@ const copy = copyProgram(getGPUComposer(), {
 initializeNodeVisualizerUniforms();
 initializeEdgeVisualizerUniforms();
 
-const {gl} = getCanvasAndGLContext();
+// const {gl} = getCanvasAndGLContext();
 
 const interpolate = () => {
   const gpuComposer = getGPUComposer();
@@ -175,8 +176,12 @@ export const animateGraph = () => {
     window.innerWidth,
     window.innerHeight,
   );
+  
+  const {gl} = getCanvasAndGLContext();
 
-  interpolate();
+  if (hasEnoughFramebufferAttachments()) {
+    interpolate();
+  }
 
   fillCanvasToWindow();
 

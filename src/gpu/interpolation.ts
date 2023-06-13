@@ -1,9 +1,15 @@
 import moize from "moize";
-import { getGPUComposer } from "./rendering";
+import { getCanvasAndGLContext, getGPUComposer } from "./rendering";
 import { FLOAT, GPULayer, GPULayerType, GPULayerNumComponents, GPUProgram, INT } from "gpu-io";
 import { App } from "picogl";
 import { renderRGBProgram } from "gpu-io/dist/types/Programs";
 import { Texture } from "three";
+
+export const hasEnoughFramebufferAttachments = moize(() => {
+  const {gl} = getCanvasAndGLContext()
+  const maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
+  return maxColorAttachments >= 8;
+})
 
 export const getLayers = (name, {
   type = FLOAT as GPULayerType,
@@ -11,7 +17,7 @@ export const getLayers = (name, {
   dimensions = 32,
 } = {}) => {
   const gpuComposer = getGPUComposer();
-  console.log(name, "making layers")
+  console.log(name, "making layers", gpuComposer.gl)
 
   const current = new GPULayer(gpuComposer, {
     name: `current_${name}`,
