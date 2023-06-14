@@ -84,7 +84,7 @@ export const getGraphData = moize.promise(async () => {
     // make a url friendly id
     navId: makeNavId(project),
     owner,
-    ownerData: organizationsData[owner],
+    ownerData: organizationsData[owner] || {},
     color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
     size: nodeScaleFn(dependents),
     dependents,

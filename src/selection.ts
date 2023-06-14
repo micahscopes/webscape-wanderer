@@ -128,9 +128,9 @@ const selectionInfo = (node) => html`
       <span class="owner">
         <div class="owner-name-container">
           ${
-            node.ownerData.html_url ? 
-              html`<a target="_blank" href="${node.ownerData.html_url}">${node.ownerData.name}</a>` :
-              html`<span>${node.ownerData.name}</span>`
+            node.ownerData?.html_url ? 
+              html`<a target="_blank" href="${node.ownerData?.html_url}">${node.ownerData?.name}</a>` :
+              html`<span>${node.ownerData?.name}</span>`
           }
         </div>
         <div class="avatar-container">
@@ -141,7 +141,7 @@ const selectionInfo = (node) => html`
       <span><a target="_blank" href="${node.project}">NPM</a></span>
       ${node.data?.repository ? html`<span><a target="_blank" href="${node.data.repository}">Git</a></span>` : html``}
       ${node.data?.bugs ? html`<span><a target="_blank" href="${node.data.bugs}">Issues</a></span>` : html``}
-      <!-- <a href="${node.ownerData.html_url}">Owner Profile</a> -->
+      <!-- <a href="${node.ownerData?.html_url}">Owner Profile</a> -->
     </div>
   </div>
 
