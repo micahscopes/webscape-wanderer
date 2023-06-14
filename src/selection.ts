@@ -34,6 +34,7 @@ export const applyVisuals = async ({
   sizeMap = identity,
   immediate = false,
 } = {}) => {
+  immediate = !hasEnoughFramebufferAttachments() || immediate
   // const colors = getColorBuffers();
   // const sizes = getRadiusBuffers();
   // const emphasis = getEmphasisBuffers();
@@ -51,6 +52,9 @@ export const applyVisuals = async ({
     colorsTargetLayer.current.setFromArray(colorData);
     sizesLayer.current.setFromArray(sizeData);
     emphasisLayer.current.setFromArray(new Float32Array(sizeData.length).fill(0));
+    colorsTargetLayer.view.setFromArray(colorData);
+    sizesLayer.view.setFromArray(sizeData);
+    emphasisLayer.view.setFromArray(new Float32Array(sizeData.length).fill(0));
   }
 
   // colors.targetData(colorData, { immediate });
@@ -64,6 +68,8 @@ export const applyVisualsToNode = async (node, {
   emphasis = 0,
   immediate = false
 } = {}) => {
+  immediate = !hasEnoughFramebufferAttachments() || immediate
+
   const color = new Float32Array(colorMap(defaultColorMap(node)));
   const size = new Float32Array([sizeMap(defaultSizeMap(node))]);
   const epmhasis = new Float32Array([emphasis]);
@@ -89,6 +95,9 @@ export const applyVisualsToNode = async (node, {
     colorsTargetLayer.current.setAtIndex1D(node.index, color);
     sizesLayer.current.setAtIndex1D(node.index, size);
     emphasisLayer.current.setAtIndex1D(node.index, epmhasis);
+    colorsTargetLayer.view.setAtIndex1D(node.index, color);
+    sizesLayer.view.setAtIndex1D(node.index, size);
+    emphasisLayer.view.setAtIndex1D(node.index, epmhasis);
   }
 }
 
@@ -244,7 +253,8 @@ export const getSelectedNode = async () => {
 
 import { colord, extend } from "colord";
 import namesPlugin from "colord/plugins/names";
-import { getColorLayers, getEmphasisLayers, getSizeLayers } from "./gpu/interpolation";
+import { getColorLayers, getEmphasisLayers, getSizeLayers, hasEnoughFramebufferAttachments } from "./gpu/interpolation";
+import { getCanvasAndGLContext } from "./gpu/rendering";
 
 extend([namesPlugin]);
 

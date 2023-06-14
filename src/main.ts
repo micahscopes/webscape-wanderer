@@ -1,5 +1,5 @@
 import { animateGraph } from './gpu/rendering';
-import { D3ForceLayout, getGraphData, prepareGraphDBWorker } from "./data";
+import { D3ForceLayout, getGraphData, prepareGraphDBWorker, randomGraphData } from "./data";
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
@@ -18,9 +18,9 @@ setupSelection();
 document.querySelector('html')?.classList.add('loading')
 
 let graphData = await getGraphData();
-await prepareGraphDBWorker();
 
-// graphData = randomGraphData(2000,2000);
+// let graphData = randomGraphData(2000,2000);
+await prepareGraphDBWorker();
 // graphData = randomTreesData(1, 7, 5,8, 10000)
 const { nodes, linkIndexPairs } = graphData;
 
