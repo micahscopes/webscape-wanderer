@@ -7,7 +7,7 @@ This visualization engine decouples layout, querying, rendering and animation fo
 
 _However:_ funny enough at the moment the code is completely coupled to the Dat Ecosystem data.
 
-The goal is to make it useful for interactively visualizing any old graph data.  Check the ambitious [project goals](#features--project-goals) for more details.
+The goal is to make it useful for interactively visualizing any old graph data.  Check the [project goals](#features--project-goals) for more details.
 
 
 ### Architecture
