@@ -162,7 +162,7 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
     vertexShader: edgeVs,
     fragmentShader: edgeFs,
     uniforms: {},
-    depthTest: deviceHasMouse() ? true : false,
+    depthTest: false, // deviceHasMouse() ? true : false,
     depthWrite: true,
     depthFunc: LessEqualDepth,
     transparent: true,

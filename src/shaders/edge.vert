@@ -147,6 +147,9 @@ void main() {
   color.a *= mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected));
   color.a *= mix(0.4, 1.0, mix(1.0, selected, isAnySelected));
   
+  // dim edges for larger values of `cameras.distance` 
+  color.a *= mix(1.0, mix(0.3, 1.0, selected), smoothstep(400.0, 1200.0, distance));
+  
   fog = computeFog(position.z, defaultFogBoundaryClipZ/2.0);
   fog = min(fog, 1.0 - selected);
   fog = min(fog, 1.0 - emphasis);
