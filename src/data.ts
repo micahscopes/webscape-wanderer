@@ -10,6 +10,30 @@ console.log(graphLayout, 'graphLayout???')
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
+const projectId = (project) => project.replace(/^git\+/, '')
+
+import { transform } from 'lodash-es'
+
+const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
+  // we need to remove `git+` from all project ids
+  valueNetworkData = transform(valueNetworkData, (result, value, key) => {
+    value.dependencies = value.dependencies ? value.dependencies.map(projectId) : []
+    value.dependents = value.dependents ? value.dependents.map(projectId) : []
+    value.owner = value.owner ? projectId(value.owner) : null
+    console.log(value, 'value???')
+    result[projectId(key)] = value
+  }, {})
+  projectsData = transform(projectsData, (result, value, key) => {
+    result[projectId(key)] = value
+  }, {})
+  organizationsData = transform(organizationsData, (result, value, key) => {
+    result[projectId(key)] = value
+  }, {})
+
+  return { valueNetworkData, projectsData, organizationsData }
+}
+  
+
 const fetchData =
   async () => {
     const DAT_GARDEN_BASE_URL = "https://dat-ecosystem.org/dat-garden-rake/"
@@ -20,10 +44,11 @@ const fetchData =
       fetch(LATEST_DATA_BASE_URL + '/../projects.json').then(x => x.json()),
       fetch(LATEST_DATA_BASE_URL + '/../organizations.json').then(x => x.json())
     ])
+    
 
-    return { valueNetworkData, projectsData, organizationsData }
+    return cleanData({ valueNetworkData, projectsData, organizationsData })
   }
-
+  
 export const datEcosystemData = moize.promise(fetchData)
 
 export const nodeScaleFn = (dependents) => Math.max(4*Math.log(2*(dependents?.length || 1.0)**1.2), 2)
