@@ -1,0 +1,1664 @@
+{
+  "mailto://dev@unbiskant.org": {
+    "email": "dev@unbiskant.org",
+    "name": "frando"
+  },
+  "https://github.com/arso-project": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/37798349?v=4",
+    "description": "arso is a project to build tools for dezentralized digital archives for social movements and grassroots initiatives.",
+    "email": "archipel@riseup.net",
+    "github_type": "Organization",
+    "github_url": "https://github.com/arso-project",
+    "html_url": "https://github.com/arso-project",
+    "name": "arso"
+  },
+  "https://github.com/atek-cloud": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/88894036?v=4",
+    "description": "A personal cloud for Web 3.0",
+    "github_type": "Organization",
+    "github_url": "https://github.com/atek-cloud",
+    "html_url": "https://github.com/atek-cloud",
+    "name": "Atek Cloud"
+  },
+  "https://github.com/backbonedao": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/89901427?v=4",
+    "description": "Unstoppable, infinitely scalable dapps platform for decentralized, self-sovereign web",
+    "github_type": "Organization",
+    "github_url": "https://github.com/backbonedao",
+    "html_url": "https://github.com/backbonedao",
+    "name": "Backbone DAO",
+    "twitter_url": "https://twitter.com/backbonedao"
+  },
+  "https://github.com/beakerbrowser": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/22504804?v=4",
+    "description": "An experimental peer-to-peer Web browser.",
+    "github_type": "Organization",
+    "github_url": "https://github.com/beakerbrowser",
+    "html_url": "https://github.com/beakerbrowser",
+    "name": "Beaker Browser"
+  },
+  "https://github.com/pfrazee": {
+    "email": "pfrazee@gmail.com",
+    "name": "Paul Frazee",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1270099?v=4",
+    "description": "https://twitter.com/pfrazee",
+    "github_type": "User",
+    "github_url": "https://github.com/pfrazee",
+    "html_url": "https://github.com/pfrazee",
+    "location": "Austin, TX"
+  },
+  "https://github.com/fsteff": {
+    "email": "fsteff@gmx.at",
+    "name": "fsteff",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1186735?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/fsteff",
+    "html_url": "https://github.com/fsteff",
+    "location": "Austria"
+  },
+  "mailto://timcash@gmail.com": {
+    "email": "timcash@gmail.com",
+    "name": "timcash10"
+  },
+  "mailto://ameba23@systemli.org": {
+    "email": "ameba23@systemli.org",
+    "name": "ameba23"
+  },
+  "https://github.com/coboxcoop": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/50157554?v=4",
+    "description": "Building Blocks for a Cooperative Cloud",
+    "email": "info@cobox.cloud",
+    "github_type": "Organization",
+    "github_url": "https://github.com/coboxcoop",
+    "html_url": "https://github.com/coboxcoop",
+    "location": "cypherspace",
+    "name": "CoBox Co-operative Cloud"
+  },
+  "https://github.com/connor-davis": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/61504387?v=4",
+    "description": "Currently developing the Lone Wolf application ecosystem.",
+    "github_type": "User",
+    "github_url": "https://github.com/connor-davis",
+    "html_url": "https://github.com/connor-davis",
+    "location": "South Africa",
+    "name": "Connor Davis"
+  },
+  "https://github.com/andrewosh": {
+    "email": "andrewosh@gmail.com",
+    "html_url": "https://github.com/andrewosh",
+    "name": "Andrew Osheroff",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1043263?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/andrewosh"
+  },
+  "mailto://soyuka@gmail.com": {
+    "email": "soyuka@gmail.com",
+    "name": "soyuka"
+  },
+  "https://github.com/bitfinexcom": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/12942297?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/bitfinexcom",
+    "html_url": "https://github.com/bitfinexcom",
+    "name": "Bitfinex"
+  },
+  "https://github.com/ddnlink": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/34602359?v=4",
+    "description": "DDN, Data Delivery Network, a next generation blockchain system",
+    "github_type": "Organization",
+    "github_url": "https://github.com/ddnlink",
+    "html_url": "https://github.com/ddnlink",
+    "name": "DDN"
+  },
+  "mailto://afd@wireline.io": {
+    "email": "afd@wireline.io",
+    "name": "dxosbuilder"
+  },
+  "mailto://bot@dxos.org": {
+    "email": "bot@dxos.org",
+    "name": "dxos-bot"
+  },
+  "https://github.com/dxos": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/57182821?v=4",
+    "description": "The Decentralized Operating System",
+    "email": "info@dxos.org",
+    "github_type": "Organization",
+    "github_url": "https://github.com/dxos",
+    "html_url": "https://github.com/dxos",
+    "name": "DXOS",
+    "twitter_url": "https://twitter.com/dxos_org"
+  },
+  "https://github.com/KrishnaPG": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/4610831?v=4",
+    "description": "Blockchain, M2M, IOT, AI Consultant",
+    "github_type": "User",
+    "github_url": "https://github.com/KrishnaPG",
+    "html_url": "https://github.com/KrishnaPG",
+    "name": "Gopalakrishna Palem"
+  },
+  "mailto://102kdrduy3lt@blurtoday.com": {
+    "email": "102kdrduy3lt@blurtoday.com",
+    "name": "firaenix"
+  },
+  "https://github.com/noffle": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/84104880?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/noffle",
+    "html_url": "https://github.com/noffle"
+  },
+  "mailto://freddie.ridell@gmail.com": {
+    "email": "freddie.ridell@gmail.com",
+    "name": "freddieridell"
+  },
+  "https://github.com/garbados": {
+    "email": "garbados@gmail.com",
+    "name": "Diana Thayer",
+    "avatar_url": "https://avatars.githubusercontent.com/u/883103?v=4",
+    "description": "Python / JS / Lisp dev. I try my best.",
+    "github_type": "User",
+    "github_url": "https://github.com/garbados",
+    "html_url": "https://github.com/garbados"
+  },
+  "https://github.com/geut": {
+    "email": "contact@geutstudio.com",
+    "name": "GEUT",
+    "avatar_url": "https://avatars.githubusercontent.com/u/10203616?v=4",
+    "description": "Custom JS Software Development Team. Code with opinions.",
+    "github_type": "Organization",
+    "github_url": "https://github.com/geut",
+    "html_url": "https://github.com/geut",
+    "location": "La Plata, Buenos Aires, Argentina."
+  },
+  "https://github.com/dpaez": {
+    "email": "diego@geutstudio.com",
+    "name": "Diego",
+    "avatar_url": "https://avatars.githubusercontent.com/u/837500?v=4",
+    "company": "@geut ",
+    "description": "aka: deka, dk // \r\n  \r\nSHER co-founder: Building a decentralized streaming platform 🤘 / @geut co-founder / Patagonia's Original",
+    "github_type": "User",
+    "github_url": "https://github.com/dpaez",
+    "html_url": "https://github.com/dpaez",
+    "location": "La Plata, Buenos Aires",
+    "twitter_url": "https://twitter.com/carax"
+  },
+  "https://github.com/humusities": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/65821716?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/humusities",
+    "html_url": "https://github.com/humusities"
+  },
+  "https://github.com/nestarz": {
+    "email": "elias.rhouzlane@gmail.com",
+    "name": "Elias Rhouzlane",
+    "avatar_url": "https://avatars.githubusercontent.com/u/5360876?v=4",
+    "description": "dm open\r\n",
+    "github_type": "User",
+    "github_url": "https://github.com/nestarz",
+    "html_url": "https://github.com/nestarz",
+    "location": "Paris, France"
+  },
+  "https://github.com/FreddieRidell": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/6035099?v=4",
+    "company": "@Codogo ",
+    "description": "https://www.twitter.com/freddieridell",
+    "github_type": "User",
+    "github_url": "https://github.com/FreddieRidell",
+    "html_url": "https://github.com/FreddieRidell",
+    "location": "London",
+    "name": "Freddie Ridell"
+  },
+  "https://github.com/hyperdivision": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/40634961?v=4",
+    "description": "Scaling, distributed systems and crypto. https://hyperdivision.dk",
+    "email": "hello@hyperdivision.dk",
+    "github_type": "Organization",
+    "github_url": "https://github.com/hyperdivision",
+    "html_url": "https://github.com/hyperdivision",
+    "location": "Copenhagen, Denmark",
+    "name": "Hyperdivision"
+  },
+  "https://github.com/hypercore-protocol": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/65117216?v=4",
+    "description": "A fast, scalable, and secure peer-to-peer protocol for everyone",
+    "github_type": "Organization",
+    "github_url": "https://github.com/hypercore-protocol",
+    "html_url": "https://github.com/hypercore-protocol",
+    "location": "Decentralised Internet",
+    "name": "Hypercore Protocol"
+  },
+  "https://github.com/hyperspace-org": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/67195861?v=4",
+    "description": "Hypercore, batteries included",
+    "github_type": "Organization",
+    "github_url": "https://github.com/hyperspace-org",
+    "html_url": "https://github.com/hyperspace-org",
+    "name": "Hyperspace"
+  },
+  "https://github.com/hyperswarm": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/43351184?v=4",
+    "description": "A distributed networking stack for connecting peers.",
+    "github_type": "Organization",
+    "github_url": "https://github.com/hyperswarm",
+    "html_url": "https://github.com/hyperswarm"
+  },
+  "https://github.com/holepunchto": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/81375561?v=4",
+    "description": "The Peer to Peer Company",
+    "github_type": "Organization",
+    "github_url": "https://github.com/holepunchto",
+    "html_url": "https://github.com/holepunchto",
+    "name": "Holepunch",
+    "twitter_url": "https://twitter.com/holepunch_to"
+  },
+  "https://github.com/imbueplatform": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/61441216?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/imbueplatform",
+    "html_url": "https://github.com/imbueplatform"
+  },
+  "https://github.com/jimpick": {
+    "email": "jim@jimpick.com",
+    "name": "Jim Pick",
+    "avatar_url": "https://avatars.githubusercontent.com/u/20886?v=4",
+    "company": "HexCamp",
+    "github_type": "User",
+    "github_url": "https://github.com/jimpick",
+    "html_url": "https://github.com/jimpick",
+    "location": "Victoria, BC, Canada",
+    "twitter_url": "https://twitter.com/jimpick"
+  },
+  "https://github.com/joehand": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/684965?v=4",
+    "company": "@codeforscience ",
+    "description": "Open tools for the polis! Building operations with people @codeforscience. ",
+    "github_type": "User",
+    "github_url": "https://github.com/joehand",
+    "html_url": "https://github.com/joehand",
+    "location": "Portland",
+    "name": "Joe Hand"
+  },
+  "https://github.com/datproject": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/7143718?v=4",
+    "description": "A distributed data community. Dat is a nonprofit-backed data syncronization protocol for peer-to-peer applications -- DEPRECATED - see https://dat-ecosystem.org",
+    "github_type": "Organization",
+    "github_url": "https://github.com/datproject",
+    "html_url": "https://github.com/datproject",
+    "name": "Dat Project"
+  },
+  "https://github.com/mafintosh": {
+    "email": "mathiasbuus@gmail.com",
+    "html_url": "https://github.com/mafintosh",
+    "name": "Mathias Buus",
+    "avatar_url": "https://avatars.githubusercontent.com/u/376661?v=4",
+    "company": "Holepunch",
+    "description": "Rød grød med fløde",
+    "github_type": "User",
+    "github_url": "https://github.com/mafintosh",
+    "location": "Copenhagen, Denmark"
+  },
+  "https://github.com/inkandswitch": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/13871147?v=4",
+    "email": "hello@inkandswitch.com",
+    "github_type": "Organization",
+    "github_url": "https://github.com/inkandswitch",
+    "html_url": "https://github.com/inkandswitch",
+    "name": "Ink & Switch",
+    "twitter_url": "https://twitter.com/inkandswitch"
+  },
+  "https://github.com/Kronos-Integration": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/14301944?v=4",
+    "description": "service management with node",
+    "github_type": "Organization",
+    "github_url": "https://github.com/Kronos-Integration",
+    "html_url": "https://github.com/Kronos-Integration",
+    "name": "Kronos Integration"
+  },
+  "https://github.com/lejeunerenard": {
+    "email": "sean@lejeunerenard.com",
+    "html_url": "https://github.com/lejeunerenard",
+    "name": "Sean Zellmer",
+    "avatar_url": "https://avatars.githubusercontent.com/u/2146515?v=4",
+    "description": "Freelance Creative Coder & Web Developer",
+    "github_type": "User",
+    "github_url": "https://github.com/lejeunerenard",
+    "location": "Glen Ellyn, IL",
+    "twitter_url": "https://twitter.com/lejeunerenard"
+  },
+  "mailto://stphnmnslw@gmail.com": {
+    "email": "stphnmnslw@gmail.com",
+    "name": "m-onz"
+  },
+  "https://github.com/digidem": {
+    "email": "info@digital-democracy.org",
+    "name": "Digital Democracy",
+    "avatar_url": "https://avatars.githubusercontent.com/u/405221?v=4",
+    "description": "Digital Democracy works in solidarity with marginalized communities to use technology to defend their rights",
+    "github_type": "Organization",
+    "github_url": "https://github.com/digidem",
+    "html_url": "https://github.com/digidem",
+    "location": "CA",
+    "twitter_url": "https://twitter.com/digidem"
+  },
+  "https://github.com/marine-master": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/85358481?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/marine-master",
+    "html_url": "https://github.com/marine-master",
+    "name": "Marine Master"
+  },
+  "mailto://seth@mojodna.net": {
+    "email": "seth@mojodna.net",
+    "name": "mojodna"
+  },
+  "mailto://msfeldstein@gmail.com": {
+    "email": "msfeldstein@gmail.com",
+    "name": "msfeldstein"
+  },
+  "https://github.com/cabal-club": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/39334929?v=4",
+    "description": "decentralized local-first peer-to-peer group chat (like IRC/Slack) ",
+    "github_type": "Organization",
+    "github_url": "https://github.com/cabal-club",
+    "html_url": "https://github.com/cabal-club",
+    "location": "npm i -g cabal",
+    "name": "cabal"
+  },
+  "https://github.com/lmangani": {
+    "email": "lorenzo.mangani@gmail.com",
+    "name": "Lorenzo Mangani",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1423657?v=4",
+    "company": "qxip/gigapipe",
+    "description": "@QXIP + @sipcapture + @metrico ",
+    "github_type": "User",
+    "github_url": "https://github.com/lmangani",
+    "html_url": "https://github.com/lmangani",
+    "location": "Amsterdam",
+    "twitter_url": "https://twitter.com/qxip"
+  },
+  "https://github.com/peopledata": {
+    "email": "jerry.zhang.bill@gmail.com",
+    "name": "PeopleData",
+    "avatar_url": "https://avatars.githubusercontent.com/u/101251279?v=4",
+    "description": "PeopleData is on a mission to create a next generation personal data market infrastructures, across China and around the world",
+    "github_type": "Organization",
+    "github_url": "https://github.com/peopledata",
+    "html_url": "https://github.com/peopledata",
+    "location": "China"
+  },
+  "https://github.com/peopleswarm": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/114058215?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/peopleswarm",
+    "html_url": "https://github.com/peopleswarm"
+  },
+  "https://github.com/uiharness": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/30508933?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/uiharness",
+    "html_url": "https://github.com/uiharness",
+    "name": "uiharness"
+  },
+  "https://github.com/RangerMauve": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/911495?v=4",
+    "company": "Mauve Software Inc.",
+    "description": "Into distributed systems, moving data between peers, and mixed reality.\r\n\r\nFediverse: `@mauve@mastodon.mauve.moe`",
+    "email": "RangerMauve@hotmail.com",
+    "github_type": "User",
+    "github_url": "https://github.com/RangerMauve",
+    "html_url": "https://github.com/RangerMauve",
+    "location": "Ottawa, ON, Canada",
+    "twitter_url": "https://twitter.com/RangerMauve"
+  },
+  "mailto://0x77dev@protonmail.com": {
+    "email": "0x77dev@protonmail.com",
+    "name": "0x77"
+  },
+  "mailto://sam@cliqz.com": {
+    "email": "sam@cliqz.com",
+    "name": "sammacbeth"
+  },
+  "https://github.com/sammacbeth": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/248111?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/sammacbeth",
+    "html_url": "https://github.com/sammacbeth",
+    "location": "Munich, Germany",
+    "name": "Sam Macbeth"
+  },
+  "mailto://tomas.rav@gmail.com": {
+    "email": "tomas.rav@gmail.com",
+    "html_url": "https://tomasrav.me/",
+    "name": "ozymandiasthegreat"
+  },
+  "https://github.com/ghobs91": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/4033636?v=4",
+    "company": "Onshape",
+    "github_type": "User",
+    "github_url": "https://github.com/ghobs91",
+    "html_url": "https://github.com/ghobs91",
+    "location": "Boston, MA",
+    "name": "Andrew"
+  },
+  "mailto://andre+npm@staltz.com": {
+    "email": "andre+npm@staltz.com",
+    "name": "staltz"
+  },
+  "https://github.com/synonym": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/418310?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/synonym",
+    "html_url": "https://github.com/synonym"
+  },
+  "mailto://ar.nazeh@gmail.com": {
+    "email": "ar.nazeh@gmail.com",
+    "name": "nzh"
+  },
+  "https://github.com/synonymdev": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/68897969?v=4",
+    "description": "Synonym combines Bitcoin, Lightning, and P2P web tech to bootstrap a decentralized, open digital society",
+    "github_type": "Organization",
+    "github_url": "https://github.com/synonymdev",
+    "html_url": "https://github.com/synonymdev",
+    "name": "Synonym",
+    "twitter_url": "https://twitter.com/synonym_to"
+  },
+  "https://github.com/Telios-org": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/67559014?v=4",
+    "description": "Telios is a private email service for securely sending and receiving end-to-end encrypted emails over a peer-to-peer network.",
+    "email": "support@telios.io",
+    "github_type": "Organization",
+    "github_url": "https://github.com/Telios-org",
+    "html_url": "https://github.com/Telios-org",
+    "location": "United States of America",
+    "name": "Telios",
+    "twitter_url": "https://twitter.com/teliosinc"
+  },
+  "https://github.com/wirelineio": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/22104535?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/wirelineio",
+    "html_url": "https://github.com/wirelineio",
+    "name": "WIRELINE"
+  },
+  "https://github.com/CommonGarden": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/10821349?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/CommonGarden",
+    "html_url": "https://github.com/CommonGarden",
+    "name": "Common Garden"
+  },
+  "https://github.com/AgregoreWeb": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/73258714?v=4",
+    "description": "Explore the Distributed Web",
+    "email": "agregore@mauve.moe",
+    "github_type": "Organization",
+    "github_url": "https://github.com/AgregoreWeb",
+    "html_url": "https://github.com/AgregoreWeb",
+    "name": "Agregore Browser",
+    "twitter_url": "https://twitter.com/AgregoreBrowser"
+  },
+  "mailto://stephen.whitmore@gmail.com": {
+    "email": "stephen.whitmore@gmail.com",
+    "name": "noffle"
+  },
+  "mailto://unwriter@protonmail.com": {
+    "email": "unwriter@protonmail.com",
+    "name": "unwriter"
+  },
+  "mailto://readonlynpm@daqri.com": {
+    "email": "readonlynpm@daqri.com",
+    "name": "daqrireadonly"
+  },
+  "https://github.com/AraBlocks": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/38865347?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/AraBlocks",
+    "html_url": "https://github.com/AraBlocks",
+    "location": "New York, NY, USA",
+    "name": "Ara Blocks"
+  },
+  "mailto://joseph.werle@gmail.com": {
+    "email": "joseph.werle@gmail.com",
+    "name": "werle"
+  },
+  "https://github.com/arablocks": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/38865347?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/arablocks",
+    "html_url": "https://github.com/AraBlocks",
+    "location": "New York, NY, USA",
+    "name": "Ara Blocks"
+  },
+  "mailto://joe@hand.email": {
+    "email": "joe@hand.email",
+    "html_url": "https://joeahand.com/",
+    "name": "jhand"
+  },
+  "mailto://bakapita10@gmail.com": {
+    "email": "bakapita10@gmail.com",
+    "name": "blakeakapita"
+  },
+  "mailto://cherese.eriepa@outlook.com": {
+    "email": "cherese.eriepa@outlook.com",
+    "name": "chereseeriepa"
+  },
+  "https://github.com/aholstenson": {
+    "email": "a@holstenson.se",
+    "name": "Andreas Holstenson",
+    "avatar_url": "https://avatars.githubusercontent.com/u/173656?v=4",
+    "company": "@LevelFourAB ",
+    "github_type": "User",
+    "github_url": "https://github.com/aholstenson",
+    "html_url": "https://github.com/aholstenson",
+    "location": "Malmö, Sweden"
+  },
+  "https://github.com/m-onz": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/14039622?v=4",
+    "description": "audio visual artist & founder of fakedac.",
+    "github_type": "User",
+    "github_url": "https://github.com/m-onz",
+    "html_url": "https://github.com/m-onz",
+    "name": "monz"
+  },
+  "https://github.com/ducksandgoats": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/101533542?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/ducksandgoats",
+    "html_url": "https://github.com/ducksandgoats"
+  },
+  "https://github.com/lukeburns": {
+    "email": "lukemburns@gmail.com",
+    "html_url": "https://github.com/lukeburns",
+    "name": "Luke Burns",
+    "avatar_url": "https://avatars.githubusercontent.com/u/189068?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/lukeburns",
+    "location": "Orange, CA",
+    "twitter_url": "https://twitter.com/lukeburns"
+  },
+  "mailto://mail@bmpvieira.com": {
+    "email": "mail@bmpvieira.com",
+    "name": "bmpvieira"
+  },
+  "mailto://michiel@dockflow.be": {
+    "email": "michiel@dockflow.be",
+    "name": "mvalee"
+  },
+  "https://github.com/Purple-Gem-Studio": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/96087316?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/Purple-Gem-Studio",
+    "html_url": "https://github.com/Purple-Gem-Studio",
+    "location": "United States of America",
+    "name": "Purple Gem Studio"
+  },
+  "https://github.com/emilbayes": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/416524?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/emilbayes",
+    "html_url": "https://github.com/emilbayes",
+    "name": "Emil Bay"
+  },
+  "mailto://karamanhunor@protonmail.com": {
+    "email": "karamanhunor@protonmail.com",
+    "name": "kodedninja"
+  },
+  "https://github.com/lakowske": {
+    "email": "lakowske@gmail.com",
+    "html_url": "https://github.com/lakowske",
+    "name": "Seth Lakowske",
+    "avatar_url": "https://avatars.githubusercontent.com/u/919952?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/lakowske"
+  },
+  "https://github.com/LinusU": {
+    "email": "linus@folkdatorn.se",
+    "name": "Linus Unnebäck",
+    "avatar_url": "https://avatars.githubusercontent.com/u/189580?v=4",
+    "company": "@locoapp @ctrl-alt-deseat ",
+    "github_type": "User",
+    "github_url": "https://github.com/LinusU",
+    "html_url": "https://github.com/LinusU",
+    "location": "Stockholm, Sweden",
+    "twitter_url": "https://twitter.com/LinusU"
+  },
+  "https://github.com/derhuerst": {
+    "email": "mail@jannisr.de",
+    "name": "Jannis R",
+    "avatar_url": "https://avatars.githubusercontent.com/u/5072613?v=4",
+    "company": "freelancer",
+    "description": "Making urban infrastructure more accessible & convenient by writing open-source software.\r\nhttp://pronoun.is/he\r\nhttps://patreon.com/derhuerst",
+    "github_type": "User",
+    "github_url": "https://github.com/derhuerst",
+    "html_url": "https://github.com/derhuerst",
+    "location": "Berlin",
+    "twitter_url": "https://twitter.com/derhuerst"
+  },
+  "https://github.com/maxogden": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/39759?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/maxogden",
+    "html_url": "https://github.com/maxogden",
+    "name": "Max Ogden"
+  },
+  "https://github.com/timgoeller": {
+    "email": "tim.goeller@posteo.de",
+    "name": "Tim Göller",
+    "avatar_url": "https://avatars.githubusercontent.com/u/10633973?v=4",
+    "company": "FH Potsdam",
+    "description": "Master Urban Future @ FH Potsdam || (he/him) || 🏳️‍🌈",
+    "github_type": "User",
+    "github_url": "https://github.com/timgoeller",
+    "html_url": "https://github.com/timgoeller",
+    "location": "Münster, Germany"
+  },
+  "mailto://krmckelv@gmail.com": {
+    "email": "krmckelv@gmail.com",
+    "name": "karissa"
+  },
+  "https://github.com/nikolaiwarner": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/40796?v=4",
+    "company": "@jetpackdanceoff",
+    "description": "delivering joy through art and technology",
+    "github_type": "User",
+    "github_url": "https://github.com/nikolaiwarner",
+    "html_url": "https://github.com/nikolaiwarner",
+    "name": "Nick Warner"
+  },
+  "https://github.com/jakswa": {
+    "email": "jakswa@gmail.com",
+    "name": "Jake Swanson",
+    "avatar_url": "https://avatars.githubusercontent.com/u/137793?v=4",
+    "company": "@callrail ",
+    "description": "programmer, rails/ruby, javascript, postgresql",
+    "github_type": "User",
+    "github_url": "https://github.com/jakswa",
+    "html_url": "https://github.com/jakswa",
+    "location": "Atlanta, GA",
+    "twitter_url": "https://twitter.com/jakswa"
+  },
+  "https://github.com/limulus": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/609858?v=4",
+    "company": "Allstate Identity Protection",
+    "github_type": "User",
+    "github_url": "https://github.com/limulus",
+    "html_url": "https://github.com/limulus",
+    "location": "Tucson, Arizona",
+    "name": "Eric McCarthy"
+  },
+  "https://github.com/energychain": {
+    "email": "kontakt@stromdao.com",
+    "name": "STROMDAO",
+    "avatar_url": "https://avatars.githubusercontent.com/u/22413220?v=4",
+    "description": "Blockchain technology for energy markets.",
+    "github_type": "Organization",
+    "github_url": "https://github.com/energychain",
+    "html_url": "https://github.com/energychain",
+    "location": "Germany"
+  },
+  "https://github.com/chm-diederichs": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/45171645?v=4",
+    "company": "@hyperdivision",
+    "github_type": "User",
+    "github_url": "https://github.com/chm-diederichs",
+    "html_url": "https://github.com/chm-diederichs",
+    "location": "Copenhagen, Denmark",
+    "name": "Christophe Diederichs"
+  },
+  "https://github.com/karissa": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/60743662?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/karissa",
+    "html_url": "https://github.com/Karissa"
+  },
+  "https://github.com/pvorb": {
+    "email": "paul@vorba.ch",
+    "html_url": "https://github.com/pvorb",
+    "name": "Paul Vorbach",
+    "avatar_url": "https://avatars.githubusercontent.com/u/183534?v=4",
+    "company": "@deviceinsight",
+    "description": "Software Engineer @deviceinsight –\r\n\r\nI write Software in Java and Kotlin.\r\n\r\nI also run npm-stat.com",
+    "github_type": "User",
+    "github_url": "https://github.com/pvorb",
+    "location": "Schwäbisch Hall, Germany",
+    "twitter_url": "https://twitter.com/pvorb"
+  },
+  "mailto://kieran@tenthousandthings.org.uk": {
+    "email": "kieran@tenthousandthings.org.uk",
+    "name": "kyphae"
+  },
+  "https://github.com/compact-encoding": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/88140972?v=4",
+    "description": "All things compact encoding",
+    "github_type": "Organization",
+    "github_url": "https://github.com/compact-encoding",
+    "html_url": "https://github.com/compact-encoding"
+  },
+  "https://github.com/isaacs": {
+    "email": "i@izs.me",
+    "html_url": "https://github.com/isaacs",
+    "name": "isaacs",
+    "avatar_url": "https://avatars.githubusercontent.com/u/9287?v=4",
+    "company": "Tier.run, Inc.",
+    "description": "npm inventor, founder npm, Inc.\r\nFormer Node BDFL.\r\nAll opinions are my own. Literally all of them. I own them all.",
+    "github_type": "User",
+    "github_url": "https://github.com/isaacs",
+    "location": "Oakland CA"
+  },
+  "https://github.com/mikolalysenko": {
+    "email": "mikolalysenko@gmail.com",
+    "name": "Mikola Lysenko",
+    "avatar_url": "https://avatars.githubusercontent.com/u/231686?v=4",
+    "description": "0fps.net\r\nWebGL, data visualization, massively multiplayer games",
+    "github_type": "User",
+    "github_url": "https://github.com/mikolalysenko",
+    "html_url": "https://github.com/mikolalysenko",
+    "location": "Michigan"
+  },
+  "https://github.com/lohn": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/1955498?v=4",
+    "company": "Smart Opinion Inc.",
+    "email": "cool@osha.re",
+    "github_type": "User",
+    "github_url": "https://github.com/lohn",
+    "html_url": "https://github.com/lohn",
+    "location": "Japan",
+    "name": "Lohn IMAI"
+  },
+  "https://github.com/martinheidegger": {
+    "email": "martin.heidegger@gmail.com",
+    "name": "Martin Heidegger",
+    "avatar_url": "https://avatars.githubusercontent.com/u/914122?v=4",
+    "description": "(Its my birth name)\r\n1 / ∞",
+    "github_type": "User",
+    "github_url": "https://github.com/martinheidegger",
+    "html_url": "https://github.com/martinheidegger",
+    "location": "Osaka, Japan",
+    "twitter_url": "https://twitter.com/leichtgewicht"
+  },
+  "mailto://benjamin.mforster@gmail.com": {
+    "email": "benjamin.mforster@gmail.com",
+    "name": "e-e-e"
+  },
+  "https://github.com/finnp": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/841788?v=4",
+    "company": "@karugamo agency",
+    "email": "github@pauls.dev",
+    "github_type": "User",
+    "github_url": "https://github.com/finnp",
+    "html_url": "https://github.com/finnp",
+    "location": "Berlin",
+    "name": "Finn Pauls",
+    "twitter_url": "https://twitter.com/finnpauls"
+  },
+  "https://github.com/samiz-dat": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/39721193?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/samiz-dat",
+    "html_url": "https://github.com/samiz-dat"
+  },
+  "https://github.com/sdockray": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/2905230?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/sdockray",
+    "html_url": "https://github.com/sdockray"
+  },
+  "https://github.com/soyuka": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/1321971?v=4",
+    "company": "@coopTilleuls",
+    "description": "@api-platform @keymetrics",
+    "github_type": "User",
+    "github_url": "https://github.com/soyuka",
+    "html_url": "https://github.com/soyuka",
+    "location": "Nantes, France",
+    "name": "Antoine Bluchet",
+    "twitter_url": "https://twitter.com/s0yuka"
+  },
+  "https://github.com/nathanbowser": {
+    "email": "nbowser@gmail.com",
+    "name": "Nathan Bowser",
+    "avatar_url": "https://avatars.githubusercontent.com/u/203161?v=4",
+    "company": "Spider Strategies",
+    "github_type": "User",
+    "github_url": "https://github.com/nathanbowser",
+    "html_url": "https://github.com/nathanbowser",
+    "location": "Philadelphia, PA"
+  },
+  "https://github.com/astro": {
+    "email": "astro@spaceboyz.net",
+    "name": "Astro",
+    "avatar_url": "https://avatars.githubusercontent.com/u/12923?v=4",
+    "company": "@cyberus-technology",
+    "description": "PGP:\r\nA5EE 826D 645D BE35 F9B0 \r\n 9933 5851 2AE8 7A69 900F",
+    "github_type": "User",
+    "github_url": "https://github.com/astro",
+    "html_url": "https://github.com/astro",
+    "location": "Dresden, Germany"
+  },
+  "https://github.com/juliangruber": {
+    "email": "julian@juliangruber.com",
+    "name": "Julian Gruber",
+    "avatar_url": "https://avatars.githubusercontent.com/u/10247?v=4",
+    "company": "@protocol",
+    "github_type": "User",
+    "github_url": "https://github.com/juliangruber",
+    "html_url": "https://github.com/juliangruber",
+    "location": "Kaufbeuren, Germany",
+    "twitter_url": "https://twitter.com/juliangruber"
+  },
+  "mailto://luandro@gmail.com": {
+    "email": "luandro@gmail.com",
+    "name": "luandro"
+  },
+  "https://github.com/msfeldstein": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/161135?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/msfeldstein",
+    "html_url": "https://github.com/msfeldstein",
+    "name": "Michael Feldstein"
+  },
+  "mailto://max@maxogden.com": {
+    "email": "max@maxogden.com",
+    "name": "maxogden"
+  },
+  "https://github.com/Powersource": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/1427063?v=4",
+    "company": "@SenseStack",
+    "description": "https://gitlab.com/powersource\r\nhttps://twitter.com/The_lolness",
+    "github_type": "User",
+    "github_url": "https://github.com/Powersource",
+    "html_url": "https://github.com/Powersource",
+    "location": "Southern Sweden",
+    "name": "Jacob Karlsson"
+  },
+  "https://github.com/jwerle": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/1462973?v=4",
+    "company": "@SocketSupply",
+    "github_type": "User",
+    "github_url": "https://github.com/jwerle",
+    "html_url": "https://github.com/jwerle",
+    "location": "NYC <> Geneva",
+    "name": "Joseph Werle",
+    "twitter_url": "https://twitter.com/josephwerle"
+  },
+  "https://github.com/luandro": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/693728?v=4",
+    "company": "@digidem",
+    "email": "luandro@digital-democracy.org",
+    "github_type": "User",
+    "github_url": "https://github.com/luandro",
+    "html_url": "https://github.com/luandro",
+    "location": "Alto Paraíso de Góias, Brasil",
+    "name": "luandro"
+  },
+  "https://github.com/arj03": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/350682?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/arj03",
+    "html_url": "https://github.com/arj03",
+    "location": "Aalborg, Denmark",
+    "name": "Anders Rune Jensen",
+    "twitter_url": "https://twitter.com/arj03"
+  },
+  "https://github.com/sergueyarellano": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/10913005?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/sergueyarellano",
+    "html_url": "https://github.com/sergueyarellano"
+  },
+  "https://github.com/visionmedia": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/9285252?v=4",
+    "description": "New user is /tj",
+    "github_type": "Organization",
+    "github_url": "https://github.com/visionmedia",
+    "html_url": "https://github.com/visionmedia",
+    "name": "Sloth"
+  },
+  "https://github.com/debug-js": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/45984509?v=4",
+    "description": "Node.js debug package",
+    "github_type": "Organization",
+    "github_url": "https://github.com/debug-js",
+    "html_url": "https://github.com/debug-js",
+    "name": "Debug.js"
+  },
+  "https://github.com/draeder": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/15527661?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/draeder",
+    "html_url": "https://github.com/draeder",
+    "name": "Daniel Raeder"
+  },
+  "mailto://nyassabu@gmail.com": {
+    "email": "nyassabu@gmail.com",
+    "name": "anyass"
+  },
+  "mailto://ludko2@gmail.com": {
+    "email": "ludko2@gmail.com",
+    "name": "scholtz"
+  },
+  "https://github.com/creationix": {
+    "email": "tim@creationix.com",
+    "name": "Tim Caswell",
+    "avatar_url": "https://avatars.githubusercontent.com/u/89353?v=4",
+    "company": "@luvit ",
+    "description": "Making the world better and more free, one technology at a time.",
+    "github_type": "User",
+    "github_url": "https://github.com/creationix",
+    "html_url": "https://github.com/creationix",
+    "location": "Round Rock, TX, USA",
+    "twitter_url": "https://twitter.com/creationix"
+  },
+  "https://github.com/jedahan": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/32407?v=4",
+    "company": " - stuck at home -",
+    "description": "http://jonathan.is",
+    "email": "github@jonathan.is",
+    "github_type": "User",
+    "github_url": "https://github.com/jedahan",
+    "html_url": "https://github.com/jedahan",
+    "location": "brooklyn",
+    "name": "Jonathan Dahan"
+  },
+  "https://github.com/Gozala": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/21236?v=4",
+    "company": "Protocol Labs",
+    "description": "Curios tinkerer that fancies functional paradigm",
+    "github_type": "User",
+    "github_url": "https://github.com/Gozala",
+    "html_url": "https://github.com/Gozala",
+    "location": "Portland, OR, United States",
+    "name": "Irakli Gozalishvili"
+  },
+  "https://github.com/Raynos": {
+    "email": "raynos2@gmail.com",
+    "name": "Jake Verbaten",
+    "avatar_url": "https://avatars.githubusercontent.com/u/479538?v=4",
+    "description": "Staff Software Engineer",
+    "github_type": "User",
+    "github_url": "https://github.com/Raynos",
+    "html_url": "https://github.com/Raynos",
+    "location": "Orlando, FL",
+    "twitter_url": "https://twitter.com/Raynos"
+  },
+  "https://github.com/yoshuawuyts": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/2467194?v=4",
+    "company": "@microsoft ",
+    "description": "calm computing; he/they; Rust Developer Advocate at @microsoft",
+    "github_type": "User",
+    "github_url": "https://github.com/yoshuawuyts",
+    "html_url": "https://github.com/yoshuawuyts",
+    "location": "København, Denmark",
+    "name": "Yosh"
+  },
+  "mailto://irfanramadhan1812@gmail.com": {
+    "email": "irfanramadhan1812@gmail.com",
+    "name": "fanboykun"
+  },
+  "https://github.com/reconbot": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/25966?v=4",
+    "company": "@vercel",
+    "description": "Maintainer of @node-serialport, Open source 🐛🧲, Building a faster internet at @vercel",
+    "github_type": "User",
+    "github_url": "https://github.com/reconbot",
+    "html_url": "https://github.com/reconbot",
+    "location": "New York City",
+    "name": "Francis Gulotta",
+    "twitter_url": "https://twitter.com/reconbot"
+  },
+  "https://github.com/ameba23": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/10427223?v=4",
+    "company": "Magma Collective",
+    "description": "peer-to-peer enthusiast",
+    "email": "peg@magmacollective.org",
+    "github_type": "User",
+    "github_url": "https://github.com/ameba23",
+    "html_url": "https://github.com/ameba23",
+    "location": "Sachsen",
+    "name": "peg"
+  },
+  "https://github.com/tarruda": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/842846?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/tarruda",
+    "html_url": "https://github.com/tarruda",
+    "location": "Recife/Brasil",
+    "name": "Thiago Padilha"
+  },
+  "mailto://mail@javisantos.com": {
+    "email": "mail@javisantos.com",
+    "name": "javisantos"
+  },
+  "mailto://jim@backblend.com": {
+    "email": "jim@backblend.com",
+    "name": "jimpick"
+  },
+  "https://github.com/healthscience": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/33456249?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/healthscience",
+    "html_url": "https://github.com/healthscience"
+  },
+  "https://github.com/arlac77": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/158862?v=4",
+    "description": "Software Delivery Consultant",
+    "email": "Markus.Felten@gmx.de",
+    "github_type": "User",
+    "github_url": "https://github.com/arlac77",
+    "html_url": "https://github.com/arlac77",
+    "location": "Germany",
+    "name": "Markus Felten"
+  },
+  "mailto://almagestfraternite@gmail.com": {
+    "email": "almagestfraternite@gmail.com",
+    "name": "lanmower"
+  },
+  "mailto://hans_npm@mailbox.org": {
+    "email": "hans_npm@mailbox.org",
+    "name": "hdegroote"
+  },
+  "https://github.com/prdn": {
+    "email": "paolo.ardoino@gmail.com",
+    "name": "Paolo Ardoino",
+    "avatar_url": "https://avatars.githubusercontent.com/u/3747053?v=4",
+    "company": "Bitfinex / Tether",
+    "description": ":w!",
+    "github_type": "User",
+    "github_url": "https://github.com/prdn",
+    "html_url": "https://github.com/prdn",
+    "location": "P2P",
+    "twitter_url": "https://twitter.com/paoloardoino"
+  },
+  "https://github.com/Frando": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/43627?v=4",
+    "company": "@arso-project",
+    "description": "friendly tech",
+    "github_type": "User",
+    "github_url": "https://github.com/Frando",
+    "html_url": "https://github.com/Frando",
+    "location": "Freiburg, Germany",
+    "name": "Franz Heinzmann"
+  },
+  "https://github.com/e-e-e": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/12589522?v=4",
+    "company": "@frontyardprojects ",
+    "github_type": "User",
+    "github_url": "https://github.com/e-e-e",
+    "html_url": "https://github.com/e-e-e",
+    "name": "Benjamin Forster"
+  },
+  "mailto://rafaelpaezbastida@gmail.com": {
+    "email": "rafaelpaezbastida@gmail.com",
+    "name": "rafapaezbas"
+  },
+  "https://github.com/decentstack": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/54391642?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/decentstack",
+    "html_url": "https://github.com/decentstack"
+  },
+  "mailto://jiang.plus.times@gmail.com": {
+    "email": "jiang.plus.times@gmail.com",
+    "name": "jiangplus"
+  },
+  "https://github.com/DougAnderson444": {
+    "email": "douganderson444@gmail.com",
+    "name": "Doug A",
+    "avatar_url": "https://avatars.githubusercontent.com/u/6699901?v=4",
+    "company": "The System Sketcher & PeerPiper",
+    "description": "I figure stuff out for a living. How?\r\nDissect, Diagram & Diagnose",
+    "github_type": "User",
+    "github_url": "https://github.com/DougAnderson444",
+    "html_url": "https://github.com/DougAnderson444",
+    "location": "Waterloo, Canada",
+    "twitter_url": "https://twitter.com/DougAnderson444"
+  },
+  "https://github.com/brechtcs": {
+    "email": "brecht.savelkoul@alumni.lse.ac.uk",
+    "name": "Brecht Savelkoul",
+    "avatar_url": "https://avatars.githubusercontent.com/u/6107054?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/brechtcs",
+    "html_url": "https://github.com/brechtcs",
+    "location": "Mechelen, Belgium"
+  },
+  "https://github.com/little-core-labs": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/56600165?v=4",
+    "description": "Little Core Labs (a group of @littlstar) ",
+    "email": "12core@littlestar.com",
+    "github_type": "Organization",
+    "github_url": "https://github.com/little-core-labs",
+    "html_url": "https://github.com/little-core-labs",
+    "location": "NYC",
+    "name": "Little Core Labs",
+    "twitter_url": "https://twitter.com/littlecorelabs"
+  },
+  "https://github.com/telamon": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/148454?v=4",
+    "company": "DecentLabs",
+    "description": "I hack things and improve their function.",
+    "github_type": "User",
+    "github_url": "https://github.com/telamon",
+    "html_url": "https://github.com/telamon",
+    "location": "Sweden",
+    "name": "Tony Ivanov",
+    "twitter_url": "https://twitter.com/telamohn"
+  },
+  "https://github.com/jiangplus": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/2041398?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/jiangplus",
+    "html_url": "https://github.com/jiangplus",
+    "location": "shenzhen, china",
+    "name": "jiangplus"
+  },
+  "https://github.com/trondpet": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/1424181?v=4",
+    "description": "Huh?",
+    "github_type": "User",
+    "github_url": "https://github.com/trondpet",
+    "html_url": "https://github.com/trondpet",
+    "location": "Los Angeles, CA",
+    "name": "Trond K. Pettersen"
+  },
+  "mailto://poga@poga.tw": {
+    "email": "poga@poga.tw",
+    "name": "poga"
+  },
+  "https://github.com/poga": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/8631?v=4",
+    "email": "hi@devpoga.org",
+    "github_type": "User",
+    "github_url": "https://github.com/poga",
+    "html_url": "https://github.com/poga",
+    "location": "Taiwan",
+    "name": "Poga Po"
+  },
+  "https://github.com/bendik": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/355?v=4",
+    "company": "♻️",
+    "description": "I make safe environments for DOM-nodes that do fluff. github user #355",
+    "email": "bendik@lynghaug.me",
+    "github_type": "User",
+    "github_url": "https://github.com/bendik",
+    "html_url": "https://github.com/bendik",
+    "location": "⚓️",
+    "name": "Bendik Aagaard Lynghaug",
+    "twitter_url": "https://twitter.com/kidneb"
+  },
+  "https://github.com/sethvincent": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/164214?v=4",
+    "description": "🍄🍕🕹🌈",
+    "github_type": "User",
+    "github_url": "https://github.com/sethvincent",
+    "html_url": "https://github.com/sethvincent",
+    "location": "Olympia, WA",
+    "name": "Seth Vincent"
+  },
+  "https://github.com/goonism": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/33411467?v=4",
+    "description": "Stupid Group of Crazy People (Not a Cult™)",
+    "github_type": "Organization",
+    "github_url": "https://github.com/goonism",
+    "html_url": "https://github.com/goonism",
+    "location": "goon-gate",
+    "name": "Goon Squad Machiavellians "
+  },
+  "https://github.com/ryanramage": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/795834?v=4",
+    "description": "I build things with my bare hands. People seem to like them. ",
+    "github_type": "User",
+    "github_url": "https://github.com/ryanramage",
+    "html_url": "https://github.com/ryanramage",
+    "location": "Edmonton, AB, Canada",
+    "name": "Ryan Ramage"
+  },
+  "https://github.com/inspect-js": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/54056128?v=4",
+    "description": "JavaScript value inspection tools.",
+    "github_type": "Organization",
+    "github_url": "https://github.com/inspect-js",
+    "html_url": "https://github.com/inspect-js",
+    "name": "Inspect JS"
+  },
+  "mailto://utnapishtim.utanapishtim@gmail.com": {
+    "email": "utnapishtim.utanapishtim@gmail.com",
+    "name": "utanapishtim"
+  },
+  "mailto://dustin.webber@gmail.com": {
+    "email": "dustin.webber@gmail.com",
+    "name": "mephux"
+  },
+  "https://github.com/cinnamon-bun": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/32660718?v=4",
+    "description": "icon by https://www.deviantart.com/cryptid-creations",
+    "github_type": "User",
+    "github_url": "https://github.com/cinnamon-bun",
+    "html_url": "https://github.com/cinnamon-bun",
+    "name": "Cinnamon"
+  },
+  "https://github.com/jmatsushita": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/356097?v=4",
+    "company": "iilab",
+    "github_type": "User",
+    "github_url": "https://github.com/jmatsushita",
+    "html_url": "https://github.com/jmatsushita",
+    "location": "Berlin",
+    "name": "Jun Matsushita"
+  },
+  "mailto://substack@gmail.com": {
+    "email": "substack@gmail.com",
+    "name": "substack"
+  },
+  "https://github.com/leveldb2use": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/90617489?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/leveldb2use",
+    "html_url": "https://github.com/leveldb2use",
+    "name": "LevelDB 2 Use"
+  },
+  "https://github.com/libscie": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/20407272?v=4",
+    "description": "Repairing knowledge distribution.",
+    "email": "info@libscie.org",
+    "github_type": "Organization",
+    "github_url": "https://github.com/libscie",
+    "html_url": "https://github.com/libscie",
+    "location": "Berlin, Germany",
+    "name": "Liberate Science GmbH",
+    "twitter_url": "https://twitter.com/libscie"
+  },
+  "https://github.com/emkay": {
+    "email": "mmatuzak@gmail.com",
+    "name": "Michael Matuzak",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1327?v=4",
+    "description": "nope",
+    "github_type": "User",
+    "github_url": "https://github.com/emkay",
+    "html_url": "https://github.com/emkay",
+    "location": "Los Angeles"
+  },
+  "mailto://19422@kloofhigh.co.za": {
+    "email": "19422@kloofhigh.co.za",
+    "name": "connor-davis"
+  },
+  "mailto://zihao.yu@united-imaging.com": {
+    "email": "zihao.yu@united-imaging.com",
+    "name": "zihao.yu"
+  },
+  "https://github.com/zeit": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/60456076?v=4",
+    "description": "Develop. Preview. Ship. Creators of Next.js, the Jamstack framework.",
+    "email": "support@vercel.com",
+    "github_type": "Organization",
+    "github_url": "https://github.com/zeit",
+    "html_url": "https://github.com/zeit",
+    "name": "Vercel (formerly ZEIT)"
+  },
+  "mailto://yerko.palma@usach.cl": {
+    "email": "yerko.palma@usach.cl",
+    "name": "yerkopalma"
+  },
+  "https://github.com/staltz": {
+    "email": "contact@staltz.com",
+    "name": "André Staltz",
+    "avatar_url": "https://avatars.githubusercontent.com/u/90512?v=4",
+    "company": "Self-employed",
+    "github_type": "User",
+    "github_url": "https://github.com/staltz",
+    "html_url": "https://github.com/staltz",
+    "location": "Helsinki, Finland",
+    "twitter_url": "https://twitter.com/andrestaltz"
+  },
+  "https://github.com/ninabreznik": {
+    "email": "ninabreznik@gmail.com",
+    "name": "Nina Breznik",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1076427?v=4",
+    "company": "Playproject",
+    "description": "P2P Indie Tech Founder  \r\n@DatDotOrg, @wizardamigos\r\n and playproject.io\r\nshe/her, \r\nmade in s*love*nia",
+    "github_type": "User",
+    "github_url": "https://github.com/ninabreznik",
+    "html_url": "https://github.com/ninabreznik",
+    "location": "UK & nomading"
+  },
+  "https://github.com/prebuild": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/26726811?v=4",
+    "description": "Organization for tools to prebuild native node modules for all versions of node and electron.",
+    "github_type": "Organization",
+    "github_url": "https://github.com/prebuild",
+    "html_url": "https://github.com/prebuild",
+    "name": "Home Prebuilders Association"
+  },
+  "mailto://mikeal.rogers@gmail.com": {
+    "email": "mikeal.rogers@gmail.com",
+    "name": "mikeal"
+  },
+  "mailto://bradserbu@bradserbu.com": {
+    "email": "bradserbu@bradserbu.com",
+    "html_url": "http://www.bradserbu.com/",
+    "name": "bradserbu"
+  },
+  "https://github.com/jonschlinkert": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/383994?v=4",
+    "company": "@brandscale ",
+    "description": "Son of GitHub. Humble student of @doowb. Creator of @assemble @generate @enquirer @breakdance @update @micromatch",
+    "github_type": "User",
+    "github_url": "https://github.com/jonschlinkert",
+    "html_url": "https://github.com/jonschlinkert",
+    "location": "Cincinnati, OH",
+    "name": "Jon Schlinkert",
+    "twitter_url": "https://twitter.com/jonschlinkert"
+  },
+  "https://github.com/resession": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/37799569?v=4",
+    "company": "a company",
+    "description": "a guy",
+    "github_type": "User",
+    "github_url": "https://github.com/resession",
+    "html_url": "https://github.com/resession",
+    "location": "a location",
+    "name": "tedd pasta"
+  },
+  "mailto://anders.can1@gmail.com": {
+    "email": "anders.can1@gmail.com",
+    "name": "anderscan"
+  },
+  "mailto://angellus.falsus@gmail.com": {
+    "email": "angellus.falsus@gmail.com",
+    "name": "cblgh"
+  },
+  "mailto://whimful@gmail.com": {
+    "email": "whimful@gmail.com",
+    "name": "mixmix"
+  },
+  "https://github.com/ssbc": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/10190339?v=4",
+    "description": "A distributed and secure peer to peer social network",
+    "github_type": "Organization",
+    "github_url": "https://github.com/ssbc",
+    "html_url": "https://github.com/ssbc",
+    "name": "Secure Scuttlebutt Consortium"
+  },
+  "https://github.com/jbgutierrez": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/24221?v=4",
+    "company": "Desarrollador Web Freelance",
+    "email": "contacto@jbgutierrez.info",
+    "github_type": "User",
+    "github_url": "https://github.com/jbgutierrez",
+    "html_url": "https://github.com/jbgutierrez",
+    "location": "A Coruña, Galicia, España",
+    "name": "Javier Blanco Gutiérrez"
+  },
+  "mailto://abbey@khrome.net": {
+    "email": "abbey@khrome.net",
+    "name": "khrome"
+  },
+  "https://github.com/heapwolf": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/136109?v=4",
+    "company": "@socketsupply",
+    "description": "Founder & engineer at @socketsupply. Researching internet #RFCs and #P2P.",
+    "github_type": "User",
+    "github_url": "https://github.com/heapwolf",
+    "html_url": "https://github.com/heapwolf",
+    "location": "New York",
+    "name": "heapwolf",
+    "twitter_url": "https://twitter.com/heapwolf"
+  },
+  "mailto://mntask@gmail.com": {
+    "email": "mntask@gmail.com",
+    "name": "mnts"
+  },
+  "https://github.com/automerge": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/29780209?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/automerge",
+    "html_url": "https://github.com/automerge",
+    "name": "Automerge"
+  },
+  "mailto://willemolding@gmail.com": {
+    "email": "willemolding@gmail.com",
+    "name": "willemolding"
+  },
+  "https://github.com/jackyzha0": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/23178940?v=4",
+    "description": "playfully pushing bits and pixels",
+    "github_type": "User",
+    "github_url": "https://github.com/jackyzha0",
+    "html_url": "https://github.com/jackyzha0",
+    "location": "Vancouver, Canada",
+    "name": "Jacky Zhao",
+    "twitter_url": "https://twitter.com/_jzhao"
+  },
+  "https://github.com/calvinmetcalf": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/1128607?v=4",
+    "company": "@AppGeo ",
+    "description": "I live with several cats, plus a dog, and my wife.",
+    "github_type": "User",
+    "github_url": "https://github.com/calvinmetcalf",
+    "html_url": "https://github.com/calvinmetcalf",
+    "location": "Boston",
+    "name": "Calvin Metcalf"
+  },
+  "https://github.com/random-access-storage": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/36134854?v=4",
+    "description": "Random Access Storage projects and community",
+    "github_type": "Organization",
+    "github_url": "https://github.com/random-access-storage",
+    "html_url": "https://github.com/random-access-storage",
+    "location": "Worldwide"
+  },
+  "https://github.com/nodejs": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/9950313?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/nodejs",
+    "html_url": "https://github.com/nodejs",
+    "name": "Node.js",
+    "twitter_url": "https://twitter.com/nodejs"
+  },
+  "https://github.com/rebelwire": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/76078361?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/rebelwire",
+    "html_url": "https://github.com/rebelwire"
+  },
+  "https://github.com/darsain": {
+    "email": "darsain@gmail.com",
+    "name": "darsain",
+    "avatar_url": "https://avatars.githubusercontent.com/u/538801?v=4",
+    "description": "Hi, this is my old account.\r\nI'm @tomasklaen now.\r\nAll of the repositories here are either deprecated, or maintained by someone else.",
+    "github_type": "User",
+    "github_url": "https://github.com/darsain",
+    "html_url": "https://github.com/darsain",
+    "location": "Slovakia"
+  },
+  "mailto://poga.bahamut@gmail.com": {
+    "email": "poga.bahamut@gmail.com",
+    "name": "poga"
+  },
+  "https://github.com/browserify": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/6320506?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/browserify",
+    "html_url": "https://github.com/browserify"
+  },
+  "https://github.com/feross": {
+    "email": "feross@feross.org",
+    "html_url": "https://github.com/feross",
+    "name": "Feross Aboukhadijeh",
+    "avatar_url": "https://avatars.githubusercontent.com/u/121766?v=4",
+    "company": "@SocketDev, @WebTorrent, @Standard",
+    "description": "• Founder + CEO of Socket (@SocketDev) \r\n• Started @webtorrent and @standard \r\n• 100+ open source packages on npm\r\n• Stanford lecturer for Web Security",
+    "github_type": "User",
+    "github_url": "https://github.com/feross",
+    "location": "Stanford, CA",
+    "twitter_url": "https://twitter.com/feross"
+  },
+  "https://github.com/secure-local-node": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/48843892?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/secure-local-node",
+    "html_url": "https://github.com/secure-local-node"
+  },
+  "https://github.com/cblgh": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/3862362?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/cblgh",
+    "html_url": "https://github.com/cblgh",
+    "name": "Alexander Cobleigh"
+  },
+  "https://github.com/dominictarr": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/259374?v=4",
+    "description": "antipodean wandering albatross",
+    "github_type": "User",
+    "github_url": "https://github.com/dominictarr",
+    "html_url": "https://github.com/dominictarr",
+    "location": "New Zealand",
+    "name": "Dominic Tarr"
+  },
+  "https://github.com/rafapaezbas": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/15270736?v=4",
+    "github_type": "User",
+    "github_url": "https://github.com/rafapaezbas",
+    "html_url": "https://github.com/rafapaezbas",
+    "name": "rafapaezbas",
+    "twitter_url": "https://twitter.com/Hyenast2"
+  },
+  "https://github.com/sodium-friends": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/26965246?v=4",
+    "description": "Javascript friends of libsodium.",
+    "github_type": "Organization",
+    "github_url": "https://github.com/sodium-friends",
+    "html_url": "https://github.com/sodium-friends",
+    "name": "Sodium Friends"
+  },
+  "https://github.com/staticpeer": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/43322670?v=4",
+    "github_type": "Organization",
+    "github_url": "https://github.com/staticpeer",
+    "html_url": "https://github.com/staticpeer"
+  },
+  "https://github.com/staticland": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/18635529?v=4",
+    "description": "Static sites with automatic SSL for custom domains.",
+    "email": "hi@static.land",
+    "github_type": "Organization",
+    "github_url": "https://github.com/staticland",
+    "html_url": "https://github.com/staticland",
+    "name": "staticland"
+  },
+  "https://github.com/rvagg": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/495647?v=4",
+    "company": "require.io",
+    "description": "Awk Ninja; Yak Shaving Rock Star",
+    "email": "r@va.gg",
+    "github_type": "User",
+    "github_url": "https://github.com/rvagg",
+    "html_url": "https://github.com/rvagg",
+    "location": "NSW, Australia",
+    "name": "Rod Vagg"
+  },
+  "https://github.com/tinkerhub": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/45253922?v=4",
+    "description": "We're here to make sure that everyone has access to the knowledge required to set the course for a better future.",
+    "email": "hello@tinkerhub.org",
+    "github_type": "Organization",
+    "github_url": "https://github.com/tinkerhub",
+    "html_url": "https://github.com/tinkerhub",
+    "location": "Kochi, India",
+    "name": "TinkerHub",
+    "twitter_url": "https://twitter.com/tinkerhub"
+  },
+  "mailto://1665279060@qq.com": {
+    "email": "1665279060@qq.com",
+    "name": "damnparadox"
+  },
+  "https://github.com/TooTallNate": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/71256?v=4",
+    "company": "@vercel ",
+    "description": "Programmer / Nerd. Former @nodejs core committer. Revolutionizing deployments @vercel. Before you ask, I'm 6’6”",
+    "github_type": "User",
+    "github_url": "https://github.com/TooTallNate",
+    "html_url": "https://github.com/TooTallNate",
+    "location": "San Francisco, CA",
+    "name": "Nathan Rajlich"
+  },
+  "https://github.com/chrisdickinson": {
+    "email": "chris@neversaw.us",
+    "name": "Chris Dickinson",
+    "avatar_url": "https://avatars.githubusercontent.com/u/37303?v=4",
+    "description": "Entropy enthusiast. Ex-🌴 @eaze principal engineer, 📦 @npmjs staff wombat, 🌲 @cascadiajs & @pdxnode organizer, 🚀 @nodejs TSC member.",
+    "github_type": "User",
+    "github_url": "https://github.com/chrisdickinson",
+    "html_url": "https://github.com/chrisdickinson",
+    "location": "Portland, OR",
+    "twitter_url": "https://twitter.com/isntitvacant"
+  },
+  "https://github.com/vibedrive": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/30635168?v=4",
+    "description": "Organize your music collection without worrying about where the files are",
+    "github_type": "Organization",
+    "github_url": "https://github.com/vibedrive",
+    "html_url": "https://github.com/vibedrive",
+    "location": "Montreal, QC, Canada",
+    "name": "Vibedrive"
+  },
+  "https://github.com/doowb": {
+    "email": "brian.woodward@gmail.com",
+    "name": "Brian Woodward",
+    "avatar_url": "https://avatars.githubusercontent.com/u/995160?v=4",
+    "company": "@brandscale",
+    "description": "Node.js, javascript, and distributed applications developer.\r\n@jonschlinkert is my coding copilot. @assemble @generate @update @verbose @node-base @node-toolkit",
+    "github_type": "User",
+    "github_url": "https://github.com/doowb",
+    "html_url": "https://github.com/doowb",
+    "location": "Cincinnati, OH",
+    "twitter_url": "https://twitter.com/doowb"
+  },
+  "https://github.com/david4096": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/3795586?v=4",
+    "description": "open source genomics - scientific computing for medical research - learn you a RNA for great good\r\n\r\n",
+    "github_type": "User",
+    "github_url": "https://github.com/david4096",
+    "html_url": "https://github.com/david4096",
+    "name": "David Steinberg"
+  },
+  "https://github.com/zozs": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/197840?v=4",
+    "description": "PhD in Computer Security.\r\n\r\nObviously interested in computer security and cryptography, but also technology in general, and Unix/Linux in particular.",
+    "github_type": "User",
+    "github_url": "https://github.com/zozs",
+    "html_url": "https://github.com/zozs",
+    "location": "Lund, Sweden",
+    "name": "Linus Karlsson"
+  },
+  "https://github.com/npm": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/6078720?v=4",
+    "description": "JavaScript Package Manager, Registry & Website",
+    "github_type": "Organization",
+    "github_url": "https://github.com/npm",
+    "html_url": "https://github.com/npm",
+    "location": "United States of America",
+    "name": "npm",
+    "twitter_url": "https://twitter.com/npmjs"
+  },
+  "https://github.com/einaros": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/394360?v=4",
+    "email": "einaro.s@gmail.com",
+    "github_type": "User",
+    "github_url": "https://github.com/einaros",
+    "html_url": "https://github.com/einaros",
+    "name": "Einar Otto Stangvik",
+    "location": "Oslo, Norway"
+  },
+  "https://github.com/yjs": {
+    "email": "kevin.jahns@protonmail.com",
+    "name": "Yjs",
+    "avatar_url": "https://avatars.githubusercontent.com/u/45042178?v=4",
+    "description": "Shared Editing",
+    "github_type": "Organization",
+    "github_url": "https://github.com/yjs",
+    "html_url": "https://github.com/yjs",
+    "location": "Germany, Berlin",
+    "twitter_url": "https://twitter.com/kevin_jahns"
+  }
+}

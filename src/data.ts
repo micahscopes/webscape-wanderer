@@ -33,17 +33,20 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
   return { valueNetworkData, projectsData, organizationsData }
 }
   
+import valueNetworkData from '../data/valuenetwork.json'
+import projectsData from '../data/projects.json'
+import organizationsData from '../data/organizations.json'
 
 const fetchData =
   async () => {
-    const DAT_GARDEN_BASE_URL = "https://dat-ecosystem.org/dat-garden-rake/"
-    const dataIndex = await fetch(`${DAT_GARDEN_BASE_URL}index.json`).then(x => x.json())
-    const LATEST_DATA_BASE_URL = `${DAT_GARDEN_BASE_URL}${dataIndex.latest}`
-    const [valueNetworkData, projectsData, organizationsData] = await Promise.all([
-      fetch(LATEST_DATA_BASE_URL + '/../valuenetwork.json').then(x => x.json()),
-      fetch(LATEST_DATA_BASE_URL + '/../projects.json').then(x => x.json()),
-      fetch(LATEST_DATA_BASE_URL + '/../organizations.json').then(x => x.json())
-    ])
+    // const DAT_GARDEN_BASE_URL = "https://dat-ecosystem.org/dat-garden-rake/"
+    // const dataIndex = await fetch(`${DAT_GARDEN_BASE_URL}index.json`).then(x => x.json())
+    // const LATEST_DATA_BASE_URL = `${DAT_GARDEN_BASE_URL}${dataIndex.latest}`
+    // const [valueNetworkData, projectsData, organizationsData] = await Promise.all([
+    //   fetch(LATEST_DATA_BASE_URL + '/../valuenetwork.json').then(x => x.json()),
+    //   fetch(LATEST_DATA_BASE_URL + '/../projects.json').then(x => x.json()),
+    //   fetch(LATEST_DATA_BASE_URL + '/../organizations.json').then(x => x.json())
+    // ])
     
 
     return cleanData({ valueNetworkData, projectsData, organizationsData })

@@ -11,6 +11,9 @@ import {
   CylinderGeometry,
   DepthTexture,
   LessEqualDepth,
+  Object3D,
+  TorusKnotGeometry,
+  TorusGeometry,
 } from 'three';
 
 import nodeVs from '../shaders/node.vert';
@@ -28,11 +31,31 @@ import { deviceHasMouse, getCurrentlyHoveringIndex, getPointerPositionClip } fro
 import { getSelectedColor, getSelectedIndex } from '../selection';
 import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers } from './interpolation';
 import moize from 'moize';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import heartObjUrl from '../../data/heart.obj'
 
+const objLoader = new OBJLoader()
+// const heart = await new OBJLoader(heartObjUrl)
+// const loadHeart = () => new Promise((resolve, reject) => {
+// })
+// const heart = await objLoader.loadAsync(heartObjUrl)
+  // let geo = (heart.children[0] as Mesh).geometry
+  // console.log(geo)
 
-export const getNodeVisualizerMesh = moize.infinite(() => {
-  let geo = new BoxGeometry(1, 1, 1);
-  // geo = new TorusKnotGeometry(1, 0.3, 128, 64);
+export const getNodeVisualizerMesh = moize.infinite((shape='box') => {
+  let geo
+  
+  if (shape==='box') {
+    geo = new BoxGeometry(1, 1, 1);
+  } else if (shape === 'heart') {
+    geo = new TorusKnotGeometry(1, 0.3, 128, 64);
+  } else if (shape === 'brain') {
+    geo = new TorusKnotGeometry(1, 0.3, 128, 64, 3, 5);
+  }
+
+  // let geo = heart.children[0].
+
+  // geo = new TorusKnotGeometry(1, 0.3, 128, 64, 2, 4);
   // geo = new TorusGeometry();
   // console.log(geo)
 

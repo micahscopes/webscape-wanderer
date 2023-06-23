@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 // import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import glsl from 'vite-plugin-glsl';
 import wasm from "vite-plugin-wasm";
+// import ObjFileImport from 'unplugin-obj/vite';
 
 const plugins = [
   topLevelAwait({
@@ -11,6 +12,7 @@ const plugins = [
   }),
   glsl(),
   wasm(), 
+  // ObjFileImport(),
   //nodePolyfills({
   //  protocolImports: true,
   //}),
@@ -23,7 +25,10 @@ export default defineConfig({
     format: "es",
     plugins
   },
-  base: "/dat-garden-visualization/",
+  base: "/webscape-wanderer/",
+  assetsInclude: [
+    '**/*.obj'
+  ],
   optimizeDeps: {
     esbuildOptions: {
         // Node.js global to browser globalThis
