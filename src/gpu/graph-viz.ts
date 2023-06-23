@@ -77,6 +77,9 @@ export const getNodeVisualizerMesh = moize.infinite(() => {
 export const initializeNodeVisualizerUniforms = () => {
   const { mesh, pickerMesh } = getNodeVisualizerMesh();
   mesh.material.uniforms = {
+    globalScale: { value: params.globalScale },
+    nodeScale: { value: params.nodeScale },
+    edgeScale: { value: params.edgeScale },
     positionTexture: { value: getPositionLayers().viewTexture },
     colorTexture: { value: getColorLayers().viewTexture },
     sizeTexture: { value: getSizeLayers().viewTexture },
@@ -98,6 +101,9 @@ export const initializeNodeVisualizerUniforms = () => {
 export const updateNodeVisualizerUniforms = () => {
   const { mesh, pickerMesh } = getNodeVisualizerMesh();
   for (const uniforms of [mesh.material.uniforms, pickerMesh.material.uniforms]) {
+    uniforms.globalScale.value = params.globalScale;
+    uniforms.nodeScale.value = params.nodeScale;
+    uniforms.edgeScale.value = params.edgeScale;
     uniforms.positionTexture.value = getPositionLayers().viewTexture;
     uniforms.colorTexture.value = getColorLayers().viewTexture;
     uniforms.sizeTexture.value = getSizeLayers().viewTexture;
@@ -189,6 +195,9 @@ export const loadEdgeVertexArray = (
 export const initializeEdgeVisualizerUniforms = () => {
   const edgeVisualizerMesh = getEdgeVisualizerMesh();
   edgeVisualizerMesh.material.uniforms = {
+    globalScale: { value: params.globalScale },
+    nodeScale: { value: params.nodeScale },
+    edgeScale: { value: params.edgeScale },
     positionTexture: { value: getPositionLayers().viewTexture },
     colorTexture: { value: getColorLayers().viewTexture },
     sizeTexture: { value: getSizeLayers().viewTexture },
@@ -208,6 +217,7 @@ export const initializeEdgeVisualizerUniforms = () => {
 }
 
 import { Vector2 } from 'three';
+import { params } from '../parameters';
 const viewport = new Vector2();
 
 export const updateEdgeVisualizerUniforms = () => {
@@ -215,6 +225,9 @@ export const updateEdgeVisualizerUniforms = () => {
   renderer.getSize(viewport);
   const edgeVisualizerMesh = getEdgeVisualizerMesh();
   for (const uniforms of [edgeVisualizerMesh.material.uniforms]) {
+    uniforms.globalScale.value = params.globalScale;
+    uniforms.nodeScale.value = params.nodeScale;
+    uniforms.edgeScale.value = params.edgeScale;
     uniforms.positionTexture.value = getPositionLayers().viewTexture;
     uniforms.colorTexture.value = getColorLayers().viewTexture;
     uniforms.sizeTexture.value = getSizeLayers().viewTexture;

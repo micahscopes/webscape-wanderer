@@ -458,7 +458,7 @@ export const selectedCursor = makeCursor({
 export const hoveredTooltip = makeCursor({
   classes: ["hovered-tooltip"],
   htmlTemplate: node => html`
-    <div class="node-name">${node.data.name}</div>
+    <div class="node-name">${node.data?.name}</div>
   `,
   applyScreenPositionStyle(screenPosition, element) {
     element.style.left = `calc(min(${screenPosition[0]}vw, calc(100vw - 15em)))`;

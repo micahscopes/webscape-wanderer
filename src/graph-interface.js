@@ -27,7 +27,7 @@ export const graphInterfaceDefault = {
   };
   
   export const graphInterfaceCytoscapeJS = {
-    getNodeId: (node) => node.data.id,
+    getNodeId: (node) => node.data?.id,
     getEdgeSource: (edge) => edge.data.source,
     getEdgeTarget: (edge) => edge.data.target,
     makeEdge: (source, target, edgeDistance, getNodeId) => ({

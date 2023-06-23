@@ -71,7 +71,7 @@ void main() {
   // wave packets
   float highFrequency = edgeLength/4.0;
   float pulseSpeed = 20.0/edgeLength;
-  float pulse = pow(wave(u_3D + time * pulseSpeed, 1.0), edgeLength2D);
+  float pulse = pow(wave(u_2D + time * pulseSpeed, 1.0), edgeLength2D/5.0);
   
   // golden pulse
   fragColor.rgb = mix(fragColor.rgb, vec3(1.0, 1.0, 0.0), mix(0.0, pulse, 0.1));

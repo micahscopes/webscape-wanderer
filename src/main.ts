@@ -1,12 +1,12 @@
 import { animateGraph } from './gpu/rendering';
-import { D3ForceLayout, getGraphData, prepareGraphDBWorker, randomGraphData } from "./data";
+import { getGraphData, prepareGraphDBWorker } from "./data";
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
 import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers, setAllLayerSizes } from "./gpu/interpolation";
 import { getThreeSetup, loadNodeVertexArray, loadEdgeVertexArray } from "./gpu/graph-viz";
 
-
+import './parameters'
 // const app = getPicoApp();
 // app.clear();
 
@@ -17,11 +17,10 @@ setupSelection();
 
 document.querySelector('html')?.classList.add('loading')
 
-let graphData = await getGraphData();
+let graphData;
+graphData = await getGraphData();
 
-// let graphData = randomGraphData(2000,2000);
-await prepareGraphDBWorker();
-// graphData = randomTreesData(1, 7, 5,8, 10000)
+prepareGraphDBWorker(graphData);
 const { nodes, linkIndexPairs } = graphData;
 
 
@@ -70,21 +69,30 @@ getEmphasisLayers().target.setFromArray(new Float32Array(nodes.length).fill(0));
 getEmphasisLayers().current.setFromArray(new Float32Array(nodes.length).fill(0));
 
 // display the graph stats in a panel
-const statsPanel = document.createElement('div');
-statsPanel.classList.add('overlay');
-statsPanel.classList.add('debug');
-statsPanel.style.top = '0';
-statsPanel.style.right = '0';
+const controlsPanel = document.querySelector('#controls')!;
+controlsPanel.classList.add('overlay');
+controlsPanel.classList.add('debug');
+controlsPanel.style.top = '0';
+controlsPanel.style.right = '0';
 
-document.body.appendChild(statsPanel);
+document.body.appendChild(controlsPanel);
 
-statsPanel.innerHTML = `
-    <div>Nodes: ${nodes.length}</div>
-    <div>Edges: ${linkIndexPairs.length}</div>
-    <div id="debug-message"></div>
-`;
+const nodesCount = document.createElement('div');
+nodesCount.innerHTML = `Nodes: ${nodes.length}`;
+controlsPanel.appendChild(nodesCount);
+
+const edgesCount = document.createElement('div');
+edgesCount.innerHTML = `Edges: ${linkIndexPairs.length}`;
+controlsPanel.appendChild(edgesCount);
+
+const debugMessage = document.createElement('div');
+debugMessage.id = 'debug-message';
+controlsPanel.appendChild(debugMessage);
 
 document.querySelector('html')!.classList.remove('loading')
+
+import { controls } from './parameters'
+controlsPanel.appendChild(controls)
 
 animateGraph();
 trackFPS();

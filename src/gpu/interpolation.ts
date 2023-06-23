@@ -51,6 +51,7 @@ export const getSizeLayers = moize.infinite(() => getLayers('size', { numCompone
 export const getEmphasisLayers = moize.infinite(() => getLayers('emphasis', { numComponents: 1}));
 
 export const setAllLayerSizes = (size) => {
+  console.log('setting layer sizes to', size)
   const layers = [
     getPositionLayers(),
     getColorLayers(),

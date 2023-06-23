@@ -44,6 +44,8 @@ export const applyVisuals = async ({
   const sizesLayer = getSizeLayers();
   const emphasisLayer = getEmphasisLayers();
   
+  console.log(getDefaultSizes(sizeMap))
+  
   colorsTargetLayer.target.setFromArray(colorData);
   sizesLayer.target.setFromArray(sizeData);
   emphasisLayer.target.setFromArray(new Float32Array(sizeData.length).fill(0));
@@ -122,8 +124,8 @@ const onImgSuccessHandler = "this.parentNode.style.display='initial'"
 // const onImgErrorHandler = (e) => {}
 const selectionInfo = (node) => html`
   <div class="project">
-    <h3><a target="_blank" href="${node.data?.homepage}">${node.data.name}</a></h3>
-    <div class="description">${node.data.description}</div>
+    <h3><a target="_blank" href="${node.data?.homepage}">${node.data?.name}</a></h3>
+    <div class="description">${node.data?.description}</div>
     <div class="links">
       <span class="owner">
         <div class="owner-name-container">
@@ -139,8 +141,8 @@ const selectionInfo = (node) => html`
         </div>
       </span>
       <span><a target="_blank" href="${node.project}">NPM</a></span>
-      ${node.data?.repository ? html`<span><a target="_blank" href="${node.data.repository}">Git</a></span>` : html``}
-      ${node.data?.bugs ? html`<span><a target="_blank" href="${node.data.bugs}">Issues</a></span>` : html``}
+      ${node.data?.repository ? html`<span><a target="_blank" href="${node.data?.repository}">Git</a></span>` : html``}
+      ${node.data?.bugs ? html`<span><a target="_blank" href="${node.data?.bugs}">Issues</a></span>` : html``}
       <!-- <a href="${node.ownerData?.html_url}">Owner Profile</a> -->
     </div>
   </div>

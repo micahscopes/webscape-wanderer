@@ -18,6 +18,10 @@ uniform vec4 selectedColor;
 float defaultFogVisibility = 0.3;
 float defaultFogBoundaryClipZ = 700.0;
 
+uniform float globalScale;
+uniform float nodeScale;
+uniform float edgeScale;
+
 // preliminary fog, needs organization
 float computeFog(float positionClipZ, float fogBoundaryClipZ) {
   float fogLevel = 1.0 - bump(positionClipZ, 1.0, fogBoundaryClipZ);
@@ -56,10 +60,10 @@ NodeGeometryBundle nodeGeometry(
   vec4 globalClipPosition = cam.projection * cam.view * vec4(nodePosition, 1.0);
   vec3 globalNDC = globalClipPosition.xyz / globalClipPosition.w;
 
-  vec4 orthoFixedClipPosition = cam.orthoFixedProjection * cam.orthoFixedView * vec4(vertexPosition*scale, 1.0);
+  vec4 orthoFixedClipPosition = cam.orthoFixedProjection * cam.orthoFixedView * vec4(vertexPosition*scale*globalScale*nodeScale, 1.0);
   vec3 orthoFixedNDC = orthoFixedClipPosition.xyz / orthoFixedClipPosition.w;
   
-  vec4 orthoZoomedClipPosition = cam.orthoZoomedProjection * cam.orthoZoomedView * vec4(vertexPosition*scale, 1.0)*0.5;
+  vec4 orthoZoomedClipPosition = cam.orthoZoomedProjection * cam.orthoZoomedView * vec4(vertexPosition*scale*globalScale*nodeScale, 1.0)*0.5;
   vec3 orthoZoomedNDC = orthoZoomedClipPosition.xyz / orthoZoomedClipPosition.w;
 
   vec3 localNDC = mix(orthoZoomedNDC, orthoFixedNDC, 0.5);

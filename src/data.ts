@@ -6,13 +6,14 @@ import ColorHash from 'color-hash'
 import { getPositionLayers, hasEnoughFramebufferAttachments } from './gpu/interpolation'
 import { GraphLayoutSimulator } from './graph-layout-simulator';
 
-console.log(graphLayout, 'graphLayout???')
+// console.log(graphLayout, 'graphLayout???')
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 
 const projectId = (project) => project.replace(/^git\+/, '')
 
 import { transform } from 'lodash-es'
+import { params } from './parameters';
 
 const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
   // we need to remove `git+` from all project ids
@@ -20,7 +21,6 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
     value.dependencies = value.dependencies ? value.dependencies.map(projectId) : []
     value.dependents = value.dependents ? value.dependents.map(projectId) : []
     value.owner = value.owner ? projectId(value.owner) : null
-    console.log(value, 'value???')
     result[projectId(key)] = value
   }, {})
   projectsData = transform(projectsData, (result, value, key) => {
@@ -74,6 +74,9 @@ export const makeNavId = (project) => {
 }
 
 export const getGraphData = moize.promise(async () => {
+  // return randomGraphData(10000,30000);
+  // return randomTreesData(20, 4, 5,8, 8000);
+
   const { valueNetworkData, projectsData, organizationsData } = await datEcosystemData()
   // console.log(await datEcosystemData())
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
@@ -93,7 +96,7 @@ export const getGraphData = moize.promise(async () => {
   
   const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
   const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
-  const nodesByProjectName = fromPairs(nodes.map(node => [node.data.name, node]))
+  const nodesByProjectName = fromPairs(nodes.map(node => [node.data?.name, node]))
   const nodesByNavId = fromPairs(nodes.map(node => [node.navId, node]))
 
   let links = Object.entries(valueNetworkData).flatMap(([project, { dependents, dependencies }]) =>
@@ -129,9 +132,10 @@ export const getGraphData = moize.promise(async () => {
 export const randomGraphData = (numNodes, numEdges) => {
   const nodes = [...Array(numNodes).keys()].map(index => ({
     index,
-    id: String(index),
+    id: `node://${index}.xyz`,
     size: 1,
     color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
+    navId: makeNavId(`node://${index}.xyz`),
   }))
   
   const links = [...Array(numEdges).keys()].map(() => {
@@ -147,7 +151,12 @@ export const randomGraphData = (numNodes, numEdges) => {
   
   const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
   
-  return { nodes, links, linkIndexPairs }
+
+  // const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
+  // const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
+  // const nodesByProjectName = fromPairs(nodes.map(node => [node.data?.name, node]))
+  const nodesByNavId = fromPairs(nodes.map(node => [node.navId, node]))
+  return { nodes, links, linkIndexPairs, nodesByNavId }
 }
 
 export const randomTreesData = (trunks, numLevels, minChildren, maxChildren, maxNodes) => {
@@ -165,8 +174,10 @@ export const randomTreesData = (trunks, numLevels, minChildren, maxChildren, max
     ]
     .map(x => x/3)
     .map((x, i) => x + offset[i])
-    nodes.push({ index, size, id: String(index), x,y,z,
+    nodes.push({ index, size, x,y,z,
       color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
+      id: `node://${index}.xyz`,
+      navId: makeNavId(`node://${index}.xyz`),
     })
     if (parentIndex !== undefined) {
       links.push({
@@ -189,8 +200,9 @@ export const randomTreesData = (trunks, numLevels, minChildren, maxChildren, max
     addNode(undefined, 0, [Math.random(), Math.random(), Math.random()].map(x => x * 2 - 1))
   }
   
-  // console.log(nodes)
-  return { nodes, links, linkIndexPairs }
+  
+  const nodesByNavId = fromPairs(nodes.map(node => [node.navId, node]))
+  return { nodes, links, linkIndexPairs, nodesByNavId }
 }
 
 
@@ -229,7 +241,7 @@ export const updateNodePositionTargets = async () => {
 export const getNodePosition = (node) => {
   const positions = getLatestTargetPositions() ? getLatestTargetPositions() : []
   const index = node.index
-  return [positions[index*3], positions[index*3+1], positions[index*3+2]]
+  return [positions[index*3], positions[index*3+1], positions[index*3+2]] //.map(x => x * params.globalScale)
 }
 
 export const { doQuery, buildGraph } = graphDb

@@ -50,7 +50,7 @@ vec4 edgeGeometry(
   in CameraMatrices cam
 ) {
   vec2 normalizedEdgeDirection = normalize(edgeDirection);
-  vec2 edgePerpendicular = vec2(-normalizedEdgeDirection.y, normalizedEdgeDirection.x)*scale/3.0;
+  vec2 edgePerpendicular = vec2(-normalizedEdgeDirection.y, normalizedEdgeDirection.x)*scale*globalScale*edgeScale/3.0;
   vec4 position = cam.projection * cam.view * vec4(nodePosition, 1.0);
   vec4 positionNDC = position / position.w;
 

@@ -6,7 +6,6 @@ in int index;
 
 uniform vec2 mousePosition;
 
-
 uniform sampler2D positionTexture;
 uniform sampler2D colorTexture;
 uniform sampler2D sizeTexture;

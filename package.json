@@ -41,6 +41,7 @@
     "level-mem": "^6.0.1",
     "levelgraph": "^3.0.0",
     "levelup": "^5.1.1",
+    "lil-gui": "^0.18.2",
     "lit": "^2.7.1",
     "lodash-es": "^4.17.21",
     "memdown": "^6.1.1",
