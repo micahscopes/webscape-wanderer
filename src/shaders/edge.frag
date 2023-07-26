@@ -29,6 +29,7 @@ const float freq = 1.0;
 
 uniform float edgeFrequency;
 uniform float edgePulseSpeed;
+uniform float edgeWaveSpeed;
 uniform float edgeOvershoot;
 
 uniform float time;
@@ -68,10 +69,10 @@ void main() {
   // waves
   // when we're zoomed out, keep the frequency consistent with the visual edge length
   float frequency = edgeLength2D * 1.0 * edgeFrequency * sourceSize;
-  float waveSpeed = 4.0;// * edgePulseSpeed;
+  float waveSpeed = 4.0 * edgeWaveSpeed / edgeLength2D;
   float waves = mix(
     1.0,
-    wave(u_2D - time/frequency * waveSpeed, frequency), 
+    wave(u_2D - time * waveSpeed, frequency), 
     mix(0.5, 1.0, emphasis) // waves more pronounced for emphasized edges
   );
 
