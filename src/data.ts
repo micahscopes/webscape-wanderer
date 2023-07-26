@@ -79,9 +79,27 @@ export const makeNavId = (project) => {
 export const getGraphData = moize.promise(async () => {
   // return randomGraphData(10000,30000);
   // return randomTreesData(20, 4, 5,8, 8000);
+  
 
   const { valueNetworkData, projectsData, organizationsData } = await datEcosystemData()
   // console.log(await datEcosystemData())
+  const allDependents = {};
+  
+  // we need to manually count dependents because the data isn't totally symmetric
+  Object.entries(valueNetworkData).forEach(([project, {dependents, dependencies}]) => {
+    // we'll store dependents as a set of project ids
+    allDependents[project] = new Set(dependents || []);
+    // we'll also add the project itself as a dependent of its dependencies
+    (dependencies || []).forEach(dependency => {
+      if (!allDependents[dependency]) {
+        allDependents[dependency] = new Set()
+      }
+      allDependents[dependency].add(project)
+    })
+  })
+  
+  console.log('allDependents', allDependents)
+
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
     index,
     project,
@@ -92,10 +110,13 @@ export const getGraphData = moize.promise(async () => {
     owner,
     ownerData: organizationsData[owner] || {},
     color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
-    size: nodeScaleFn(dependents),
+    size: nodeScaleFn([...allDependents[project]]),
     dependents,
     dependencies,
   }))
+  
+  console.log('node sizes', nodes.map(node => allDependents[node.project].size))
+  console.log('old node sizes', nodes.map(node => node.dependents?.length))
   
   const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
   const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
@@ -104,20 +125,20 @@ export const getGraphData = moize.promise(async () => {
 
   let links = Object.entries(valueNetworkData).flatMap(([project, { dependents, dependencies }]) =>
     (dependents || []).map(dependent => ({
-      source: dependent,
-      sourceNode: nodesByProject[dependent],
-      sourceIndex: nodes.find(node => node.project === dependent).index,
-      target: project,
-      targetNode: nodesByProject[project],
-      targetIndex: nodes.find(node => node.project === project).index,
-    }))
-    .concat((dependencies || []).map(dependency => ({
+      target: dependent,
+      targetNode: nodesByProject[dependent],
+      targetIndex: nodes.find(node => node.project === dependent).index,
       source: project,
       sourceNode: nodesByProject[project],
       sourceIndex: nodes.find(node => node.project === project).index,
-      target: dependency,
-      targetNode: nodesByProject[dependency],
-      targetIndex: nodes.find(node => node.project === dependency).index,
+    }))
+    .concat((dependencies || []).map(dependency => ({
+      target: project,
+      targetNode: nodesByProject[project],
+      targetIndex: nodes.find(node => node.project === project).index,
+      source: dependency,
+      sourceNode: nodesByProject[dependency],
+      sourceIndex: nodes.find(node => node.project === dependency).index,
     })))
   ).filter(edge => edge)
   

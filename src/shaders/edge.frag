@@ -19,6 +19,9 @@ flat in vec2 targetPosition2D;
 in float y;
 in float v;
 
+flat in float sourceSize;
+flat in float targetSize;
+
 out vec4 fragColor;
 
 const float PI = 3.1415926535897932384626433832795;
@@ -64,18 +67,18 @@ void main() {
 
   // waves
   // when we're zoomed out, keep the frequency consistent with the visual edge length
-  float frequency = edgeLength2D / 4.0 * edgeFrequency;
+  float frequency = edgeLength2D * 1.0 * edgeFrequency * sourceSize;
   float waveSpeed = 4.0;// * edgePulseSpeed;
   float waves = mix(
     1.0,
-    wave(u_2D + time/frequency * waveSpeed, frequency), 
+    wave(u_2D - time/frequency * waveSpeed, frequency), 
     mix(0.5, 1.0, emphasis) // waves more pronounced for emphasized edges
   );
 
   // wave packets
   float highFrequency = edgeLength/4.0 * edgeFrequency;
   float pulseSpeed = 20.0/edgeLength * edgePulseSpeed;
-  float pulse = pow(wave(u_2D + time * pulseSpeed, 1.0), edgeLength2D/5.0);
+  float pulse = pow(wave(u_2D - time * pulseSpeed, 1.0), edgeLength2D/5.0);
   
   // golden pulse
   fragColor.rgb = mix(fragColor.rgb, vec3(1.0, 1.0, 0.0), mix(0.0, pulse, 0.1));

@@ -14,6 +14,8 @@ flat out float edgeLength2D;
 flat out float isAnySelected;
 flat out vec2 sourcePosition2D;
 flat out vec2 targetPosition2D;
+flat out float sourceSize;
+flat out float targetSize;
 out float isSource;
 out float isTarget;
 out float emphasis;
@@ -114,10 +116,11 @@ void main() {
   edgeDirection = normalize(targetPositionClip.xyz/targetPositionClip.w - sourcePositionClip.xyz/sourcePositionClip.w).xy;
   edgeLength = length(targetNodePosition.xyz - sourceNodePosition.xyz);
 
-  float sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
-  float targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
+  sourceSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.x, textureDimensions), 0).r;
+  targetSize = texelFetch(sizeTexture, getTextureIndex(edgeIndices.y, textureDimensions), 0).r;
 
   size = sourceSize*isSource + targetSize*isTarget;
+  
   // size *= 2.0;
   // size *= mix(0.1, 0.1, emphasis);
   size *= 0.4;
