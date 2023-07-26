@@ -25,7 +25,7 @@ nodes.add(params, 'nodeScale', 0.1, 10.0, 0.1)
 edges.add(params, 'edgeScale', 0.1, 10.0, 0.1)
 edges.add(params, 'edgeFog', 0.1, 10.0, 0.1)
 nodes.add(params, 'nodeFog', 0.1, 10.0, 0.1)
-edges.add(params, 'edgeFrequency', 0.1, 10.0, 0.1)
+edges.add(params, 'edgeFrequency', 0.1, 2.0, 0.1)
 edges.add(params, 'edgePulseSpeed', 0.1, 10.0, 0.1)
 
 export default gui;

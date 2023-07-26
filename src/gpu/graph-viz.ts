@@ -100,9 +100,6 @@ export const getNodeVisualizerMesh = moize.infinite((shape='box') => {
 export const initializeNodeVisualizerUniforms = () => {
   const { mesh, pickerMesh } = getNodeVisualizerMesh();
   mesh.material.uniforms = {
-    globalScale: { value: params.globalScale },
-    nodeScale: { value: params.nodeScale },
-    edgeScale: { value: params.edgeScale },
     positionTexture: { value: getPositionLayers().viewTexture },
     colorTexture: { value: getColorLayers().viewTexture },
     sizeTexture: { value: getSizeLayers().viewTexture },
@@ -114,7 +111,11 @@ export const initializeNodeVisualizerUniforms = () => {
     hoveringIndex: { value: getCurrentlyHoveringIndex() },
     time: { value: performance.now() / 1000 },
   }
-  // console.log('setting uniforms', mesh.material.uniforms)
+  
+  Object.entries(params).forEach(([key, value]) => {
+    mesh.material.uniforms[key] = { value };
+  });
+
   pickerMesh.material.uniforms = mesh.material.uniforms;
 
   mesh.material.needsUpdate = true;
@@ -127,6 +128,8 @@ export const updateNodeVisualizerUniforms = () => {
     uniforms.globalScale.value = params.globalScale;
     uniforms.nodeScale.value = params.nodeScale;
     uniforms.edgeScale.value = params.edgeScale;
+    uniforms.edgeFrequency.value = params.edgeFrequency;
+    uniforms.edgePulseSpeed.value = params.edgePulseSpeed;
     uniforms.positionTexture.value = getPositionLayers().viewTexture;
     uniforms.colorTexture.value = getColorLayers().viewTexture;
     uniforms.sizeTexture.value = getSizeLayers().viewTexture;
@@ -138,6 +141,11 @@ export const updateNodeVisualizerUniforms = () => {
     uniforms.hoveringIndex.value = getCurrentlyHoveringIndex();
     uniforms.time.value = performance.now() / 1000;
   }
+
+  Object.entries(params).forEach(([key, value]) => {
+    mesh.material.uniforms[key].value = value;
+    pickerMesh.material.uniforms[key].value = value;
+  });
 };
 
 const getNodeIndexArray = moize.infinite((size) => {
@@ -218,9 +226,6 @@ export const loadEdgeVertexArray = (
 export const initializeEdgeVisualizerUniforms = () => {
   const edgeVisualizerMesh = getEdgeVisualizerMesh();
   edgeVisualizerMesh.material.uniforms = {
-    globalScale: { value: params.globalScale },
-    nodeScale: { value: params.nodeScale },
-    edgeScale: { value: params.edgeScale },
     positionTexture: { value: getPositionLayers().viewTexture },
     colorTexture: { value: getColorLayers().viewTexture },
     sizeTexture: { value: getSizeLayers().viewTexture },
@@ -234,7 +239,12 @@ export const initializeEdgeVisualizerUniforms = () => {
     time: { value: performance.now() / 1000 },
     viewport: { value: [0, 0] },
     devicePixelRatio: { value: window.devicePixelRatio },
-  }
+  };
+  
+  Object.entries(params).forEach(([key, value]) => {
+    edgeVisualizerMesh.material.uniforms[key] = { value };
+  });
+
   edgeVisualizerMesh.material.uniformsGroups = [getCamerasUniformsGroup()];
   edgeVisualizerMesh.material.needsUpdate = true;
 }
@@ -248,9 +258,6 @@ export const updateEdgeVisualizerUniforms = () => {
   renderer.getSize(viewport);
   const edgeVisualizerMesh = getEdgeVisualizerMesh();
   for (const uniforms of [edgeVisualizerMesh.material.uniforms]) {
-    uniforms.globalScale.value = params.globalScale;
-    uniforms.nodeScale.value = params.nodeScale;
-    uniforms.edgeScale.value = params.edgeScale;
     uniforms.positionTexture.value = getPositionLayers().viewTexture;
     uniforms.colorTexture.value = getColorLayers().viewTexture;
     uniforms.sizeTexture.value = getSizeLayers().viewTexture;
@@ -263,7 +270,11 @@ export const updateEdgeVisualizerUniforms = () => {
     uniforms.hoveringIndex.value = getCurrentlyHoveringIndex();
     uniforms.time.value = performance.now() / 1000;
     uniforms.viewport.value = viewport.toArray();
-  }
+  };
+
+  Object.entries(params).forEach(([key, value]) => {
+    edgeVisualizerMesh.material.uniforms[key].value = value;
+  });
 }
 
 // Initialize Three.js scene, camera and renderer
