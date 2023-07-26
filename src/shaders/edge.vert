@@ -39,6 +39,7 @@ uniform ivec2 textureDimensions;
 uniform vec2 viewport;
 
 uniform int hoveringIndex;
+uniform float edgeOvershoot;
 
 
 vec4 edgeGeometry(
@@ -69,8 +70,14 @@ void main() {
   hovering = float(hoveringIndex == edgeIndices.x || hoveringIndex == edgeIndices.y);
   isAnySelected = float(selectedIndex > -1);
 
+  vec3 offset = segmentOffset;
+  offset.y *= edgeOvershoot;
   
-  vec3 segmentPosition = segmentOffset.yxz + vec3(0.5, 0.0, 0.0);
+  vec3 segmentPosition = offset.yxz + vec3(0.5*edgeOvershoot, 0.0, 0.0);
+
+  // map the segment range from [0,1] to [-0.5, 1.5]
+
+
   isSource = segmentPosition.x;
   isTarget = 1.0-segmentPosition.x;
   

@@ -21,6 +21,8 @@ float defaultFogBoundaryClipZ = 700.0;
 uniform float globalScale;
 uniform float nodeScale;
 uniform float edgeScale;
+uniform float edgeFrequency;
+uniform float edgePulseSpeed;
 
 // preliminary fog, needs organization
 float computeFog(float positionClipZ, float fogBoundaryClipZ) {

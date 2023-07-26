@@ -24,6 +24,10 @@ out vec4 fragColor;
 const float PI = 3.1415926535897932384626433832795;
 const float freq = 1.0;
 
+uniform float edgeFrequency;
+uniform float edgePulseSpeed;
+uniform float edgeOvershoot;
+
 uniform float time;
 uniform float devicePixelRatio;
 uniform sampler2D nodeDepthTexture;
@@ -60,8 +64,8 @@ void main() {
 
   // waves
   // when we're zoomed out, keep the frequency consistent with the visual edge length
-  float frequency = edgeLength2D / 4.0;
-  float waveSpeed = 4.0;
+  float frequency = edgeLength2D / 4.0 * edgeFrequency;
+  float waveSpeed = 4.0;// * edgePulseSpeed;
   float waves = mix(
     1.0,
     wave(u_2D + time/frequency * waveSpeed, frequency), 
@@ -69,8 +73,8 @@ void main() {
   );
 
   // wave packets
-  float highFrequency = edgeLength/4.0;
-  float pulseSpeed = 20.0/edgeLength;
+  float highFrequency = edgeLength/4.0 * edgeFrequency;
+  float pulseSpeed = 20.0/edgeLength * edgePulseSpeed;
   float pulse = pow(wave(u_2D + time * pulseSpeed, 1.0), edgeLength2D/5.0);
   
   // golden pulse
@@ -94,6 +98,9 @@ void main() {
   
   // fade ends of edges near nodes
   fragColor.a *= mix(1.0, 0.0, mix(endBumpsMellow, endBumpsFirm, pulse));
+
+  // strictly fade ends of edges using `u` coordinate with bump
+  fragColor.a *= bump(u_3D-0.5, 2.0, edgeOvershoot);
 
   // check the depth of the nodes at this same fragment coordinate
   float nodeDepth = texelFetch(nodeDepthTexture, ivec2(gl_FragCoord.xy), 0).r;

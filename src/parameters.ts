@@ -3,7 +3,8 @@ import GUI from "lil-gui"
 export const params = {
   globalScale: 1.0,
   nodeScale: 1.0,
-  edgeScale: 1.0,
+  edgeScale: 8.0,
+  edgeOvershoot: 1.5,
   edgeFog: 1.0,
   nodeFog: 1.0,
   edgeFrequency: 1.0,
@@ -23,6 +24,7 @@ const edges = gui.addFolder('Edges')
 
 nodes.add(params, 'nodeScale', 0.1, 10.0, 0.1)
 edges.add(params, 'edgeScale', 0.1, 10.0, 0.1)
+edges.add(params, 'edgeOvershoot', 0.1, 2.0, 0.1)
 edges.add(params, 'edgeFog', 0.1, 10.0, 0.1)
 nodes.add(params, 'nodeFog', 0.1, 10.0, 0.1)
 edges.add(params, 'edgeFrequency', 0.1, 2.0, 0.1)
