@@ -3,11 +3,11 @@ import GUI from "lil-gui"
 export const params = {
   globalScale: 1.0,
   nodeScale: 1.0,
-  edgeScale: 0.5,
-  edgeOvershoot: 1.5,
+  edgeScale: 1.0,
+  edgeOvershoot: 1.25,
   edgeFog: 1.0,
   nodeFog: 1.0,
-  edgeFrequency: 1.0,
+  edgeFrequency: 2.0,
   edgePulseSpeed: 1.0,
   edgeWaveSpeed: 1.0,
 }
@@ -29,7 +29,7 @@ edges.add(params, 'edgeOvershoot', 0.1, 2.0, 0.1)
 edges.add(params, 'edgeFog', 0.1, 10.0, 0.1)
 nodes.add(params, 'nodeFog', 0.1, 10.0, 0.1)
 edges.add(params, 'edgeFrequency', 0.1, 2.0, 0.1)
-edges.add(params, 'edgePulseSpeed', 0.1, 10.0, 0.1)
-edges.add(params, 'edgeWaveSpeed', 0.1, 10.0, 0.1);
+edges.add(params, 'edgePulseSpeed', 0.1, 20.0, 0.1)
+edges.add(params, 'edgeWaveSpeed', 0.1, 100.0, 0.1);
 
 export default gui;

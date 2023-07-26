@@ -84,8 +84,9 @@ export const getGraphData = moize.promise(async () => {
   const { valueNetworkData, projectsData, organizationsData } = await datEcosystemData()
   // console.log(await datEcosystemData())
   const allDependents = {};
+  const allDependencies = {};
   
-  // we need to manually count dependents because the data isn't totally symmetric
+  // we need to manually count dependents/dependencies because the data isn't totally symmetric
   Object.entries(valueNetworkData).forEach(([project, {dependents, dependencies}]) => {
     // we'll store dependents as a set of project ids
     allDependents[project] = new Set(dependents || []);
@@ -96,9 +97,19 @@ export const getGraphData = moize.promise(async () => {
       }
       allDependents[dependency].add(project)
     })
+    
+    // we'll store dependencies as a set of project ids
+    allDependencies[project] = new Set(dependencies || []);
+    // we'll also add the project itself as a dependency of its dependents
+    (dependents || []).forEach(dependent => {
+      if (!allDependencies[dependent]) {
+        allDependencies[dependent] = new Set()
+      }
+      allDependencies[dependent].add(project)
+    });
   })
   
-  console.log('allDependents', allDependents)
+  // console.log('allDependents', allDependents)
 
   const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
     index,
@@ -110,13 +121,13 @@ export const getGraphData = moize.promise(async () => {
     owner,
     ownerData: organizationsData[owner] || {},
     color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
-    size: nodeScaleFn([...allDependents[project]]),
+    size: nodeScaleFn([...allDependencies[project]]),
     dependents,
     dependencies,
   }))
   
-  console.log('node sizes', nodes.map(node => allDependents[node.project].size))
-  console.log('old node sizes', nodes.map(node => node.dependents?.length))
+  // console.log('node sizes', nodes.map(node => allDependents[node.project].size))
+  // console.log('old node sizes', nodes.map(node => node.dependents?.length))
   
   const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
   const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
