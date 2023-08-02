@@ -1,4 +1,5 @@
 # Webscape Wanderer
+![image](https://github.com/micahscopes/webscape-wanderer/assets/389782/eed14108-0c3f-4925-9084-b0445f603540)
 
 ### An interactive visualization of the Dat community open source project ecosystem
 With data is provided by https://github.com/dat-ecosystem/dat-garden-rake.
