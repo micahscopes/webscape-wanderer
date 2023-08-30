@@ -10,6 +10,7 @@ export default class SpringDamper {
     this.animationFrameId = null;
     this.currentValues = this._clone(target);
     this.paused = false;
+    this.logging = false;
   }
 
   _initializeVelocity(value) {
@@ -108,9 +109,13 @@ export default class SpringDamper {
   }
 
   animate(onUpdate) {
+    console.log('animating...', this.target, this)
     const stepDuration = 1 / 60; // 60 FPS
 
     const loop = () => {
+      if (this.logging) {
+        console.log('looping spring...', this.target, this)
+      }
       const interpolatedValues = this.step(stepDuration);
       onUpdate(interpolatedValues);
       this.animationFrameId = raf(loop);

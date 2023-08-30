@@ -144,8 +144,13 @@ const setCameraDistance = (distance, duration=5000) => {
   distanceSpringDamper.updateTarget(distance)
 }
 
-startCenterSpring()
-startDistanceSpring()
+// startCenterSpring()
+// startDistanceSpring()
+
+const startCameraAnimation = () => {
+  startCenterSpring()
+  startDistanceSpring()
+}
 
 let panning = false
 let zooming = false
@@ -213,6 +218,7 @@ const computeScreenPosition = ([x,y,z]) => {
 
 
 export {
+  startCameraAnimation,
   startPanning,
   stopPanning,
   startZooming,

@@ -8,6 +8,7 @@ import navigation from "./navigation";
 import { render, html, TemplateResult } from "lit-html";
 import { getPickerRenderTarget, getThreeSetup } from "./gpu/graph-viz";
 import { graphCameraAnimation } from "./get-workers";
+import { start } from "fdg-wasm";
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ev: any) => {
   const { canvas } = getCanvasAndGLContext();
@@ -26,10 +27,14 @@ const {
   zoomGlobalCamera,
   panGlobalCamera,
   startZooming,
+  stopZooming,
   startPanning,
   stopPanning,
-  computeScreenPosition
+  computeScreenPosition,
+  startCameraAnimation,
 } = graphCameraAnimation
+
+startCameraAnimation()
 
 export { globalCamera, updateCameras, setCameraCenter, setCameraDistance };
 
@@ -42,8 +47,8 @@ export let deselectedZoom: number;
 const maxSelectedZoom = 500;
 const minUnselectedZoom = maxSelectedZoom;
 
-const stopZooming = async () => {
-  // stopZooming();
+const zoomingStopped = async () => {
+  stopZooming();
   const selected = getSelectedIndex();
   const distance = (await getGlobalCameraParams()).distance;
   if (selected > -1) {
@@ -239,7 +244,7 @@ export const setupCameraInteraction = () => {
         scrollDirection * Math.min(Math.abs(scrollVector), 0.06)
       );
       ev.preventDefault();
-      stopZooming();
+      zoomingStopped();
     },
     { passive: false }
   );
@@ -293,7 +298,7 @@ export const setupCameraInteraction = () => {
     .on("pinchstart", (ev) => ev.originalEvent.preventDefault())
     .on("pinchend", () => {
       stopPanning();
-      stopZooming();
+      zoomingStopped();
     });
 };
 
