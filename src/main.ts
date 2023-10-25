@@ -20,7 +20,7 @@ document.querySelector('html')?.classList.add('loading')
 let graphData;
 graphData = await getGraphData();
 
-prepareGraphDBWorker(graphData);
+prepareGraphDBWorker();
 const { nodes, linkIndexPairs } = graphData;
 
 

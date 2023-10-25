@@ -6,6 +6,8 @@ import { html, render } from 'lit-html';
 import { directDependenciesQuery, directDependentsQuery, downstreamDependentsDependenciesQuery, upstreamDependentsDependenciesQuery } from "./query-helpers";
 import { proxy } from "comlink";
 import { deselectedZoom, selectedZoom, setCameraCenter, setCameraDistance } from "./interaction";
+import { marked } from "marked";
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import { hue, normal } from 'color-blend/unit'
 
@@ -125,7 +127,7 @@ const onImgSuccessHandler = "this.parentNode.style.display='initial'"
 const selectionInfo = (node) => html`
   <div class="project">
     <h3><a target="_blank" href="${node.data?.homepage}">${node.data?.name}</a></h3>
-    <div class="description">${node.data?.description}</div>
+    <div class="description">${unsafeHTML(marked.parse(node.data?.description))}</div>
     <div class="links">
       <span class="owner">
         <div class="owner-name-container">

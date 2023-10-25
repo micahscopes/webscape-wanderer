@@ -45,6 +45,7 @@
     "lil-gui": "^0.18.2",
     "lit": "^2.7.1",
     "lodash-es": "^4.17.21",
+    "marked": "^9.1.2",
     "memdown": "^6.1.1",
     "memory-level": "^1.0.0",
     "mesh-primitives": "github:glo-js/mesh-primitives",
