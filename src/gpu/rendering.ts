@@ -68,9 +68,36 @@ const getWidthAndHeight = () => {
   return { width: actualWidth, height: actualHeight }
 }
 
+let canvas: HTMLCanvasElement;
+// let canvasResolver;
+// let canvasPromise = new Promise(resolve => {
+//   canvasResolver = resolve;
+// });
+
+// let canvasSet = false;
+
+export const setCanvas = (newCanvas: HTMLCanvasElement | null=null) => {
+  // check if the promise has already been resolved
+  if (newCanvas) {
+    canvas = canvas || newCanvas
+  } else {
+    canvas = canvas || document.createElement('canvas')
+    // document.body.appendChild(canvas);
+  }
+  // if (canvasSet) {
+  //   canvasPromise = data
+  // } else {
+  //   canvasSet = true
+  //   canvasResolver(data)
+  // }
+}
+
+
 export const getCanvasAndGLContext = moize.infinite(() => {
-  const canvas = document.createElement('canvas');
-  document.body.appendChild(canvas);
+  setCanvas()
+  
+  // const canvas = document.createElement('canvas')
+  // document.body.appendChild(canvas);
 
   const gl = canvas.getContext('webgl2', {
     powerPreference: "high-performance",
@@ -124,16 +151,18 @@ function checkWebGLError(gl) {
 //   })
 
 
-fillCanvasToWindow();
+// fillCanvasToWindow();
 
 
-const copy = copyProgram(getGPUComposer(), {
-  name: 'copy',
-  type: FLOAT,
-})
+// const copy = copyProgram(getGPUComposer(), {
+//   name: 'copy',
+//   type: FLOAT,
+// })
 
-initializeNodeVisualizerUniforms();
-initializeEdgeVisualizerUniforms();
+export const initializeRenderer = () => {
+  initializeNodeVisualizerUniforms();
+  initializeEdgeVisualizerUniforms();
+}
 
 // const {gl} = getCanvasAndGLContext();
 

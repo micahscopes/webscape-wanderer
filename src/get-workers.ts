@@ -1,6 +1,6 @@
 import { wrap } from "comlink";
 
-import Worker from "./worker.js?worker";
+import Worker from "./worker.js?worker&inline";
 import * as notWorker from "./worker";
 import { detect } from "detect-browser";
 
