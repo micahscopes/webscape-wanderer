@@ -1,5 +1,5 @@
 import { animateGraph } from './gpu/rendering';
-import { getGraphData, prepareGraphDBWorker } from "./data";
+import { getGraphData, prepDefaultGraphData, prepareGraphDBWorker, randomGraphData, setGraphData } from "./data";
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
@@ -17,56 +17,16 @@ setupSelection();
 
 document.querySelector('html')?.classList.add('loading')
 
+await setGraphData(await prepDefaultGraphData())
+
+setInterval(() => {
+    setGraphData(randomGraphData(100, 1000))
+}, 5000)
 let graphData;
 graphData = await getGraphData();
+const { nodes, links, linkIndexPairs } = graphData;
 
-prepareGraphDBWorker();
-const { nodes, linkIndexPairs } = graphData;
-
-
-// let positions
-// setTimeout(async () => {
-//     await layout.getPositions(proxy(p => positions = p));
-//     console.log(positions)
-// }, 100)
-// layout.getPositions(proxy(console.log))
-
-// await pickRandomVisualizer();
-
-// try out different visualizers:
-// setInterval(pickRandomVisualizer, 10000)
-
-// setEdgeIndices(linkIndexPairs)
-// setEdgeIndices(linkIndexPairs.slice(0, 1000))
-
-loadEdgeVertexArray(linkIndexPairs);
-loadNodeVertexArray(nodes.length);
-
-setAllLayerSizes(nodes.length);
-
-// use node colors
-const colors = new Float32Array(nodes.flatMap(({ color }) => color));
-getColorLayers().target.setFromArray(colors)
-getColorLayers().current.setFromArray(colors)
-
-// sizes from node sizes
-const nodeSizes = new Float32Array(nodes.length);
-for (let i = 0; i < nodeSizes.length; i++) {
-    nodeSizes[i] = Math.sqrt(nodes[i].size)/40;
-}
-getSizeLayers().target.setFromArray(nodeSizes)
-getSizeLayers().current.setFromArray(nodeSizes)
-
-// initialize random node positions
-const scale = 40;
-const randomPoint = () => [Math.random() * scale - 1, Math.random() * scale - 1, Math.random() * scale - 1];
-// const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
-const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint))
-getPositionLayers().target.setFromArray(initialNodePositions);
-getPositionLayers().current.setFromArray(initialNodePositions);
-
-getEmphasisLayers().target.setFromArray(new Float32Array(nodes.length).fill(0));
-getEmphasisLayers().current.setFromArray(new Float32Array(nodes.length).fill(0));
+// prepareGraphDBWorker();
 
 // display the graph stats in a panel
 const controlsPanel = document.querySelector('#controls')!;

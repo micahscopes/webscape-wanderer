@@ -3,7 +3,7 @@ import { graphLayout, graphDb} from './get-workers'
 import { proxy } from 'comlink'
 import { fromPairs, uniqWith } from 'lodash-es';
 import ColorHash from 'color-hash'
-import { getPositionLayers, hasEnoughFramebufferAttachments } from './gpu/interpolation'
+import { getColorLayers, getEmphasisLayers, getPositionLayers, getSizeLayers, hasEnoughFramebufferAttachments, setAllLayerSizes } from './gpu/interpolation'
 import { GraphLayoutSimulator } from './graph-layout-simulator';
 
 // console.log(graphLayout, 'graphLayout???')
@@ -36,6 +36,7 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
 import valueNetworkData from '../data/valuenetwork.json'
 import projectsData from '../data/projects.json'
 import organizationsData from '../data/organizations.json'
+import { loadEdgeVertexArray, loadNodeVertexArray } from './gpu/graph-viz';
 
 const fetchData =
   async () => {
@@ -76,7 +77,59 @@ export const makeNavId = (project) => {
     return id //.split('-').reverse().join('-')  
 }
 
-export const getGraphData = moize.promise(async () => {
+let graphDataResolver;
+let graphDataPromise = new Promise(resolve => {
+  graphDataResolver = resolve;
+});
+
+let dataSetFirstTime = false;
+
+export const setGraphData = async (data) => {
+  // check if the promise has already been resolved
+  if (dataSetFirstTime) {
+    graphDataPromise = data
+  } else {
+    dataSetFirstTime = true
+    graphDataResolver(data)
+  }
+
+  const { nodes, linkIndexPairs } = data;
+
+  loadEdgeVertexArray(linkIndexPairs);
+  loadNodeVertexArray(nodes.length);
+
+  setAllLayerSizes(nodes.length);
+
+  // use node colors
+  const colors = new Float32Array(nodes.flatMap(({ color }) => color));
+  getColorLayers().target.setFromArray(colors)
+  getColorLayers().current.setFromArray(colors)
+
+  // sizes from node sizes
+  const nodeSizes = new Float32Array(nodes.length);
+  for (let i = 0; i < nodeSizes.length; i++) {
+      nodeSizes[i] = Math.sqrt(nodes[i].size)/40;
+  }
+  getSizeLayers().target.setFromArray(nodeSizes)
+  getSizeLayers().current.setFromArray(nodeSizes)
+
+  // initialize random node positions
+  const scale = 40;
+  const randomPoint = () => [Math.random() * scale - 1, Math.random() * scale - 1, Math.random() * scale - 1];
+  // const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
+  const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint))
+  getPositionLayers().target.setFromArray(initialNodePositions);
+  getPositionLayers().current.setFromArray(initialNodePositions);
+
+  getEmphasisLayers().target.setFromArray(new Float32Array(nodes.length).fill(0));
+  getEmphasisLayers().current.setFromArray(new Float32Array(nodes.length).fill(0));
+}
+
+export const getGraphData = async () => {
+  return graphDataPromise
+}
+
+export const prepDefaultGraphData = moize.promise(async () => {
   // return randomGraphData(10000,30000);
   // return randomTreesData(20, 4, 5,8, 8000);
   
@@ -167,10 +220,10 @@ export const getGraphData = moize.promise(async () => {
 export const randomGraphData = (numNodes, numEdges) => {
   const nodes = [...Array(numNodes).keys()].map(index => ({
     index,
-    id: `node://${index}.xyz`,
-    size: 1,
+    id: `node://random.domain/${index}`,
+    size: 10,
     color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
-    navId: makeNavId(`node://${index}.xyz`),
+    navId: makeNavId(`node-${index}`),
   }))
   
   const links = [...Array(numEdges).keys()].map(() => {
@@ -248,17 +301,24 @@ export const prepareGraphDBWorker = async () => {
 
 const { NgraphForceLayout, D3ForceLayout } = graphLayout
 
-export const getLayoutSimulator = moize.infinite(async () => {
-  const engine: GraphLayoutSimulator = await new D3ForceLayout(await getGraphData());
+let engine: GraphLayoutSimulator;
+
+export const getLayoutSimulator = moize.infinite(async (graphData) => {
+  engine = await new D3ForceLayout(graphData);
   engine.start()
   return engine
+}, {
+  onExpire: () => {
+    engine.stop()
+  } 
 })
 
 let latestTargetPositions;
 export const getLatestTargetPositions = () => latestTargetPositions
 
 export const updateNodePositionTargets = async () => {
-  const sim = await getLayoutSimulator()
+  const data = await getGraphData()
+  const sim = await getLayoutSimulator(data)
   sim.getPositions(proxy(
     positions => {
       if (positions.length > 0) {

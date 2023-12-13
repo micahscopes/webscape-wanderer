@@ -20,14 +20,14 @@ import { hue, normal } from 'color-blend/unit'
 // }
 
 const defaultColorMap = ({ color }) => color;
-export const getDefaultColors = moize.infinite(async (fn = identity) => {
-  const { nodes, links } = await getGraphData();
+export const getDefaultColors = moize.infinite(async (graphData, fn = identity) => {
+  const { nodes, links } = graphData;
   return new Float32Array(nodes.map(defaultColorMap).flatMap(fn));
 })
 
 const defaultSizeMap = ({ size }) => Math.sqrt(size) / 40;
-export const getDefaultSizes = moize.infinite(async (fn = identity) => {
-  const { nodes, links } = await getGraphData();
+export const getDefaultSizes = moize.infinite(async (graphData, fn = identity) => {
+  const { nodes, links } = graphData;
   return new Float32Array(nodes.map(defaultSizeMap).map(fn));
 })
 
@@ -40,8 +40,8 @@ export const applyVisuals = async ({
   // const colors = getColorBuffers();
   // const sizes = getRadiusBuffers();
   // const emphasis = getEmphasisBuffers();
-  const colorData = await getDefaultColors(colorMap)
-  const sizeData = await getDefaultSizes(sizeMap)
+  const colorData = await getDefaultColors(await getGraphData(), colorMap)
+  const sizeData = await getDefaultSizes(await getGraphData(), sizeMap)
   const colorsTargetLayer = getColorLayers();
   const sizesLayer = getSizeLayers();
   const emphasisLayer = getEmphasisLayers();
@@ -115,10 +115,18 @@ export const initializationVisualMaps = {
 
 export const initializeSelectionVisuals = async (immediate = false) => {
   // console.log('initializeSelectionVisuals')
-  await applyVisuals({
-    ...initializationVisualMaps,
-    immediate
-  });
+  try {
+    await applyVisuals({
+      ...initializationVisualMaps,
+      immediate
+    });
+  } catch (e) {
+    console.error(e);
+  }
+  // await applyVisuals({
+  //   ...initializationVisualMaps,
+  //   immediate
+  // });
 }
 
 const onImgErrorHandler = "this.parentNode.style.display='none'"
@@ -127,7 +135,7 @@ const onImgSuccessHandler = "this.parentNode.style.display='initial'"
 const selectionInfo = (node) => html`
   <div class="project">
     <h3><a target="_blank" href="${node.data?.homepage}">${node.data?.name}</a></h3>
-    <div class="description">${unsafeHTML(marked.parse(node.data?.description))}</div>
+    <div class="description">${node.data?.description && unsafeHTML(marked.parse(node.data?.description))}</div>
     <div class="links">
       <span class="owner">
         <div class="owner-name-container">
