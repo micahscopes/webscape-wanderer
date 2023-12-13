@@ -4,7 +4,7 @@ import { Quadstore } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
 import { proxy } from 'comlink'
 
-import { OWNS, DEPENDS_ON} from './query-helpers';
+import { DOWNSTREAM_FROM} from './query-helpers';
 import { fromPairs } from 'lodash-es';
 
 const backend = new MemoryLevel();
@@ -14,55 +14,29 @@ const engine = new Engine(store);
 
 async function buildGraph(data) {
   console.log("BUILDING GRAPH", data)
-  const {valueNetworkData, projectsData, organizationsData} = data
-  
-  const valueNetworkQuads = Object.entries(valueNetworkData)
-    .flatMap(([project, { dependents, dependencies, owner }]) => [
-      owner &&
-        project &&
-        df.quad(
-          df.namedNode(owner),
-          df.literal(OWNS),
-          df.namedNode(project),
-          df.defaultGraph()
-        ),
-      ...(dependents || [])
-        .filter((x) => x)
-        .map((dependent) =>
+  const { nodes, links } = data
+  const linkQuads = links
+    .map(({source, target}) => 
           df.quad(
-            df.namedNode(dependent),
-            df.namedNode(DEPENDS_ON),
-            df.namedNode(project),
+            df.namedNode(target.id),
+            df.namedNode(DOWNSTREAM_FROM),
+            df.namedNode(source.id),
             df.defaultGraph()
           )
-        ),
-      ...(dependencies || [])
-        .filter((x) => x)
-        .map((dependency) =>
-          df.quad(
-            df.namedNode(project),
-            df.namedNode(DEPENDS_ON),
-            df.namedNode(dependency),
-            df.defaultGraph()
-          )
-        ),
-    ])
-    .filter((x) => x);
+    )
 
-    const organizationsQuads = [...Object.entries(organizationsData).flatMap(([org, info]) =>
-        Object.entries(info).flatMap(([key, value]) =>
-          value && df.quad(df.namedNode(org), df.namedNode(key), df.literal(value))
-        ).filter(x => x)
-      )]
-    const projectsQuads = [...Object.entries(projectsData).flatMap(([org, info]) =>
-        Object.entries(info).flatMap(([key, value]) =>
-          value && df.quad(df.namedNode(org), df.namedNode(key), df.literal(value))
-        ).filter(x => x)
-      )]
+    // const nodeQuads = nodes.map(({ id }) =>
+    //     Object.entries(info).flatMap(([key, value]) =>
+    //       value && df.quad(df.namedNode(org), df.namedNode(key), df.literal(value))
+    //     ).filter(x => x)
+    //   )
     
-  const entries = [...valueNetworkQuads, ...organizationsQuads, ...projectsQuads]
+  const entries = [...linkQuads]
+  
+  console.log('putting entries', entries)
   
   await store.open();
+  await store.clear();
   await store.multiPut(entries)
   console.log('inserted', entries.length, 'entries')
 }

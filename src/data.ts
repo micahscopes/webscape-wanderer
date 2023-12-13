@@ -95,6 +95,8 @@ export const setGraphData = async (data) => {
 
   const { nodes, linkIndexPairs } = data;
 
+
+  prepareGraphDBWorker(data);
   loadEdgeVertexArray(linkIndexPairs);
   loadNodeVertexArray(nodes.length);
 
@@ -129,98 +131,10 @@ export const getGraphData = async () => {
   return graphDataPromise
 }
 
-export const prepDefaultGraphData = moize.promise(async () => {
-  // return randomGraphData(10000,30000);
-  // return randomTreesData(20, 4, 5,8, 8000);
-  
-
-  const { valueNetworkData, projectsData, organizationsData } = await datEcosystemData()
-  // console.log(await datEcosystemData())
-  const allDependents = {};
-  const allDependencies = {};
-  
-  // we need to manually count dependents/dependencies because the data isn't totally symmetric
-  Object.entries(valueNetworkData).forEach(([project, {dependents, dependencies}]) => {
-    // we'll store dependents as a set of project ids
-    allDependents[project] = new Set(dependents || []);
-    // we'll also add the project itself as a dependent of its dependencies
-    (dependencies || []).forEach(dependency => {
-      if (!allDependents[dependency]) {
-        allDependents[dependency] = new Set()
-      }
-      allDependents[dependency].add(project)
-    })
-    
-    // we'll store dependencies as a set of project ids
-    allDependencies[project] = new Set(dependencies || []);
-    // we'll also add the project itself as a dependency of its dependents
-    (dependents || []).forEach(dependent => {
-      if (!allDependencies[dependent]) {
-        allDependencies[dependent] = new Set()
-      }
-      allDependencies[dependent].add(project)
-    });
-  })
-  
-  // console.log('allDependents', allDependents)
-
-  const nodes = Object.entries(valueNetworkData).map(([project, {dependents: dependents, owner, dependencies}], index) => ({
-    index,
-    project,
-    id: project,
-    data: projectsData[project],
-    // make a url friendly id
-    navId: makeNavId(project),
-    owner,
-    ownerData: organizationsData[owner] || {},
-    color: [...colorHash.rgb(owner || project || String(index)).map(x => x/255), 1],
-    size: nodeScaleFn([...allDependencies[project]]),
-    dependents,
-    dependencies,
-  }))
-  
-  // console.log('node sizes', nodes.map(node => allDependents[node.project].size))
-  // console.log('old node sizes', nodes.map(node => node.dependents?.length))
-  
-  const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
-  const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
-  const nodesByProjectName = fromPairs(nodes.map(node => [node.data?.name, node]))
-  const nodesByNavId = fromPairs(nodes.map(node => [node.navId, node]))
-
-  let links = Object.entries(valueNetworkData).flatMap(([project, { dependents, dependencies }]) =>
-    (dependents || []).map(dependent => ({
-      target: dependent,
-      targetNode: nodesByProject[dependent],
-      targetIndex: nodes.find(node => node.project === dependent).index,
-      source: project,
-      sourceNode: nodesByProject[project],
-      sourceIndex: nodes.find(node => node.project === project).index,
-    }))
-    .concat((dependencies || []).map(dependency => ({
-      target: project,
-      targetNode: nodesByProject[project],
-      targetIndex: nodes.find(node => node.project === project).index,
-      source: dependency,
-      sourceNode: nodesByProject[dependency],
-      sourceIndex: nodes.find(node => node.project === dependency).index,
-    })))
-  ).filter(edge => edge)
-  
-  links = uniqWith(links, (a, b) => a.sourceIndex === b.sourceIndex && a.targetIndex === b.targetIndex)
-  
-  const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [sourceIndex, targetIndex])
-  // console.log('link count', links.length)
-  
-  const edgeIndexFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, index]))
-  const edgeFromLinkIndices = fromPairs(linkIndexPairs.map(([sourceIndex, targetIndex], index) => [`${sourceIndex}-${targetIndex}`, links[index]]))
-  
-  return { nodes, links, linkIndexPairs, nodesByNavId, nodesByProject, nodesByProjectName }
-})
-
 export const randomGraphData = (numNodes, numEdges) => {
   const nodes = [...Array(numNodes).keys()].map(index => ({
     index,
-    id: `node://random.domain/${index}`,
+    id: `node://${index}`,
     size: 10,
     color: [...colorHash.rgb(String(index)).map(x => x/255), 1],
     navId: makeNavId(`node-${index}`),
@@ -244,7 +158,8 @@ export const randomGraphData = (numNodes, numEdges) => {
   // const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
   // const nodesByProjectName = fromPairs(nodes.map(node => [node.data?.name, node]))
   const nodesByNavId = fromPairs(nodes.map(node => [node.navId, node]))
-  return { nodes, links, linkIndexPairs, nodesByNavId }
+  const nodesById = fromPairs(nodes.map(node => [node.id, node]))
+  return { nodes, links, linkIndexPairs, nodesByNavId, nodesById }
 }
 
 export const randomTreesData = (trunks, numLevels, minChildren, maxChildren, maxNodes) => {
@@ -290,12 +205,13 @@ export const randomTreesData = (trunks, numLevels, minChildren, maxChildren, max
   
   
   const nodesByNavId = fromPairs(nodes.map(node => [node.navId, node]))
-  return { nodes, links, linkIndexPairs, nodesByNavId }
+  const nodesById = fromPairs(nodes.map(node => [node.id, node]))
+  return { nodes, links, linkIndexPairs, nodesByNavId, nodesById }
 }
 
 
-export const prepareGraphDBWorker = async () => {
-  const data = await datEcosystemData()
+export const prepareGraphDBWorker = async (data) => {
+  // const data = await datEcosystemData()
   return await graphDb.buildGraph(data)
 }
 

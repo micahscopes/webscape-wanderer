@@ -9,7 +9,7 @@ navigation.route('#-', () => {
   selectNothingAndZoomOut()
 })
 
-navigation.route('#project/:id', async (params, { trigger }) => {
+navigation.route('#node/:id', async (params, { trigger }) => {
   // console.log('navigating to', params, action, 'project')
   const { nodesByNavId } = await getGraphData()  
   const node = nodesByNavId[params.id]

@@ -1,5 +1,5 @@
 import { animateGraph } from './gpu/rendering';
-import { getGraphData, prepDefaultGraphData, prepareGraphDBWorker, randomGraphData, setGraphData } from "./data";
+import { getGraphData, prepareGraphDBWorker, randomGraphData, setGraphData } from "./data";
 import { trackFPS } from "./fps";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
@@ -17,16 +17,13 @@ setupSelection();
 
 document.querySelector('html')?.classList.add('loading')
 
-await setGraphData(await prepDefaultGraphData())
-
+setGraphData(randomGraphData(100, 1000))
 setInterval(() => {
     setGraphData(randomGraphData(100, 1000))
 }, 5000)
 let graphData;
 graphData = await getGraphData();
 const { nodes, links, linkIndexPairs } = graphData;
-
-// prepareGraphDBWorker();
 
 // display the graph stats in a panel
 const controlsPanel = document.querySelector('#controls')!;

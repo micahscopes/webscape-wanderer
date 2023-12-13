@@ -1,49 +1,48 @@
-export const DEPENDS_ON = 'http://dat-ecosystem.org#dependson'
-export const OWNS = 'http://dat-ecosystem.org#owns'
+export const DOWNSTREAM_FROM = 'http://webscape.wanderer#downstream-from'
 
 // This query selects all the projects that depend on the given project, directly or indirectly.
 // It returns dependents of the given project, but not each of their direct dependencies.
-export const downstreamDependentsQuery = startProject => `
-  PREFIX dependson: <http://dat-ecosystem.org#dependson>
-  SELECT DISTINCT ?dependent WHERE {
-    ?dependent dependson:* ${startProject} .
+export const downstreamQuery = startNode => `
+  PREFIX sources: <${DOWNSTREAM_FROM}>
+  SELECT DISTINCT ?downstream WHERE {
+    ?downstream sources:* ${startNode} .
   }
 `;
 
-export const upstreamDependenciesQuery = startProject => `
-  PREFIX dependson: <http://dat-ecosystem.org#dependson>
-  SELECT DISTINCT ?dependency WHERE {
-    ${startProject} dependson:* ?dependency .
+export const upstreamQuery = startNode => `
+  PREFIX sources: <${DOWNSTREAM_FROM}>
+  SELECT DISTINCT ?upstream WHERE {
+    ${startNode} sources:* ?upstream .
   }
 `;
 
 // This query selects all the projects that depend on the given project, directly or indirectly.
 // It returns dependents of the given project along with each of their direct dependencies (using a subquery).
-export const downstreamDependentsDependenciesQuery = startProject => `
-  PREFIX dependson: <http://dat-ecosystem.org#dependson>
-  SELECT DISTINCT ?dependent ?dependency WHERE {
-    ?dependency dependson:* <${startProject}> .
-    ?dependent dependson: ?dependency .
+export const downstreamDependentsDependenciesQuery = startNode => `
+  PREFIX sources: <${DOWNSTREAM_FROM}>
+  SELECT DISTINCT ?downstream ?upstream WHERE {
+    ?upstream sources:* <${startNode}> .
+    ?downstream sources: ?upstream .
   }
 `;
 
 // this query selects all the projects that the given project depends on, directly or indirectly.
-export const upstreamDependentsDependenciesQuery = startProject => `
-  PREFIX dependson: <http://dat-ecosystem.org#dependson>
-  SELECT DISTINCT ?dependent ?dependency WHERE {
-    <${startProject}> dependson:* ?dependent .
-    ?dependent dependson: ?dependency .
+export const upstreamDependentsDependenciesQuery = startNode => `
+  PREFIX sources: <${DOWNSTREAM_FROM}>
+  SELECT DISTINCT ?downstream ?upstream WHERE {
+    <${startNode}> sources:* ?downstream .
+    ?downstream sources: ?upstream .
   }
   `;
 
-export const directDependentsQuery = startProject => `
-  PREFIX dependson: <http://dat-ecosystem.org#dependson>
-  SELECT DISTINCT ?dependent WHERE {
-    ?dependent dependson: <${startProject}> .
+export const directDownstreamQuery = startNode => `
+  PREFIX sources: <${DOWNSTREAM_FROM}>
+  SELECT DISTINCT ?downstream WHERE {
+    ?downstream sources: <${startNode}> .
   }`
 
-export const directDependenciesQuery = startProject => `
-  PREFIX dependson: <http://dat-ecosystem.org#dependson>
-  SELECT DISTINCT ?dependency WHERE {
-    <${startProject}> dependson: ?dependency .
+export const directUpstreamQuery = startNode => `
+  PREFIX sources: <${DOWNSTREAM_FROM}>
+  SELECT DISTINCT ?upstream WHERE {
+    <${startNode}> sources: ?upstream .
   }`

@@ -3,7 +3,7 @@ import { getColorBuffers, getEmphasisBuffers, getRadiusBuffers } from "./gpu/ani
 import { doQuery, getGraphData, getNodePosition } from "./data";
 import { identity, debounce } from "lodash-es";
 import { html, render } from 'lit-html';
-import { directDependenciesQuery, directDependentsQuery, downstreamDependentsDependenciesQuery, upstreamDependentsDependenciesQuery } from "./query-helpers";
+import { directUpstreamQuery, directDownstreamQuery, downstreamDependentsDependenciesQuery, upstreamDependentsDependenciesQuery } from "./query-helpers";
 import { proxy } from "comlink";
 import { deselectedZoom, selectedZoom, setCameraCenter, setCameraDistance } from "./interaction";
 import { marked } from "marked";
@@ -150,7 +150,7 @@ const selectionInfo = (node) => html`
           <img class="avatar" src="${node.ownerData?.avatar_url}" onerror=${onImgErrorHandler} onload=${onImgSuccessHandler} alt="${node.ownerData?.name}">
         </div>
       </span>
-      <span><a target="_blank" href="${node.project}">NPM</a></span>
+      <span><a target="_blank" href="${node.navId}">NPM</a></span>
       ${node.data?.repository ? html`<span><a target="_blank" href="${node.data?.repository}">Git</a></span>` : html``}
       ${node.data?.bugs ? html`<span><a target="_blank" href="${node.data?.bugs}">Issues</a></span>` : html``}
       <!-- <a href="${node.ownerData?.html_url}">Owner Profile</a> -->
@@ -178,20 +178,20 @@ export const selectNodeAndDownstreamDependents = async (node, zoom=true) => {
     const nodePosition = getNodePosition(node);
     // const downstreamQuery = downstreamDependentsDependenciesQuery(node.project);
     // const upstreamQuery = upstreamDependentsDependenciesQuery(node.project);
-    const downstreamQuery = directDependentsQuery(node.project);
-    const upstreamQuery = directDependenciesQuery(node.project);
+    const downstreamQuery = directDownstreamQuery(node.id);
+    const upstreamQuery = directUpstreamQuery(node.id);
     // console.log("selected node:", node);
-    const { nodesByProject, links } = await getGraphData();
+    const { nodesById, links } = await getGraphData();
     const resultHandler = ({sizeMap=identity, emphasis=1, colorMap=identity}) => (data, get) => {
       // if (node !== selectedNode) return;
-      get(["dependent", "dependency"]).then(({dependent, dependency}) => {
+      get(["upstream", "downstream"]).then(({upstream, downstream}) => {
       //  console.log("query result:", data);
-       applyVisualsToNode(nodesByProject[dependent?.value || node.project], {
+       applyVisualsToNode(nodesById[upstream?.value || node.id], {
            sizeMap,
            emphasis,
            colorMap
        });
-       applyVisualsToNode(nodesByProject[dependency?.value || node.project], {
+       applyVisualsToNode(nodesById[downstream?.value || node.id], {
            sizeMap,
            emphasis,
            colorMap

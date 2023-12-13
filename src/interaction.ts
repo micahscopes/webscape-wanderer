@@ -200,7 +200,7 @@ export const setupSelection = moize.infinite(() => {
     const node = ev.detail.info;
     console.log('preparing to navigate:', node)
     navigation.push(
-      node ? `#project/${node?.navId}` : '#-'
+      node ? `#node/${node?.navId}` : '#-'
     );
   });
   
