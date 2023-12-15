@@ -5,18 +5,18 @@ import { App } from "picogl";
 import { renderRGBProgram } from "gpu-io/dist/types/Programs";
 import { Texture } from "three";
 
-export const hasEnoughFramebufferAttachments = moize(() => {
-  const {gl} = getCanvasAndGLContext()
+export const hasEnoughFramebufferAttachments = moize((ctx) => {
+  const {gl} = getCanvasAndGLContext(ctx)
   const maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
   return maxColorAttachments >= 8;
 })
 
-export const getLayers = (name, {
+export const getLayers = (ctx, name, {
   type = FLOAT as GPULayerType,
   numComponents = 1 as GPULayerNumComponents, 
   dimensions = 32,
 } = {}) => {
-  const gpuComposer = getGPUComposer();
+  const gpuComposer = getGPUComposer(ctx);
   console.log(name, "making layers", gpuComposer.gl)
 
   const current = new GPULayer(gpuComposer, {
@@ -45,18 +45,18 @@ export const getLayers = (name, {
   return { current, target, view, viewTexture, targetTexture }
 }
 
-export const getPositionLayers = moize.infinite(() => getLayers('position', { numComponents: 3}));
-export const getColorLayers = moize.infinite(() => getLayers('color', { numComponents: 4}));
-export const getSizeLayers = moize.infinite(() => getLayers('size', { numComponents: 1}));
-export const getEmphasisLayers = moize.infinite(() => getLayers('emphasis', { numComponents: 1}));
+export const getPositionLayers = moize.infinite((ctx) => getLayers(ctx, 'position', { numComponents: 3}));
+export const getColorLayers = moize.infinite((ctx) => getLayers(ctx, 'color', { numComponents: 4}));
+export const getSizeLayers = moize.infinite((ctx) => getLayers(ctx, 'size', { numComponents: 1}));
+export const getEmphasisLayers = moize.infinite((ctx) => getLayers(ctx, 'emphasis', { numComponents: 1}));
 
-export const setAllLayerSizes = (size) => {
+export const setAllLayerSizes = (ctx, size) => {
   console.log('setting layer sizes to', size)
   const layers = [
-    getPositionLayers(),
-    getColorLayers(),
-    getSizeLayers(),
-    getEmphasisLayers(),
+    getPositionLayers(ctx),
+    getColorLayers(ctx),
+    getSizeLayers(ctx),
+    getEmphasisLayers(ctx),
   ]
 
   layers.forEach(({ current, target, view, viewTexture, targetTexture }) => {
@@ -68,8 +68,8 @@ export const setAllLayerSizes = (size) => {
   })
 }
 
-export const getInterpolationProgram = moize.infinite(() => {
-  return new GPUProgram(getGPUComposer(), {
+export const getInterpolationProgram = moize.infinite((ctx) => {
+  return new GPUProgram(getGPUComposer(ctx), {
     name: 'interpolation',
     fragmentShader: `
       in vec2 v_uv;

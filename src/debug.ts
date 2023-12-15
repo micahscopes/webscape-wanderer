@@ -1,5 +1,5 @@
 import queuedThrottle from "throttled-queue";
-import { controls } from "./parameters";
+import { controls } from "./attributes";
 import { getGraphData } from "./data";
 import { trackFPS } from "./fps";
 export const setupDebugStuff = async () => {

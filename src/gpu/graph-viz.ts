@@ -42,7 +42,7 @@ const objLoader = new OBJLoader()
   // let geo = (heart.children[0] as Mesh).geometry
   // console.log(geo)
 
-export const getNodeVisualizerMesh = moize.infinite((shape='box') => {
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape='box') => {
   let geo
   
   if (shape==='box') {
@@ -90,29 +90,30 @@ export const getNodeVisualizerMesh = moize.infinite((shape='box') => {
     new InstancedBufferAttribute(new Int32Array([1,2,3,4]), 1)
   )
   
-  material.uniformsGroups = [getCamerasUniformsGroup()];
+  material.uniformsGroups = [getCamerasUniformsGroup(ctx)];
 
   const mesh = new Mesh(geometry, material);
   const pickerMesh = new Mesh(geometry, pickerMaterial);
   return { mesh, pickerMesh };
 });
 
-export const initializeNodeVisualizerUniforms = () => {
-  const { mesh, pickerMesh } = getNodeVisualizerMesh();
+export const initializeNodeVisualizerUniforms = (ctx) => {
+  const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
   mesh.material.uniforms = {
-    positionTexture: { value: getPositionLayers().viewTexture },
-    colorTexture: { value: getColorLayers().viewTexture },
-    sizeTexture: { value: getSizeLayers().viewTexture },
-    emphasisTexture: { value: getEmphasisLayers().viewTexture },
-    textureDimensions: { value: [getColorLayers().view.width, getColorLayers().view.height] },
-    mousePosition: { value: getPointerPositionClip() },
+    positionTexture: { value: getPositionLayers(ctx).viewTexture },
+    colorTexture: { value: getColorLayers(ctx).viewTexture },
+    sizeTexture: { value: getSizeLayers(ctx).viewTexture },
+    emphasisTexture: { value: getEmphasisLayers(ctx).viewTexture },
+    textureDimensions: { value: [getColorLayers(ctx).view.width, getColorLayers(ctx).view.height] },
+    mousePosition: { value: getPointerPositionClip(ctx) },
     selectedIndex: { value: -1 },
-    selectedColor: { value: getSelectedColor() },
-    hoveringIndex: { value: getCurrentlyHoveringIndex() },
+    selectedColor: { value: getSelectedColor(ctx) },
+    hoveringIndex: { value: getCurrentlyHoveringIndex(ctx) },
     time: { value: performance.now() / 1000 },
   }
   
-  Object.entries(params).forEach(([key, value]) => {
+  const attrs = getAttributes(ctx);
+  Object.entries(attrs).forEach(([key, value]) => {
     mesh.material.uniforms[key] = { value };
   });
 
@@ -122,33 +123,34 @@ export const initializeNodeVisualizerUniforms = () => {
   pickerMesh.material.needsUpdate = true;
 };
 
-export const updateNodeVisualizerUniforms = () => {
-  const { mesh, pickerMesh } = getNodeVisualizerMesh();
+export const updateNodeVisualizerUniforms = (ctx) => {
+  const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
+  const attrs = getAttributes(ctx);
   for (const uniforms of [mesh.material.uniforms, pickerMesh.material.uniforms]) {
-    uniforms.globalScale.value = params.globalScale;
-    uniforms.nodeScale.value = params.nodeScale;
-    uniforms.edgeScale.value = params.edgeScale;
-    uniforms.edgeFrequency.value = params.edgeFrequency;
-    uniforms.edgePulseSpeed.value = params.edgePulseSpeed;
-    uniforms.positionTexture.value = getPositionLayers().viewTexture;
-    uniforms.colorTexture.value = getColorLayers().viewTexture;
-    uniforms.sizeTexture.value = getSizeLayers().viewTexture;
-    uniforms.emphasisTexture.value = getEmphasisLayers().viewTexture;
-    uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
-    uniforms.mousePosition.value = getPointerPositionClip();
-    uniforms.selectedIndex.value = getSelectedIndex();
-    uniforms.selectedColor.value = getSelectedColor();
-    uniforms.hoveringIndex.value = getCurrentlyHoveringIndex();
+    uniforms.globalScale.value = attrs.globalScale;
+    uniforms.nodeScale.value = attrs.nodeScale;
+    uniforms.edgeScale.value = attrs.edgeScale;
+    uniforms.edgeFrequency.value = attrs.edgeFrequency;
+    uniforms.edgePulseSpeed.value = attrs.edgePulseSpeed;
+    uniforms.positionTexture.value = getPositionLayers(ctx).viewTexture;
+    uniforms.colorTexture.value = getColorLayers(ctx).viewTexture;
+    uniforms.sizeTexture.value = getSizeLayers(ctx).viewTexture;
+    uniforms.emphasisTexture.value = getEmphasisLayers(ctx).viewTexture;
+    uniforms.textureDimensions.value = [getColorLayers(ctx).view.width, getColorLayers(ctx).view.height];
+    uniforms.mousePosition.value = getPointerPositionClip(ctx);
+    uniforms.selectedIndex.value = getSelectedIndex(ctx);
+    uniforms.selectedColor.value = getSelectedColor(ctx);
+    uniforms.hoveringIndex.value = getCurrentlyHoveringIndex(ctx);
     uniforms.time.value = performance.now() / 1000;
   }
 
-  Object.entries(params).forEach(([key, value]) => {
+  Object.entries(attrs).forEach(([key, value]) => {
     mesh.material.uniforms[key].value = value;
     pickerMesh.material.uniforms[key].value = value;
   });
 };
 
-const getNodeIndexArray = moize.infinite((size) => {
+const getNodeIndexArray = moize.infinite((ctx, size) => {
   const nodeIndices = new Int32Array(size);
   for (let i = 0; i < size; i++) {
     nodeIndices[i] = i;
@@ -156,15 +158,15 @@ const getNodeIndexArray = moize.infinite((size) => {
   return new InstancedBufferAttribute(nodeIndices, 1);
 });
 
-export const loadNodeVertexArray = (size) => {
+export const loadNodeVertexArray = (ctx, size) => {
   console.log('loading node vertex array', size)
-  const {mesh, pickerMesh} = getNodeVisualizerMesh();
-  const indexBuffer = getNodeIndexArray(size);
+  const {mesh, pickerMesh} = getNodeVisualizerMesh(ctx);
+  const indexBuffer = getNodeIndexArray(ctx, size);
   mesh.geometry.setAttribute('index', indexBuffer);
   pickerMesh.geometry.setAttribute('index', indexBuffer);
 }
 
-const getEdgeVisualizerMesh = moize.infinite(() => {
+const getEdgeVisualizerMesh = moize.infinite((ctx) => {
   // const segX = 5;
   // const segY = 1;
   // const segmentOffsetGeometry = grid(segX, segY);
@@ -209,78 +211,80 @@ const getEdgeVisualizerMesh = moize.infinite(() => {
   return new Mesh(geometry, material);
 });
 
-export const getEdgeIndexBuffer = moize.infinite((linkIndexPairs) => {
+export const getEdgeIndexBuffer = moize.infinite((ctx, linkIndexPairs) => {
   const edgePairIndices = new Int32Array(linkIndexPairs.flat());
   return new InstancedBufferAttribute(edgePairIndices, 2);
 });
 
 export const loadEdgeVertexArray = (
-  (edgeData: ArrayBufferView) => {
+  (ctx, edgeData: ArrayBufferView) => {
     // console.log('loading edge vertex array', edgeData)
-    const edgeVisualizerMesh = getEdgeVisualizerMesh();
-    const indexBuffer = getEdgeIndexBuffer(edgeData);
+    const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
+    const indexBuffer = getEdgeIndexBuffer(ctx, edgeData);
     edgeVisualizerMesh.geometry.setAttribute('edgeIndices', indexBuffer);
   }
 )
 
-export const initializeEdgeVisualizerUniforms = () => {
-  const edgeVisualizerMesh = getEdgeVisualizerMesh();
+export const initializeEdgeVisualizerUniforms = (ctx) => {
+  const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
   edgeVisualizerMesh.material.uniforms = {
-    positionTexture: { value: getPositionLayers().viewTexture },
-    colorTexture: { value: getColorLayers().viewTexture },
-    sizeTexture: { value: getSizeLayers().viewTexture },
-    nodeDepthTexture: { value: getNodeDepthRenderTarget().depthTexture },
-    emphasisTexture: { value: getEmphasisLayers().viewTexture },
-    textureDimensions: { value: [getColorLayers().current.width, getColorLayers().current.height] },
-    mousePosition: { value: getPointerPositionClip() },
-    selectedIndex: { value: getSelectedIndex() },
-    selectedColor: { value: getSelectedColor() },
-    hoveringIndex: { value: getCurrentlyHoveringIndex() },
+    positionTexture: { value: getPositionLayers(ctx).viewTexture },
+    colorTexture: { value: getColorLayers(ctx).viewTexture },
+    sizeTexture: { value: getSizeLayers(ctx).viewTexture },
+    nodeDepthTexture: { value: getNodeDepthRenderTarget(ctx).depthTexture },
+    emphasisTexture: { value: getEmphasisLayers(ctx).viewTexture },
+    textureDimensions: { value: [getColorLayers(ctx).current.width, getColorLayers(ctx).current.height] },
+    mousePosition: { value: getPointerPositionClip(ctx) },
+    selectedIndex: { value: getSelectedIndex(ctx) },
+    selectedColor: { value: getSelectedColor(ctx) },
+    hoveringIndex: { value: getCurrentlyHoveringIndex(ctx) },
     time: { value: performance.now() / 1000 },
     viewport: { value: [0, 0] },
     devicePixelRatio: { value: window.devicePixelRatio },
   };
   
-  Object.entries(params).forEach(([key, value]) => {
+  const attrs = getAttributes(ctx);
+  Object.entries(attrs).forEach(([key, value]) => {
     edgeVisualizerMesh.material.uniforms[key] = { value };
   });
 
-  edgeVisualizerMesh.material.uniformsGroups = [getCamerasUniformsGroup()];
+  edgeVisualizerMesh.material.uniformsGroups = [getCamerasUniformsGroup(ctx)];
   edgeVisualizerMesh.material.needsUpdate = true;
 }
 
 import { Vector2 } from 'three';
-import { params } from '../parameters';
+import { getAttributes } from '../attributes';
 const viewport = new Vector2();
 
-export const updateEdgeVisualizerUniforms = () => {
-  const { renderer } = getThreeSetup();
+export const updateEdgeVisualizerUniforms = (ctx) => {
+  const { renderer } = getThreeSetup(ctx);
   renderer.getSize(viewport);
-  const edgeVisualizerMesh = getEdgeVisualizerMesh();
+  const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
   for (const uniforms of [edgeVisualizerMesh.material.uniforms]) {
-    uniforms.positionTexture.value = getPositionLayers().viewTexture;
-    uniforms.colorTexture.value = getColorLayers().viewTexture;
-    uniforms.sizeTexture.value = getSizeLayers().viewTexture;
-    uniforms.emphasisTexture.value = getEmphasisLayers().viewTexture;
-    uniforms.textureDimensions.value = [getColorLayers().view.width, getColorLayers().view.height];
-    uniforms.nodeDepthTexture.value = getNodeDepthRenderTarget().depthTexture;
-    uniforms.mousePosition.value = getPointerPositionClip();
-    uniforms.selectedIndex.value = getSelectedIndex();
-    uniforms.selectedColor.value = getSelectedColor();
-    uniforms.hoveringIndex.value = getCurrentlyHoveringIndex();
+    uniforms.positionTexture.value = getPositionLayers(ctx).viewTexture;
+    uniforms.colorTexture.value = getColorLayers(ctx).viewTexture;
+    uniforms.sizeTexture.value = getSizeLayers(ctx).viewTexture;
+    uniforms.emphasisTexture.value = getEmphasisLayers(ctx).viewTexture;
+    uniforms.textureDimensions.value = [getColorLayers(ctx).view.width, getColorLayers(ctx).view.height];
+    uniforms.nodeDepthTexture.value = getNodeDepthRenderTarget(ctx).depthTexture;
+    uniforms.mousePosition.value = getPointerPositionClip(ctx);
+    uniforms.selectedIndex.value = getSelectedIndex(ctx);
+    uniforms.selectedColor.value = getSelectedColor(ctx);
+    uniforms.hoveringIndex.value = getCurrentlyHoveringIndex(ctx);
     uniforms.time.value = performance.now() / 1000;
     uniforms.viewport.value = viewport.toArray();
   };
 
-  Object.entries(params).forEach(([key, value]) => {
+  const attrs = getAttributes(ctx);
+  Object.entries(attrs).forEach(([key, value]) => {
     edgeVisualizerMesh.material.uniforms[key].value = value;
   });
 }
 
 // Initialize Three.js scene, camera and renderer
 
-export const getThreeSetup = moize.infinite(() => {
-  const { canvas, gl } = getCanvasAndGLContext();
+export const getThreeSetup = moize.infinite((ctx) => {
+  const { canvas, gl } = getCanvasAndGLContext(ctx);
   const scene = new Scene();
   const depthScene = new Scene();
   const pickerScene = new Scene();
@@ -296,14 +300,14 @@ export const getThreeSetup = moize.infinite(() => {
   renderer.setPixelRatio(window.devicePixelRatio);
   
   // Visible scene
-  const edgeVisualizerMesh = getEdgeVisualizerMesh();
+  const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
   scene.add(edgeVisualizerMesh);
   
-  const nodeVisualizerMesh = getNodeVisualizerMesh().mesh;
+  const nodeVisualizerMesh = getNodeVisualizerMesh(ctx).mesh;
   scene.add(nodeVisualizerMesh);
 
   // Picker scene
-  const nodePickerMesh = getNodeVisualizerMesh().pickerMesh;
+  const nodePickerMesh = getNodeVisualizerMesh(ctx).pickerMesh;
   pickerScene.add(nodePickerMesh);
   
   return {
@@ -318,16 +322,16 @@ export const getThreeSetup = moize.infinite(() => {
   }
 })
 
-export const getPickerRenderTarget = moize.infinite(() => {
-  const { canvas } = getCanvasAndGLContext();
+export const getPickerRenderTarget = moize.infinite((ctx) => {
+  const { canvas } = getCanvasAndGLContext(ctx);
   const pickerRenderTarget = new WebGLRenderTarget(canvas.width, canvas.height, {
     stencilBuffer: false,
   });
   return pickerRenderTarget;
 })
 
-export const getNodeDepthRenderTarget = moize.infinite(() => {
-  const { canvas } = getCanvasAndGLContext();
+export const getNodeDepthRenderTarget = moize.infinite((ctx) => {
+  const { canvas } = getCanvasAndGLContext(ctx);
   const nodeDepthRenderTarget = new WebGLRenderTarget(canvas.width, canvas.height, {
     depthTexture: new DepthTexture(canvas.width, canvas.height),
     depthBuffer: true,

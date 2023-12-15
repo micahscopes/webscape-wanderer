@@ -3,40 +3,54 @@ import { getCanvasAndGLContext } from "./gpu/rendering";
 import { getGraphData, getNodePosition } from "./data";
 import moize from "moize";
 import { setSelectedIndex, getSelectedIndex } from "./selection";
-import { throttle, debounce} from "lodash-es";
+import { throttle, debounce, curry} from "lodash-es";
 import navigation from "./navigation";
 import { render, html, TemplateResult } from "lit-html";
 import { getPickerRenderTarget, getThreeSetup } from "./gpu/graph-viz";
 import { graphCameraAnimation } from "./get-workers";
 import { start } from "fdg-wasm";
+import { state } from "./state";
+import { getComponent } from "./context";
 // convert event coordinates to normalized coordinates
-const normalizedEventCoordinates = (ev: any) => {
-  const { canvas } = getCanvasAndGLContext();
+const normalizedEventCoordinates = (ctx, ev: any) => {
+  const { canvas } = getCanvasAndGLContext(ctx);
   const rect = canvas.getBoundingClientRect();
   const x = (ev.clientX - rect.left) / rect.width;
   const y = (ev.clientY - rect.top) / rect.height;
   return { x: x * 2 - 1, y: -(y * 2 - 1) };
 };
 
-const {
-  globalCamera,
-  updateCameras,
-  getGlobalCameraParams,
-  setCameraCenter,
-  setCameraDistance,
-  zoomGlobalCamera,
-  panGlobalCamera,
-  startZooming,
-  stopZooming,
-  startPanning,
-  stopPanning,
-  computeScreenPosition,
-  startCameraAnimation,
-} = graphCameraAnimation
+// const {
+//   globalCamera,
+//   updateCameras,
+//   getGlobalCameraParams,
+//   setCameraCenter,
+//   setCameraDistance,
+//   zoomGlobalCamera,
+//   panGlobalCamera,
+//   startZooming,
+//   stopZooming,
+//   startPanning,
+//   stopPanning,
+//   computeScreenPosition,
+//   startCameraAnimation,
+// } = graphCameraAnimation
 
-startCameraAnimation()
+const globalCamera = ctx => graphCameraAnimation(ctx).getGlobalCamera(ctx);
+const updateCameras = (ctx, ...args) => graphCameraAnimation(ctx).updateCameras(ctx, ...args);
+const getGlobalCameraParams = ctx => graphCameraAnimation(ctx).getGlobalCameraParams(ctx);
+const setCameraCenter = (ctx, ...args) => graphCameraAnimation(ctx).setCameraCenter(ctx, ...args);
+const setCameraDistance = (ctx, ...args) => graphCameraAnimation(ctx).setCameraDistance(ctx, ...args);
+const zoomGlobalCamera = (ctx, ...args) => graphCameraAnimation(ctx).zoomGlobalCamera(ctx, ...args);
+const panGlobalCamera = (ctx, ...args) => graphCameraAnimation(ctx).panGlobalCamera(ctx, ...args);
+const startZooming = ctx => graphCameraAnimation(ctx).startZooming(ctx);
+const stopZooming = ctx => graphCameraAnimation(ctx).stopZooming(ctx,);
+const startPanning = ctx => graphCameraAnimation(ctx).startPanning(ctx);
+const stopPanning = ctx => graphCameraAnimation(ctx).stopPanning(ctx);
+const computeScreenPosition = ctx => graphCameraAnimation(ctx).computeScreenPosition(ctx);
+const startCameraAnimation = ctx => graphCameraAnimation(ctx).startCameraAnimation(ctx);
 
-export { globalCamera, updateCameras, setCameraCenter, setCameraDistance };
+export { globalCamera, updateCameras, setCameraCenter, setCameraDistance, startCameraAnimation };
 
 export const deviceHasMouse = moize.infinite(() => {
   return window.matchMedia('(pointer:fine)').matches;
@@ -47,10 +61,10 @@ export let deselectedZoom: number;
 const maxSelectedZoom = 500;
 const minUnselectedZoom = maxSelectedZoom;
 
-const zoomingStopped = async () => {
-  stopZooming();
-  const selected = getSelectedIndex();
-  const distance = (await getGlobalCameraParams()).distance;
+const zoomingStopped = async (ctx) => {
+  stopZooming(ctx);
+  const selected = getSelectedIndex(ctx);
+  const distance = (await getGlobalCameraParams(ctx)).distance;
   if (selected > -1) {
     selectedZoom = Math.min(distance, maxSelectedZoom);
     // console.log('setting selected zoom', selectedZoom)
@@ -60,7 +74,21 @@ const zoomingStopped = async () => {
   }
 };
 
-const pointerPositionInfo: any = {};
+const getPointerPositionInfo : (ctx) => {
+  x: number,
+  y: number,
+  canvasX: number,
+  canvasY: number,
+  pickerX: number,
+  pickerY: number,
+} = ctx => state(ctx, 'pointerPositionInfo', () => ({
+  x: 0,
+  y: 0,
+  canvasX: 0,
+  canvasY: 0,
+  pickerX: 0,
+  pickerY: 0,
+})).get()
 
 const pickedColor = new Uint8Array(4).fill(0);
 let lastOverIndex = -1;
@@ -80,25 +108,23 @@ const incrementDragEvents = () => {
   countLastDragEvents++;
 };
 
-export const getPointerPositionInfo = () => {
-  return pointerPositionInfo;
-};
+export const getPointerPositionCanvas: (ctx) => [number, number] = (ctx) => [
+  getPointerPositionInfo(ctx).canvasX,
+  getPointerPositionInfo(ctx).canvasY,
+] as [number, number];
 
-export const getPointerPositionCanvas: () => [number, number] = () => [
-  pointerPositionInfo.canvasX,
-  pointerPositionInfo.canvasY,
+export const getPointerPositionClip: (ctx) => [number, number] = (ctx) => [
+  getPointerPositionInfo(ctx).x,
+  getPointerPositionInfo(ctx).y,
 ];
-export const getPointerPositionClip: () => [number, number] = () => [
-  pointerPositionInfo.x,
-  pointerPositionInfo.y,
-];
-export const getPointerPositionPicker: () => [number, number] = () => [
-  pointerPositionInfo.pickerX,
-  pointerPositionInfo.pickerY,
+export const getPointerPositionPicker: (ctx) => [number, number] = (ctx) => [
+  getPointerPositionInfo(ctx).pickerX,
+  getPointerPositionInfo(ctx).pickerY,
 ];
 
-const collectPointerPositionInfo = ({ x, y }) => {
-  const { canvas } = getCanvasAndGLContext();
+const collectPointerPositionInfo = curry((ctx, { x, y }) => {
+  const { canvas } = getCanvasAndGLContext(ctx);
+  const pointerPositionInfo = getPointerPositionInfo(ctx);
   pointerPositionInfo.x = x;
   pointerPositionInfo.y = y;
   
@@ -118,22 +144,24 @@ const collectPointerPositionInfo = ({ x, y }) => {
   // console.log('collectPointerPositionInfo', x,y,
   // "canvas", pointerPositionInfo.canvasX, pointerPositionInfo.canvasY,
   // "picker", pointerPositionInfo.pickerX, pointerPositionInfo.pickerY)
-};
+});
 
-let currentlyHoveringIndex = -1;
-export const getCurrentlyHoveringIndex = () => currentlyHoveringIndex
+export const getCurrentlyHoveringIndex = (ctx) => {
+  state(ctx, 'currentlyHoveringIndex', () => -1)
+}
 
-export const getCurrentlyHoveringNode = async () => {
-  const { nodes } = await getGraphData();
+export const getCurrentlyHoveringNode = async (ctx) => {
+  const { nodes } = await getGraphData(ctx);
+  const currentlyHoveringIndex = getCurrentlyHoveringIndex(ctx);
   return nodes[currentlyHoveringIndex];
 }
 
-export const setupSelection = moize.infinite(() => {
-  const { canvas } = getCanvasAndGLContext();
+export const setupSelection = moize.infinite((ctx) => {
+  const { canvas } = getCanvasAndGLContext(ctx);
 
   interactionEvents(canvas)
-    .on("touchmove", collectPointerPositionInfo)
-    .on("mousemove", collectPointerPositionInfo)
+    .on("touchmove", collectPointerPositionInfo(ctx))
+    .on("mousemove", collectPointerPositionInfo(ctx))
     
   interactionEvents(canvas)
     .on("mousemove", () => {
@@ -158,10 +186,10 @@ export const setupSelection = moize.infinite(() => {
       dragging = false;
 
       if (!wasDrag) {
-        const selectedIndex = getCurrentlyHoveringIndex();
-        setSelectedIndex(selectedIndex);
+        const selectedIndex = getCurrentlyHoveringIndex(ctx);
+        setSelectedIndex(ctx, selectedIndex);
 
-        getSelectedInfo().then((info) => {
+        getSelectedInfo(ctx).then((info) => {
           canvas.dispatchEvent(
             new CustomEvent("selected", { detail: { selectedIndex, info } })
           );
@@ -184,14 +212,14 @@ export const setupSelection = moize.infinite(() => {
     countLastDragEvents = 0;
     cumulativeDragDistance = 0;
 
-    Promise.all([pointerUp, getNextHoverOnUpdate()]).then(clickHandler).catch(() =>{});
+    Promise.all([pointerUp, getNextHoverOnUpdate(ctx)]).then(clickHandler).catch(() =>{});
     setTimeout(() => {
       const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
       if (!wasDrag) {
-        updatePickerColor()
+        updatePickerColor(ctx)
       }
     }, 2); // ugh.... but at least it works.
-    collectPointerPositionInfo(normalizedEventCoordinates(ev));
+    collectPointerPositionInfo(normalizedEventCoordinates(ctx, ev));
   });
 
 
@@ -205,28 +233,29 @@ export const setupSelection = moize.infinite(() => {
   });
   
   canvas.addEventListener("hover", async (ev) => {
-    const { nodes } = await getGraphData();
+    const { nodes } = await getGraphData(ctx);
     //@ts-ignore
     const wasHoveredIndex = ev.detail.wasHoveredIndex;
     const wasHoveredNode = wasHoveredIndex > -1 ? nodes[wasHoveredIndex] : null;
     //@ts-ignore
     const nowHoveredIndex = ev.detail.nowHoveredIndex;
     const nowHoveredNode = nowHoveredIndex > -1 ? nodes[nowHoveredIndex] : null;
-    const selectedNode = getSelectedIndex() > -1 ? nodes[getSelectedIndex()] : null;
+    const selectedNode = getSelectedIndex(ctx) > -1 ? nodes[getSelectedIndex(ctx)] : null;
     
     if (nowHoveredNode) {
-      currentlyHoveringIndex = nowHoveredNode?.index || -1
+      // currentlyHoveringIndex = nowHoveredNode?.index || -1
+      state(ctx, 'currentlyHoveringIndex').set(nowHoveredNode?.index || -1)
     } else {
-      currentlyHoveringIndex = -1
+      state(ctx, 'currentlyHoveringIndex').set(-1)
     }
   })
 });
 
 const radiansPerHalfScreenWidth = Math.PI / 3;
 
-export const setupCameraInteraction = () => {
+export const setupCameraInteraction = (ctx) => {
   // const app = getPicoApp();
-  const { canvas } = getCanvasAndGLContext();
+  const { canvas } = getCanvasAndGLContext(ctx);
 
   //@ts-ignore
   canvas.addEventListener(
@@ -237,14 +266,15 @@ export const setupCameraInteraction = () => {
       const scrollDirection = Math.sign(scrollVector);
       
       // console.log(scrollVector, scrollDirection, 'zooming')
-      startZooming();
+      startZooming(ctx);
       zoomGlobalCamera(
+        ctx,
         0,
         0,
         scrollDirection * Math.min(Math.abs(scrollVector), 0.06)
       );
       ev.preventDefault();
-      zoomingStopped();
+      zoomingStopped(ctx);
     },
     { passive: false }
   );
@@ -260,17 +290,17 @@ export const setupCameraInteraction = () => {
 
       if (ev.mods.shift) {
         // globalCamera.pan(ev.dx, ev.dy);
-        startPanning();
+        startPanning(ctx);
         panGlobalCamera(ev.dx, ev.dy);
       } else if (ev.mods.meta) {
-        globalCamera.pivot(ev.dx, ev.dy);
+        globalCamera(ctx).pivot(ev.dx, ev.dy);
       } else {
-        globalCamera.rotate(
+        globalCamera(ctx).rotate(
           -ev.dx * radiansPerHalfScreenWidth,
           -ev.dy * radiansPerHalfScreenWidth
         );
 
-        stopPanning();
+        stopPanning(ctx);
       }
       ev.originalEvent.preventDefault();
     })
@@ -280,7 +310,7 @@ export const setupCameraInteraction = () => {
       cumulativeDragDistance += Math.sqrt(
         Math.pow(ev.dx, 2) + Math.pow(ev.dy, 2)
       );
-      globalCamera.rotate(
+      globalCamera(ctx).rotate(
         -ev.dx * radiansPerHalfScreenWidth,
         -ev.dy * radiansPerHalfScreenWidth
       );
@@ -289,22 +319,33 @@ export const setupCameraInteraction = () => {
     .on("pinchmove", function (ev) {
       if (!ev.active) return;
       dragging = true;
-      startPanning();
-      startZooming();
+      startPanning(ctx);
+      startZooming(ctx);
       zoomGlobalCamera(0, 0, 1 - ev.zoomx);
       panGlobalCamera(ev.dx, ev.dy);
     })
     .on("touchstart", (ev) => ev.originalEvent.preventDefault())
     .on("pinchstart", (ev) => ev.originalEvent.preventDefault())
     .on("pinchend", () => {
-      stopPanning();
-      zoomingStopped();
+      stopPanning(ctx);
+      zoomingStopped(ctx);
     });
 };
 
-// let pickerFrame = 0;
-// let pickerSkip = 3;
-let pickerTime = true;
+
+const pickerState: (ctx) => {
+  lastOverIndex: number,
+  pickerTime: number,
+  pickerSync: WebGLSync | null,
+  pickerFailures: number,
+  pickerGuardFailed: boolean,
+} = moize.infinite(ctx => ({
+  lastOverIndex: -1,
+  pickerTime: 0,
+  pickerSync: null,
+  pickerFailures: 0,
+  pickerGuardFailed: false,
+}))
 
 export const getNodeIndexFromPickerColor = (color: Uint8Array) => {
   const nodeIndex = color[0] + color[1] * 256 + color[2] * 256 * 256;
@@ -312,19 +353,19 @@ export const getNodeIndexFromPickerColor = (color: Uint8Array) => {
   return nodeIndex - 1;
 };
 
-export let pickerSync: WebGLSync | null = null;
-export const checkPickerSync = () => {
+export const checkPickerSync = (ctx) => {
   // check if the fence sync is finished and make a new one if necessary
-  const gl = getCanvasAndGLContext().gl as WebGL2RenderingContext;
+  const p = pickerState(ctx);
+  const gl = getCanvasAndGLContext(ctx).gl as WebGL2RenderingContext;
   const makeSync = () => gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-  if (!pickerSync) {
-    pickerSync = makeSync();
+  if (!p.pickerSync) {
+    p.pickerSync = makeSync();
     return false
   } else {
-    const status = gl?.clientWaitSync(pickerSync, 0, 0)
+    const status = gl?.clientWaitSync(p.pickerSync, 0, 0)
     if (status === gl?.CONDITION_SATISFIED) {
-      gl.deleteSync(pickerSync);
-      pickerSync = makeSync();
+      gl.deleteSync(p.pickerSync);
+      p.pickerSync = makeSync();
       return true;
     } else {
       return false;
@@ -332,27 +373,26 @@ export const checkPickerSync = () => {
   }
 }
 
-let pickerFailures = 0
-let pickerGuardFailed = false
-export const updatePickerColor = () => {
+export const updatePickerColor = ctx => () => {
   // return
-  const pickerReady = checkPickerSync();
-  const { canvas } = getCanvasAndGLContext();
-  const gl = getCanvasAndGLContext().gl as WebGL2RenderingContext;
-  if (pickerFailures > 10) {
-    pickerGuardFailed = true
+  const p = pickerState(ctx);
+  const pickerReady = checkPickerSync(ctx);
+  const { canvas } = getCanvasAndGLContext(ctx);
+  const gl = getCanvasAndGLContext(ctx).gl as WebGL2RenderingContext;
+  if (p.pickerFailures > 10) {
+    p.pickerGuardFailed = true
     console.warn('picker guard failed')
   }
-  if (!pickerReady && !pickerGuardFailed) { // TODO: fix this, it's not working on FireFox
+  if (!pickerReady && !p.pickerGuardFailed) { // TODO: fix this, it's not working on FireFox
     console.log('not ready to read picker pixel yet')
-    pickerFailures += 1
+    p.pickerFailures += 1
   } else {
-    pickerFailures = 0;
+    p.pickerFailures = 0;
     // console.log('reading pixel')
-    const { renderer } = getThreeSetup();
-    const pointerPosition = getPointerPositionPicker();
+    const { renderer } = getThreeSetup(ctx);
+    const pointerPosition = getPointerPositionPicker(ctx);
 
-    const pickerRenderTarget = getPickerRenderTarget();
+    const pickerRenderTarget = getPickerRenderTarget(ctx);
     renderer.readRenderTargetPixels(
       pickerRenderTarget,
       ...pointerPosition,
@@ -384,13 +424,13 @@ export const updatePickerColor = () => {
   }
 };
 
-export const updatePickerColorThrottled = throttle(updatePickerColor, 1000);
-export const updatePickerColorDebounced = debounce(updatePickerColor, 300);
+export const updatePickerColorThrottled = ctx => throttle(updatePickerColor(ctx), 1000);
+export const updatePickerColorDebounced = ctx => debounce(updatePickerColor(ctx), 300);
 
-export const getNextHoverOnUpdate = async () => {
+export const getNextHoverOnUpdate = async (ctx) => {
   // wait for the next 'hover' event
   return new Promise((resolve) => {
-    const canvas = getCanvasAndGLContext().canvas!;
+    const canvas = getCanvasAndGLContext(ctx).canvas!;
     const listener = (ev: CustomEvent) => {
       // console.log('got hover event', ev.detail)
       resolve(ev.detail);
@@ -400,9 +440,9 @@ export const getNextHoverOnUpdate = async () => {
 };
 
 
-export const getSelectedInfo = async () => {
-  const { nodes } = await getGraphData();
-  return nodes[getSelectedIndex()];
+export const getSelectedInfo = async (ctx) => {
+  const { nodes } = await getGraphData(ctx);
+  return nodes[getSelectedIndex(ctx)];
 };
 
 type cursorOptions = {
@@ -410,18 +450,19 @@ type cursorOptions = {
   classes?: string[];
   applyScreenPositionStyle?: (screenPosition, element) => void;
 }
-const makeCursor = ({classes, htmlTemplate, applyScreenPositionStyle} : cursorOptions = {}) => {
+const makeCursor = moize.deep((ctx, {classes, htmlTemplate, applyScreenPositionStyle} : cursorOptions = {}) => {
+  const host = getComponent(ctx);
   applyScreenPositionStyle = applyScreenPositionStyle || 
     ((screenPosition, element) => {
       element.style.left = `${screenPosition[0]}vw`;
       element.style.bottom = `${screenPosition[1]}vh`;
     });
   const element = document.createElement("div");
-  element.classList.add("cursor");
-  classes?.forEach((c) => element.classList.add(c));
+  element?.classList.add("cursor");
+  classes?.forEach((c) => element?.classList.add(c));
   // element.style.width = "5vw";
   // element.style.height = "5vw";
-  document.body.appendChild(element);
+  host?.shadowRoot?.appendChild(element);
   
   const alignToScreenPosition = (screenPosition) => {
     applyScreenPositionStyle!(screenPosition, element);
@@ -438,7 +479,7 @@ const makeCursor = ({classes, htmlTemplate, applyScreenPositionStyle} : cursorOp
   }
   
   const alignToNode = throttle(async (node) => {
-    const nodePosition = getNodePosition(node);
+    const nodePosition = getNodePosition(ctx, node);
     const screenPositionNDC = await computeScreenPosition(nodePosition);
     alignToNDCPosition(screenPositionNDC);
   }, 1000/10)
@@ -455,12 +496,12 @@ const makeCursor = ({classes, htmlTemplate, applyScreenPositionStyle} : cursorOp
 
 
   return {element, alignToScreenPosition, alignToNDCPosition, alignToNode, highlightNode, destroy: () => element.remove()};
-}
+})
 
-export const selectedCursor = makeCursor({
+export const selectedCursor = moize.infinite(ctx => makeCursor(ctx, {
   classes: ["selected-cursor"],
-});
-export const hoveredTooltip = makeCursor({
+}));
+export const hoveredTooltip = moize.infinite(ctx => makeCursor(ctx, {
   classes: ["hovered-tooltip"],
   htmlTemplate: node => html`
     <div class="node-name">${node.data?.name}</div>
@@ -469,7 +510,7 @@ export const hoveredTooltip = makeCursor({
     element.style.left = `calc(min(${screenPosition[0]}vw, calc(100vw - 15em)))`;
     element.style.bottom = `${screenPosition[1]}vh`;
   },
-});
-export const hoveredCursor = makeCursor({
+}));
+export const hoveredCursor = moize.infinite(ctx => makeCursor(ctx, {
   classes: ["hovered-cursor"],
-});
+}));

@@ -3,6 +3,7 @@ import { wrap } from "comlink";
 import Worker from "./worker.js?worker&inline";
 import * as notWorker from "./worker";
 import { detect } from "detect-browser";
+import moize from "moize";
 
 const useWorkers = detect(navigator.userAgent)?.name !== "safari";
 if (useWorkers) {
@@ -11,14 +12,14 @@ if (useWorkers) {
   console.log("Not using workers");
 }
 
-export const graphDb = useWorkers 
-  ? wrap(new Worker())
-  : notWorker.db;
+export const graphDb = moize.infinite((ctx) =>
+  useWorkers ? wrap(new Worker()) : notWorker.db
+);
 
-export const graphLayout = useWorkers 
-  ? wrap(new Worker())
-  : notWorker.layout;
-  
-export const graphCameraAnimation = false
-  ? wrap(new Worker())
-  : notWorker.cameraAnimation;
+export const graphLayout = moize.infinite((ctx) =>
+  useWorkers ? wrap(new Worker()) : notWorker.layout
+);
+
+export const graphCameraAnimation = moize.infinite((ctx) =>
+  false ? wrap(new Worker()) : notWorker.cameraAnimation
+);
