@@ -79,6 +79,7 @@ void main() {
     
     float fog = min(computeFog(geo.globalClipPosition.z, defaultFogBoundaryClipZ), 1.0-isSelected);
     fog = min(fog, 1.0-nodeEmphasis);
+    fog = mix(0.0, fog, nodeFog);
     color.rgb *= mix(1.0, 0.5, fog);
     color.rgb = desaturate(color.rgb, (1.0-fogVisibility)*fog);
     

@@ -5,13 +5,13 @@ import navigation from "./navigation";
 
 import { defaultAttributes, getAttributes } from "./attributes";
 
-import { getThreeSetup } from "./gpu/graph-viz";
+import { getEdgeIndexBuffer, getEdgeVisualizerMesh, getNodeIndexArray, getNodeVisualizerMesh, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, loadEdgeVertexArray, loadNodeVertexArray } from "./gpu/graph-viz";
 import { camelCase, kebabCase, snakeCase } from "lodash-es";
 import { getComponent, setComponent } from "./context";
 
 // import "./parameters";
 
-export { randomGraphData };
+export { randomGraphData, makeNavId } from "./data";
 
 class WebscapeWanderer extends HTMLElement {
   static observedAttributes = Object.keys(defaultAttributes).map(kebabCase);
@@ -28,7 +28,16 @@ class WebscapeWanderer extends HTMLElement {
   }
 
   set graphData(data) {
+    // getNodeVisualizerMesh.clear()
+    // getEdgeVisualizerMesh.clear()
+    // getThreeSetup.clear()
     setGraphData(this.context, data);
+    // getEdgeIndexBuffer.clear()
+    // getNodeIndexArray.clear()
+
+    // initializeRenderer(this.context);
+    // getThreeSetup(this.context);
+    // initializeRenderer(this.context);
   }
 
   get graphData() {
@@ -43,10 +52,10 @@ class WebscapeWanderer extends HTMLElement {
     style.textContent = `
       :host {
         display: block;
-        width: 800px;
-        height: 600px;
-        // min-width: 100%;
-        // min-height: 99vh;
+        // width: 800px;
+        // height: 600px;
+        min-width: 100%;
+        min-height: 99vh;
         max-height: 100vh;
       }
     `;
@@ -57,7 +66,7 @@ class WebscapeWanderer extends HTMLElement {
     setCanvas(ctx, canvas);
 
     initializeRenderer(ctx);
-    const { scene, camera, renderer } = getThreeSetup(ctx);
+    getThreeSetup(ctx);
     setupCameraInteraction(ctx);
     setupSelection(ctx);
 
@@ -81,7 +90,7 @@ class WebscapeWanderer extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     // console.log(`Attribute ${name} has changed.`);
     const attrs = getAttributes(this.context);
-    attrs[camelCase(name)] = newValue;
+    attrs[camelCase(name)] = newValue || defaultAttributes[camelCase(name)];
   }
 }
 

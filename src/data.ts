@@ -20,7 +20,6 @@ const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 const projectId = (project) => project.replace(/^git\+/, "");
 
 import { transform } from "lodash-es";
-import { attrs } from "./attributes";
 
 const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
   // we need to remove `git+` from all project ids
@@ -59,23 +58,8 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
 import valueNetworkData from "../data/valuenetwork.json";
 import projectsData from "../data/projects.json";
 import organizationsData from "../data/organizations.json";
-import { loadEdgeVertexArray, loadNodeVertexArray } from "./gpu/graph-viz";
+import { getEdgeVisualizerMesh, getNodeVisualizerMesh, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, loadEdgeVertexArray, loadNodeVertexArray, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from "./gpu/graph-viz";
 import { asyncState, state } from "./state";
-
-const fetchData = async () => {
-  // const DAT_GARDEN_BASE_URL = "https://dat-ecosystem.org/dat-garden-rake/"
-  // const dataIndex = await fetch(`${DAT_GARDEN_BASE_URL}index.json`).then(x => x.json())
-  // const LATEST_DATA_BASE_URL = `${DAT_GARDEN_BASE_URL}${dataIndex.latest}`
-  // const [valueNetworkData, projectsData, organizationsData] = await Promise.all([
-  //   fetch(LATEST_DATA_BASE_URL + '/../valuenetwork.json').then(x => x.json()),
-  //   fetch(LATEST_DATA_BASE_URL + '/../projects.json').then(x => x.json()),
-  //   fetch(LATEST_DATA_BASE_URL + '/../organizations.json').then(x => x.json())
-  // ])
-
-  return cleanData({ valueNetworkData, projectsData, organizationsData });
-};
-
-export const datEcosystemData = moize.promise(fetchData);
 
 export const nodeScaleFn = (dependents) =>
   Math.max(4 * Math.log(2 * (dependents?.length || 1.0) ** 1.2), 2);
@@ -106,15 +90,17 @@ export const setGraphData = async (ctx, data) => {
   setter(data);
 
   const { nodes, linkIndexPairs } = data;
+  setAllLayerSizes(ctx, nodes.length);
+  // getLayoutSimulator.remove(ctx);
 
   prepareGraphDBWorker(ctx, data);
+  // getLayoutSimulator(ctx, data);
   loadEdgeVertexArray(ctx, linkIndexPairs);
   loadNodeVertexArray(ctx, nodes.length);
 
-  setAllLayerSizes(ctx, nodes.length);
-
   // use node colors
   const colors = new Float32Array(nodes.flatMap(({ color }) => color));
+  console.log('setting colors', colors, 'to', getColorLayers(ctx))
   getColorLayers(ctx).target.setFromArray(colors);
   getColorLayers(ctx).current.setFromArray(colors);
 
@@ -123,6 +109,7 @@ export const setGraphData = async (ctx, data) => {
   for (let i = 0; i < nodeSizes.length; i++) {
     nodeSizes[i] = Math.sqrt(nodes[i].size) / 40;
   }
+  console.log('setting sizes', nodeSizes, 'to', getSizeLayers(ctx))
   getSizeLayers(ctx).target.setFromArray(nodeSizes);
   getSizeLayers(ctx).current.setFromArray(nodeSizes);
 
@@ -144,6 +131,7 @@ export const setGraphData = async (ctx, data) => {
   getEmphasisLayers(ctx).current.setFromArray(
     new Float32Array(nodes.length).fill(0)
   );
+
 };
 
 export const getGraphData = async (context) => {
@@ -178,6 +166,37 @@ export const randomGraphData = (numNodes, numEdges) => {
   // const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
   // const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
   // const nodesByProjectName = fromPairs(nodes.map(node => [node.data?.name, node]))
+  const nodesByNavId = fromPairs(nodes.map((node) => [node.navId, node]));
+  const nodesById = fromPairs(nodes.map((node) => [node.id, node]));
+  return { nodes, links, linkIndexPairs, nodesByNavId, nodesById };
+};
+
+// TODO: provide RDF data interfaces
+export const dataFromGraph = ({nodes: simpleNodes, links: simpleLinks}) => {
+  const nodes = simpleNodes.map(({id}, index) => ({
+    index,
+    id: `node://${id}`,
+    size: 10,
+    color: [...colorHash.rgb(String(id)).map((x) => x / 255), 1],
+    navId: makeNavId(`node-${id}`),
+  }));
+
+  const links = simpleLinks.map((link) => {
+    const sourceIndex = nodes.findIndex(node => node.id === `node://${link.source}`);
+    const targetIndex = nodes.findIndex(node => node.id === `node://${link.target}`);
+    return {
+      sourceIndex,
+      targetIndex,
+      source: nodes[sourceIndex],
+      target: nodes[targetIndex],
+    };
+  });
+
+  const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [
+    sourceIndex,
+    targetIndex,
+  ]);
+
   const nodesByNavId = fromPairs(nodes.map((node) => [node.navId, node]));
   const nodesById = fromPairs(nodes.map((node) => [node.id, node]));
   return { nodes, links, linkIndexPairs, nodesByNavId, nodesById };

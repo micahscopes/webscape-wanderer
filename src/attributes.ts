@@ -26,8 +26,8 @@ const getGui = ctx => state(ctx, 'gui', () => {
   nodes.add(attrs, 'nodeScale', 0.1, 10.0, 0.1)
   edges.add(attrs, 'edgeScale', 0.1, 10.0, 0.1)
   edges.add(attrs, 'edgeOvershoot', 0.1, 2.0, 0.1)
-  edges.add(attrs, 'edgeFog', 0.1, 10.0, 0.1)
-  nodes.add(attrs, 'nodeFog', 0.1, 10.0, 0.1)
+  edges.add(attrs, 'edgeFog', 0.0, 1.0, 0.1)
+  nodes.add(attrs, 'nodeFog', 0.0, 1.0, 0.1)
   edges.add(attrs, 'edgeFrequency', 0.1, 2.0, 0.1)
   edges.add(attrs, 'edgePulseSpeed', 0.1, 20.0, 0.1)
   edges.add(attrs, 'edgeWaveSpeed', 0.1, 100.0, 0.1);

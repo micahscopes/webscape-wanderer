@@ -163,6 +163,7 @@ void main() {
   fog = computeFog(position.z, defaultFogBoundaryClipZ/2.0);
   fog = min(fog, 1.0 - selected);
   fog = min(fog, 1.0 - emphasis);
+  fog = mix(0.0, fog, edgeFog);
   color.a *= mix(1.0, 0.1, fog);
   
   // color.a = 1.0*hovering;

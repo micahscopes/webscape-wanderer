@@ -23,6 +23,8 @@ uniform float nodeScale;
 uniform float edgeScale;
 uniform float edgeFrequency;
 uniform float edgePulseSpeed;
+uniform float edgeFog;
+uniform float nodeFog;
 
 // preliminary fog, needs organization
 float computeFog(float positionClipZ, float fogBoundaryClipZ) {

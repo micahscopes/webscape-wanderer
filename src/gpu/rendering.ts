@@ -34,7 +34,7 @@ import {
   updateEdgeVisualizerUniforms,
   updateNodeVisualizerUniforms,
 } from "./graph-viz";
-import { updateNodePositionTargets } from "../data";
+import { getGraphData, updateNodePositionTargets } from "../data";
 import { state } from "../state";
 import { getComponent } from "../context";
 
