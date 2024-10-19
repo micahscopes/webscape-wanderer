@@ -1,6 +1,7 @@
 #version 300 es
 // #extension GL_EXT_frag_depth : enable
 precision highp float;
+// precision mediump float;
 
 in float selected;
 in float isTarget;
@@ -54,17 +55,17 @@ void main() {
     // end bumps
     float u_hybrid = mix(u_2D, u_3D, 0.5);
     float endBumpsMellow =
-        bump(u_hybrid, 1.0, 0.5) +
-            bump(u_hybrid - 1.0, 1.0, 0.5);
+        clamp(bump(u_hybrid, 1.0, 0.5) +
+                bump(1.0 - u_hybrid, 1.0, 0.5), 0.0, 1.0);
 
     float endBumpsFirm =
-        bump(u_hybrid, 1.0, 0.1) +
-            bump(u_hybrid - 1.0, 1.0, 0.1);
+        clamp(bump(u_hybrid, 1.0, 0.1) +
+                bump(1.0 - u_hybrid, 1.0, 0.1), 0.0, 1.0);
 
     // more end bumps
     float otherEndBumps =
-        bump(u_3D, 1.0, offsetRadius2D / edgeLength) +
-            bump(u_3D - 1.0, 1.0, offsetRadius2D / edgeLength);
+        clamp(bump(u_3D, 1.0, offsetRadius2D / edgeLength) +
+                bump(1.0 - u_3D, 1.0, offsetRadius2D / edgeLength), 0.0, 1.0);
 
     // waves
     // when we're zoomed out, keep the frequency consistent with the visual edge length
@@ -79,7 +80,9 @@ void main() {
     // wave packets
     float highFrequency = edgeLength / 4.0 * edgeFrequency;
     float pulseSpeed = 20.0 / edgeLength * edgePulseSpeed;
-    float pulse = pow(wave(u_2D - time * pulseSpeed, 1.0), edgeLength2D / 5.0);
+    float pulse = clamp(pow(wave(u_2D - time * pulseSpeed, 1.0), edgeLength2D / 5.0), 0.0, 1.0);
+
+    // pulse = 1.0;
 
     // golden pulse
     fragColor.rgb = mix(fragColor.rgb, vec3(1.0, 1.0, 0.0), mix(0.0, pulse, 0.1));
