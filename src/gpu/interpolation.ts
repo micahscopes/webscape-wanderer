@@ -1,76 +1,104 @@
 import moize from "moize";
 import { getCanvasAndGLContext, getGPUComposer } from "./rendering";
-import { FLOAT, GPULayer, GPULayerType, GPULayerNumComponents, GPUProgram, INT } from "gpu-io";
+import {
+  FLOAT,
+  GPULayer,
+  GPULayerType,
+  GPULayerNumComponents,
+  GPUProgram,
+  INT,
+  UNSIGNED_BYTE,
+  SHORT,
+  HALF_FLOAT,
+} from "gpu-io";
 import { App } from "picogl";
 import { renderRGBProgram } from "gpu-io/dist/types/Programs";
 import { Texture } from "three";
 
 export const hasEnoughFramebufferAttachments = moize((ctx) => {
-  const {gl} = getCanvasAndGLContext(ctx)
+  const { gl } = getCanvasAndGLContext(ctx);
   const maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
   return maxColorAttachments >= 8;
-})
+});
 
-export const getLayers = (ctx, name, {
-  type = FLOAT as GPULayerType,
-  numComponents = 1 as GPULayerNumComponents, 
-  dimensions = 32,
-} = {}) => {
+export const getLayers = (
+  ctx,
+  name,
+  {
+    type = HALF_FLOAT as GPULayerType,
+    numComponents = 1 as GPULayerNumComponents,
+    dimensions = 32,
+  } = {},
+) => {
   const gpuComposer = getGPUComposer(ctx);
-  console.log(name, "making layers", gpuComposer.gl)
+  console.log(name, "making layers", gpuComposer.gl);
 
   const current = new GPULayer(gpuComposer, {
     name: `current_${name}`,
-    type, dimensions, numComponents,
+    type,
+    dimensions,
+    numComponents,
     numBuffers: 2,
-  })
-  
+  });
+
   const target = new GPULayer(gpuComposer, {
     name: `target_${name}`,
-    type, dimensions, numComponents,
+    type,
+    dimensions,
+    numComponents,
     numBuffers: 1,
-  })
+  });
 
-  const targetTexture = new Texture()
-  target.attachToThreeTexture(targetTexture)
-  
+  const targetTexture = new Texture();
+  target.attachToThreeTexture(targetTexture);
+
   const view = new GPULayer(gpuComposer, {
     name: `view_${name}`,
-    type, dimensions, numComponents,
+    type,
+    dimensions,
+    numComponents,
     numBuffers: 1,
-  })
-  const viewTexture = new Texture()
-  view.attachToThreeTexture(viewTexture)
-  
-  return { current, target, view, viewTexture, targetTexture }
-}
+  });
+  const viewTexture = new Texture();
+  view.attachToThreeTexture(viewTexture);
 
-export const getPositionLayers = moize.infinite((ctx) => getLayers(ctx, 'position', { numComponents: 3}));
-export const getColorLayers = moize.infinite((ctx) => getLayers(ctx, 'color', { numComponents: 4}));
-export const getSizeLayers = moize.infinite((ctx) => getLayers(ctx, 'size', { numComponents: 1}));
-export const getEmphasisLayers = moize.infinite((ctx) => getLayers(ctx, 'emphasis', { numComponents: 1}));
+  return { current, target, view, viewTexture, targetTexture };
+};
+
+export const getPositionLayers = moize.infinite((ctx) =>
+  getLayers(ctx, "position", { numComponents: 3 }),
+);
+export const getColorLayers = moize.infinite((ctx) =>
+  getLayers(ctx, "color", { numComponents: 4 }),
+);
+export const getSizeLayers = moize.infinite((ctx) =>
+  getLayers(ctx, "size", { numComponents: 1 }),
+);
+export const getEmphasisLayers = moize.infinite((ctx) =>
+  getLayers(ctx, "emphasis", { numComponents: 1 }),
+);
 
 export const setAllLayerSizes = (ctx, size) => {
-  console.log('setting layer sizes to', size)
+  console.log("setting layer sizes to", size);
   const layers = [
     getPositionLayers(ctx),
     getColorLayers(ctx),
     getSizeLayers(ctx),
     getEmphasisLayers(ctx),
-  ]
+  ];
 
   layers.forEach(({ current, target, view, viewTexture, targetTexture }) => {
-    current.resize(size)
-    target.resize(size)
-    target.attachToThreeTexture(targetTexture)
-    view.resize(size)
-    view.attachToThreeTexture(viewTexture)
-  })
-}
+    current.resize(size);
+    target.resize(size);
+    target.attachToThreeTexture(targetTexture);
+    view.resize(size);
+    view.attachToThreeTexture(viewTexture);
+  });
+};
 
 export const getInterpolationProgram = moize.infinite((ctx) => {
   return new GPUProgram(getGPUComposer(ctx), {
-    name: 'interpolation',
+    name: "interpolation",
     fragmentShader: `
       in vec2 v_uv;
 
@@ -120,50 +148,50 @@ export const getInterpolationProgram = moize.infinite((ctx) => {
     `,
     uniforms: [
       {
-        name: 'uTargetPositions',
+        name: "uTargetPositions",
         type: INT,
         value: 0,
       },
       {
-        name: 'uCurrentPositions',
+        name: "uCurrentPositions",
         type: INT,
         value: 1,
       },
       {
-        name: 'uTargetColors',
+        name: "uTargetColors",
         type: INT,
         value: 2,
       },
       {
-        name: 'uCurrentColors',
+        name: "uCurrentColors",
         type: INT,
         value: 3,
       },
       {
-        name: 'uTargetSizes',
+        name: "uTargetSizes",
         type: INT,
         value: 4,
       },
       {
-        name: 'uCurrentSizes',
+        name: "uCurrentSizes",
         type: INT,
         value: 5,
       },
       {
-        name: 'uTargetEmphasis',
+        name: "uTargetEmphasis",
         type: INT,
         value: 6,
       },
       {
-        name: 'uCurrentEmphasis',
+        name: "uCurrentEmphasis",
         type: INT,
         value: 7,
       },
       {
-        name: 'uMixRatio',
+        name: "uMixRatio",
         type: FLOAT,
         value: 0.1,
       },
-    ]
-  })
-})
+    ],
+  });
+});

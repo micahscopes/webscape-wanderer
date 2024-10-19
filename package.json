@@ -10,7 +10,7 @@
   "main": "dist/webscape-wanderer.js",
   "type": "module",
   "devDependencies": {
-    "@types/three": "^0.150.2",
+    "@types/three": "^0.152.2",
     "angle-normals": "^1.0.0",
     "bunny": "^1.0.1",
     "events": "^3.3.0",
@@ -64,7 +64,7 @@
     "quadstore-comunica": "^3.1.0",
     "raf": "^3.4.1",
     "rdf-data-factory": "^1.1.1",
-    "three": "^0.151.3",
+    "three": "^0.152.2",
     "three-forcegraph": "^1.41.4",
     "throttled-queue": "^2.1.4",
     "tiny-spring": "^1.0.0",

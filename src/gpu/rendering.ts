@@ -110,6 +110,10 @@ export const getCanvasAndGLContext = moize.infinite((ctx) => {
   if (gl) console.log("WebGL2 initialized");
   else console.error("WebGL2 failed to initialize");
 
+  const ext = gl.getExtension("WEBGL_color_buffer_float");
+  if (!ext) {
+    console.warn("WEBGL_color_buffer_float is not supported :(");
+  }
   return { canvas, gl };
 });
 

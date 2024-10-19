@@ -75,18 +75,28 @@ class WebscapeWanderer extends HTMLElement {
     const canvas: HTMLCanvasElement = document.createElement("canvas");
     shadow.appendChild(canvas);
     setCanvas(ctx, canvas);
+    console.log("Canvas created and set");
 
     initializeRenderer(ctx);
+    console.log("Renderer initialized");
     getThreeSetup(ctx);
+    console.log("Three.js setup complete");
     setupCameraInteraction(ctx);
+    console.log("Camera interaction set up");
     setupSelection(this);
+    console.log("Selection setup complete");
 
     document.querySelector("html")?.classList.add("loading");
+    console.log("Added loading class to HTML");
 
     getGraphData(this.context).then((data) => {
+      console.log("Graph data retrieved", data);
       document.querySelector("html")!.classList.remove("loading");
+      console.log("Removed loading class from HTML");
       animateGraph(this.context);
+      console.log("Graph animation started");
       navigation.start();
+      console.log("Navigation started");
     });
   }
 
