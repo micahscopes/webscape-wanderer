@@ -1,5 +1,8 @@
 import moize from "moize";
-import { cameraUniformsGroupUpdater, updateCamerasUniformsGroup } from "./camera";
+import {
+  cameraUniformsGroupUpdater,
+  updateCamerasUniformsGroup,
+} from "./camera";
 import {
   deviceHasMouse,
   getCurrentlyHoveringNode,
@@ -56,7 +59,7 @@ export const PRIMITIVE_RESTART_INDEX = 65535;
 
 const getClearColor = () =>
   [colord(document.body.style.backgroundColor).toRgb()].flatMap(
-    ({ r, g, b, a }) => [r, g, b, a].map((x) => x / 255)
+    ({ r, g, b, a }) => [r, g, b, a].map((x) => x / 255),
   ) as [number, number, number, number];
 
 const getWidthAndHeight = moize((ctx) => {
@@ -72,7 +75,12 @@ const getWidthAndHeight = moize((ctx) => {
   const actualWidth = Math.floor(clientWidth * devicePixelRatio);
   const actualHeight = Math.floor(clientHeight * devicePixelRatio);
 
-  return { width: actualWidth, height: actualHeight, clientWidth, clientHeight };
+  return {
+    width: actualWidth,
+    height: actualHeight,
+    clientWidth,
+    clientHeight,
+  };
 });
 
 let canvas: HTMLCanvasElement;
@@ -117,7 +125,7 @@ export const fillCanvasToWindow = (ctx) => {
   const { renderer } = getThreeSetup(ctx);
   const { width, height, clientWidth, clientHeight } = getWidthAndHeight(ctx);
   const component = getComponent(ctx);
-  
+
   // console.log('resizing canvas to', width, height, 'px')
   renderer.setSize(clientWidth, clientHeight);
   getPickerRenderTarget(ctx).setSize(clientWidth, clientHeight);
@@ -137,7 +145,7 @@ function checkWebGLError(gl) {
     console.warn(
       `WebGL Error: ${error}, Shader Program: ${
         activeProgram ? activeProgram.id : "unknown"
-      }`
+      }`,
     );
   }
 }
@@ -214,12 +222,7 @@ export const animateGraph = (ctx) => {
     });
 
   const { width, height } = getWidthAndHeight(ctx);
-  updateCameras(
-    ctx,
-    cameraUniformsGroupUpdater(ctx),
-    width,
-    height
-  );
+  updateCameras(ctx, cameraUniformsGroupUpdater(ctx), width, height);
 
   const { gl } = getCanvasAndGLContext(ctx);
 
@@ -252,7 +255,7 @@ export const animateGraph = (ctx) => {
   renderer.setRenderTarget(getPickerRenderTarget(ctx));
   renderer.render(nodePickerMesh, camera);
 
-  if (deviceHasMouse()) updatePickerColorThrottled(ctx);
+  if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
 
   requestAnimationFrame(() => animateGraph(ctx));
 };

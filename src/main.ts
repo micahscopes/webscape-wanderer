@@ -5,9 +5,20 @@ import navigation from "./navigation";
 
 import { defaultAttributes, getAttributes } from "./attributes";
 
-import { getEdgeIndexBuffer, getEdgeVisualizerMesh, getNodeIndexArray, getNodeVisualizerMesh, getThreeSetup, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, loadEdgeVertexArray, loadNodeVertexArray } from "./gpu/graph-viz";
+import {
+  getEdgeIndexBuffer,
+  getEdgeVisualizerMesh,
+  getNodeIndexArray,
+  getNodeVisualizerMesh,
+  getThreeSetup,
+  initializeEdgeVisualizerUniforms,
+  initializeNodeVisualizerUniforms,
+  loadEdgeVertexArray,
+  loadNodeVertexArray,
+} from "./gpu/graph-viz";
 import { camelCase, kebabCase, snakeCase } from "lodash-es";
 import { getComponent, setComponent } from "./context";
+import { selectNodeAndDownstreamDependents } from "./selection";
 
 // import "./parameters";
 
@@ -20,10 +31,10 @@ class WebscapeWanderer extends HTMLElement {
 
   constructor() {
     super();
-    this.context = Symbol()
+    this.context = Symbol();
     setComponent(this.context, this);
-    if(getComponent(this.context) !== this) {
-      throw new Error("What the heck")
+    if (getComponent(this.context) !== this) {
+      throw new Error("What the heck");
     }
   }
 
@@ -48,7 +59,7 @@ class WebscapeWanderer extends HTMLElement {
     const ctx = this.context;
     // console.log("Custom element added to page.");
     const shadow = this.attachShadow({ mode: "open" });
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       :host {
         display: block;
@@ -68,7 +79,7 @@ class WebscapeWanderer extends HTMLElement {
     initializeRenderer(ctx);
     getThreeSetup(ctx);
     setupCameraInteraction(ctx);
-    setupSelection(ctx);
+    setupSelection(this);
 
     document.querySelector("html")?.classList.add("loading");
 
@@ -88,9 +99,16 @@ class WebscapeWanderer extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    // console.log(`Attribute ${name} has changed.`);
+    const ctx = this.context;
     const attrs = getAttributes(this.context);
     attrs[camelCase(name)] = newValue || defaultAttributes[camelCase(name)];
+
+    if (name == "focus") {
+      getGraphData(ctx).then(({ nodesByNavId }) => {
+        const node = nodesByNavId[newValue];
+        selectNodeAndDownstreamDependents(ctx, node, true);
+      });
+    }
   }
 }
 

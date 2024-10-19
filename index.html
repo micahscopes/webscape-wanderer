@@ -1,201 +1,208 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Webscape Wanderer</title>
-    <style>
-      :root {
-        /* --selected-color: lightcoral; */
-        --selected-color: rgb(204, 135, 187)
-      }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Webscape Wanderer</title>
+        <style>
+            :root {
+                /* --selected-color: lightcoral; */
+                --selected-color: rgb(204, 135, 187);
+            }
 
-      body {
-        display: flex;
-        margin: 0;
-        padding: 0;
-        background-color: rgb(27, 27, 27);
-        /* background-color: rgb(1,1,1); */
-        color: white;
-        font-family: sans-serif;
-        /* overflow: hidden; */
-      }
-      .overlay {
-        z-index: 2;
-        position: absolute;
-        margin: 1em;
-      }
-      html, canvas {
-        scroll-behavior: smooth;
-      }
-      #selection-info {
-        bottom: 0;
-        left: 0;
-        margin: 0.5em;
-        max-width: min(100vw, 90ch)
-      }
-      a, a:visited {
-        color: var(--selected-color);
-      }
-      
-    </style>
-    <style>
-      .cursor {
-        /* a circle centered around its position */
-        position: absolute;
-        z-index: 1;
-        transform: translate(-50%, 50%);
-        pointer-events: none;
-        transition: all 150ms linear, opacity 500ms ease-in-out;
-        /* transition: opacity 100ms ease-in-out; */
-        opacity: 0;
-      }
-      .cursor.focused {
-        opacity: 1;
-      }
-      .cursor.circle {
-        border-radius: 50%;
-        border-color: rgb(255, 255, 255);
-        border: 1px solid rgb(255, 255, 255);
-        /* background-color: white; */
-      }
-      .hovered-cursor {
-        width: 1em;
-        height: 1em;
-        /* border: solid rgba(245, 245, 245, 0.5) 1px; */
-        border: solid white 1px;
-        /* background-color: rgba(255, 255, 255, 0.498); */
-        /* background-color: aqua; */
-        /* mix-blend-mode: overlay; */
-        /* filter: blur(0.5em); */
-        border-radius: 50%;
-      }
-      .hovered-tooltip {
-        transform: initial;
-      }
-      .hovered-tooltip > * {
-        color: white;
-        left: 3em;
-        top: -1em;
-        position: relative;
-        /* background-color: black; */
-        font-weight: bold;
-        text-shadow: 0 0 0.5em rgba(0, 0, 0, 0.5);
-      }
-      .selected-cursor {
-        display: none;
+            body {
+                display: flex;
+                margin: 0;
+                padding: 0;
+                background-color: rgb(27, 27, 27);
+                /* background-color: rgb(1,1,1); */
+                color: white;
+                font-family: sans-serif;
+                /* overflow: hidden; */
+            }
+            .overlay {
+                z-index: 2;
+                position: absolute;
+                margin: 1em;
+            }
+            html,
+            canvas {
+                scroll-behavior: smooth;
+            }
+            #selection-info {
+                bottom: 0;
+                left: 0;
+                margin: 0.5em;
+                max-width: min(100vw, 90ch);
+            }
+            a,
+            a:visited {
+                color: var(--selected-color);
+            }
+        </style>
+        <style>
+            .cursor {
+                /* a circle centered around its position */
+                position: absolute;
+                z-index: 1;
+                transform: translate(-50%, 50%);
+                pointer-events: none;
+                transition:
+                    all 150ms linear,
+                    opacity 500ms ease-in-out;
+                /* transition: opacity 100ms ease-in-out; */
+                opacity: 0;
+            }
+            .cursor.focused {
+                opacity: 1;
+            }
+            .cursor.circle {
+                border-radius: 50%;
+                border-color: rgb(255, 255, 255);
+                border: 1px solid rgb(255, 255, 255);
+                /* background-color: white; */
+            }
+            .hovered-cursor {
+                width: 1em;
+                height: 1em;
+                /* border: solid rgba(245, 245, 245, 0.5) 1px; */
+                border: solid white 1px;
+                /* background-color: rgba(255, 255, 255, 0.498); */
+                /* background-color: aqua; */
+                /* mix-blend-mode: overlay; */
+                /* filter: blur(0.5em); */
+                border-radius: 50%;
+            }
+            .hovered-tooltip {
+                transform: initial;
+            }
+            .hovered-tooltip > * {
+                color: white;
+                left: 3em;
+                top: -1em;
+                position: relative;
+                /* background-color: black; */
+                font-weight: bold;
+                text-shadow: 0 0 0.5em rgba(0, 0, 0, 0.5);
+            }
+            .selected-cursor {
+                display: none;
 
-        width: 0.5em;
-        height: 0.5em;
-        border: solid rgba(255, 255, 255, 0.163) 1px;
-        border-radius: 100%;
-        background-color: rgb(163, 163, 163);
-        mix-blend-mode: overlay;
-        filter: saturate(1.5);
-      }
-    </style>
-    <style id="debug-style">
-      html:not(.debug) .debug {
-        display: none;
-      }
-      html .debug {
-        background-color: darkslateblue;
-        border: 1px solid aqua;
-        padding: 0.5em;
-      }
-    </style>
-    <style>
-      .project {
-        display: flex;
-        flex-direction: column;
-        padding: 0.25em 0.5em;
-      }
-      .project > .h3 {
-        margin-block-start: 0.25em !important;
-      }
-      .description {
-        max-width: 90ch;
-      }
-      .links {
-        margin-top: 1em;
-        display: flex;
-        grid-auto-columns: auto;
-        align-items: center;
-      }
-      .links > :not(:last-child):after {
-        content: "•";
-        margin: 0 0.5em;
-      }
-      .owner {
-        display: flex;
-        align-items: center;
-        position: relative;
-      }
-      .owner > :first-child {
-        margin-right: 0.5em;
-      }
-      .avatar-container, .avatar, .avatar-stroke {
-        width: 32px;
-        height: 32px;
-      }
-      .avatar-container {
-        position: relative;
-      }
-      .owner .avatar-stroke {
-        filter: invert(100%) brightness(10000%);
-        position: absolute;
-        z-index: 1;
-        border-radius: 50%;
-      }
-      .owner .avatar {
-        transform: scale(0.9);
-        transform-origin: center;
-        position: absolute;
-        z-index: 2;
-        border-radius: 50%;
-        margin-right: 8px;
-      }
-    </style>
-    <style>
-      #loading-indicator {
-        /* display: none; */
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        text-align: center;
-        transform: translate(-50%, -50%);
-        z-index: 100;
-        pointer-events: none;
+                width: 0.5em;
+                height: 0.5em;
+                border: solid rgba(255, 255, 255, 0.163) 1px;
+                border-radius: 100%;
+                background-color: rgb(163, 163, 163);
+                mix-blend-mode: overlay;
+                filter: saturate(1.5);
+            }
+        </style>
+        <style id="debug-style">
+            html:not(.debug) .debug {
+                display: none;
+            }
+            html .debug {
+                background-color: darkslateblue;
+                border: 1px solid aqua;
+                padding: 0.5em;
+            }
+        </style>
+        <style>
+            .project {
+                display: flex;
+                flex-direction: column;
+                padding: 0.25em 0.5em;
+            }
+            .project > .h3 {
+                margin-block-start: 0.25em !important;
+            }
+            .description {
+                max-width: 90ch;
+            }
+            .links {
+                margin-top: 1em;
+                display: flex;
+                grid-auto-columns: auto;
+                align-items: center;
+            }
+            .links > :not(:last-child):after {
+                content: "•";
+                margin: 0 0.5em;
+            }
+            .owner {
+                display: flex;
+                align-items: center;
+                position: relative;
+            }
+            .owner > :first-child {
+                margin-right: 0.5em;
+            }
+            .avatar-container,
+            .avatar,
+            .avatar-stroke {
+                width: 32px;
+                height: 32px;
+            }
+            .avatar-container {
+                position: relative;
+            }
+            .owner .avatar-stroke {
+                filter: invert(100%) brightness(10000%);
+                position: absolute;
+                z-index: 1;
+                border-radius: 50%;
+            }
+            .owner .avatar {
+                transform: scale(0.9);
+                transform-origin: center;
+                position: absolute;
+                z-index: 2;
+                border-radius: 50%;
+                margin-right: 8px;
+            }
+        </style>
+        <style>
+            #loading-indicator {
+                /* display: none; */
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                text-align: center;
+                transform: translate(-50%, -50%);
+                z-index: 100;
+                pointer-events: none;
 
-        opacity: 0;
-        transition: opacity 500ms ease-in-out;
-      }
-      html.loading #loading-indicator {
-        /* display: block; */
-        opacity: 1;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="loading-indicator">
-      <h1>Loading...</h1>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
-    <script type="module">
-      import {randomGraphData} from '/src/main.ts';
-      window.addEventListener('DOMContentLoaded', () => {
-        for (let wanderer of document.querySelectorAll('webscape-wanderer')) {
-          wanderer.graphData = randomGraphData(5, 10);
-          setTimeout(() => {
-            wanderer.graphData = randomGraphData(200, 2000);
-          }, 3000)
-        }
-      });
-    </script>
-    <div id="selection-info" class="overlay"></div>
-    <div id="controls"></div>
-    <webscape-wanderer edge-scale="8"></webscape-wanderer>
-    <webscape-wanderer edge-scale="2"></webscape-wanderer>
-    <webscape-wanderer edge-fog="0"></webscape-wanderer>
-  </body>
+                opacity: 0;
+                transition: opacity 500ms ease-in-out;
+            }
+            html.loading #loading-indicator {
+                /* display: block; */
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="loading-indicator">
+            <h1>Loading...</h1>
+        </div>
+        <script type="module" src="/src/main.ts"></script>
+        <script type="module">
+            import { randomGraphData } from "/src/main.ts";
+            window.addEventListener("DOMContentLoaded", () => {
+                for (let wanderer of document.querySelectorAll(
+                    "webscape-wanderer",
+                )) {
+                    wanderer.graphData = randomGraphData(5, 10);
+                    setTimeout(() => {
+                        wanderer.graphData = randomGraphData(200, 2000);
+                    }, 3000000);
+                }
+            });
+        </script>
+        <div id="selection-info" class="overlay"></div>
+        <div id="controls"></div>
+        <webscape-wanderer edge-scale="8"></webscape-wanderer>
+        <webscape-wanderer edge-scale="2"></webscape-wanderer>
+        <webscape-wanderer edge-fog="0"></webscape-wanderer>
+    </body>
 </html>
