@@ -1,4 +1,4 @@
-#version 300 es
+// #version 300 es
 // #extension GL_EXT_frag_depth : enable
 precision highp float;
 // precision mediump float;

@@ -1,4 +1,4 @@
-#version 300 es
+// #version 300 es
 precision highp float;
 precision highp int;
 
@@ -19,13 +19,13 @@ layout(location = 4) out vec4 emphasis;
 uniform vec2 bufferDimensions;
 
 void main() {
-  position = vec4(vUpdatedPosition, 1.0);
-  
-  // if (vertexID == 0 || vertexID == int(bufferDimensions.x*bufferDimensions.x)-9) {
-  //   position = vec4(0,0.5,0.5,1);
-  // }
+    position = vec4(vUpdatedPosition, 1.0);
 
-  color = vUpdatedColor;
-  size = vec4(vUpdatedSize,0,0,1);
-  emphasis = vec4(vUpdatedEmphasis,0,0,1);
+    // if (vertexID == 0 || vertexID == int(bufferDimensions.x*bufferDimensions.x)-9) {
+    //   position = vec4(0,0.5,0.5,1);
+    // }
+
+    color = vUpdatedColor;
+    size = vec4(vUpdatedSize, 0, 0, 1);
+    emphasis = vec4(vUpdatedEmphasis, 0, 0, 1);
 }

@@ -14,6 +14,8 @@ import {
   Object3D,
   TorusKnotGeometry,
   TorusGeometry,
+  ObjectLoader,
+  GLSL3,
 } from "three";
 
 import nodeVs from "../shaders/node.vert";
@@ -41,23 +43,46 @@ import {
 } from "./interpolation";
 import moize from "moize";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
-import heartObjUrl from "../../data/heart.obj";
+// import heartObjUrl from "../../data/heart.obj";
+import heartObjString from "../../data/heart.obj?raw";
 
-const objLoader = new OBJLoader();
-// const heart = await new OBJLoader(heartObjUrl)
-// const loadHeart = () => new Promise((resolve, reject) => {
-// })
-// const heart = await objLoader.loadAsync(heartObjUrl)
-// let geo = (heart.children[0] as Mesh).geometry
-// console.log(geo)
+// heartGeometry.scale(0.1, 0.1, 0.1);
+// const loadHeart = () => new Promise((resolve, reject) => {});
+// const heart = await objLoader.loadAsync(heartObjUrl);
+// let geo = (heart.children[0] as Mesh).geometry;
+// console.log(geo);
 
-export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "heart") => {
   let geo;
 
   if (shape === "box") {
     geo = new BoxGeometry(1, 1, 1);
   } else if (shape === "heart") {
-    geo = new TorusKnotGeometry(1, 0.3, 128, 64);
+    const objLoader = new OBJLoader();
+    const heart = objLoader.parse(heartObjString);
+    const heartGeometry = heart.children[0].geometry;
+    if (!heartGeometry.index) {
+      const indices = [];
+      const position = heartGeometry.attributes.position;
+      for (let i = 0; i < position.count; i += 3) {
+        indices.push(i, i + 1, i + 2);
+      }
+      heartGeometry.setIndex(indices);
+    }
+    let scaleFactor = 0.25;
+    heartGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
+    console.log(heartGeometry);
+    geo = heartGeometry;
+    // const positions = heartGeometry.attributes.position.array;
+    // for (let i = 0; i < positions.length; i++) {
+    //   positions[i] *= 1.0; // Scale down by a factor of 10
+    // }
+    // heartGeometry.attributes.position.needsUpdate = true;
+    // heartGeometry.computeBoundingSphere();
+
+    let forComparison = new TorusKnotGeometry(1, 0.3, 128, 64, 3, 5);
+    console.log(forComparison);
+    // geo = forComparison;
   } else if (shape === "brain") {
     geo = new TorusKnotGeometry(1, 0.3, 128, 64, 3, 5);
   }
@@ -72,6 +97,7 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
 
   geometry.setAttribute("vertexPosition", geo.attributes.position);
   geometry.setAttribute("vertexNormal", geo.attributes.normal);
+
   // geometry.setIndex(cells.flat());
   geometry.setIndex(geo.index);
   geometry.setAttribute(
@@ -82,12 +108,14 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
   const material = new RawShaderMaterial({
     vertexShader: nodeVs,
     fragmentShader: nodeFs,
+    glslVersion: GLSL3,
   });
 
   const pickerMaterial = new RawShaderMaterial({
     vertexShader: nodePickerVs,
     fragmentShader: nodePickerFs,
     depthWrite: true,
+    glslVersion: GLSL3,
   });
 
   geometry.setAttribute(
@@ -215,6 +243,7 @@ export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
     depthFunc: LessEqualDepth,
     transparent: true,
     // side: DoubleSide,
+    glslVersion: GLSL3,
   });
 
   return new Mesh(geometry, material);
@@ -270,6 +299,7 @@ export const initializeEdgeVisualizerUniforms = (ctx) => {
 import { Vector2 } from "three";
 import { getAttributes } from "../attributes";
 import { getGraphData } from "../data";
+import WebGPURenderer from "three/examples/jsm/renderers/webgpu/WebGPURenderer.js";
 const viewport = new Vector2();
 
 export const updateEdgeVisualizerUniforms = (ctx) => {
@@ -320,6 +350,10 @@ export const getThreeSetup = moize.infinite((ctx) => {
     canvas,
     context: gl!,
   });
+
+  // const renderer = new WebGPURenderer({
+  //   canvas,
+  // });
 
   // renderer.debug.onShaderError(console.log);
 

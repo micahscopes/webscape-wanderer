@@ -1,11 +1,14 @@
+import { defineConfig } from "vite";
 import topLevelAwait from "vite-plugin-top-level-await";
-import { defineConfig, resolveBaseUrl, resolveEnvPrefix } from "vite";
-// import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import glsl from "vite-plugin-glsl";
 import wasm from "vite-plugin-wasm";
-import {resolve} from "path";
-// import ObjFileImport from 'unplugin-obj/vite';
+import { resolve } from "path";
+// const fs = require("fs");
+// const path = require("path");
+import fs from "fs";
+import path from "path";
 
+// Define your plugins once to reuse them
 const plugins = [
   topLevelAwait({
     promiseExportName: "__tla",
@@ -13,55 +16,76 @@ const plugins = [
   }),
   glsl(),
   wasm(),
-  // ObjFileImport(),
-  //nodePolyfills({
-  //  protocolImports: true,
-  //}),
 ];
 
-console.log('building......', resolve(__dirname,"src/main.ts"))
-
-export default defineConfig({
-  target: "es6",
-  plugins,
-  worker: {
-    format: "es",
+// Export a function that returns the configuration based on the mode
+export default defineConfig(({ mode }) => {
+  // Common configuration shared between builds
+  const commonConfig = {
+    target: "es6",
     plugins,
-  },
-  build: {
-    sourcemap: true,
-    lib: {
-      // Could also be a dictionary or array of multiple entry points
-      entry: resolve(__dirname,"src/main.ts"),
-      name: "WebscapeWanderer",
-      // the proper extensions will be added
-      fileName: "webscape-wanderer",
-      // format: "es",
-      // rollup: {
-      //   format: "es"
-      // }
+    worker: {
+      format: "es",
+      plugins,
     },
-  },
-  //base: "./", // this relies on `import.meta`, which doesn't work in workers on firefox/webkit
-  // base: "/webscape-wanderer/",
-  assetsInclude: ["**/*.obj"],
-  optimizeDeps: {
-    esbuildOptions: {
-      // Node.js global to browser globalThis
-      define: {
-        global: "globalThis",
+    assetsInclude: ["**/*.obj"],
+    optimizeDeps: {
+      esbuildOptions: {
+        define: {
+          global: "globalThis",
+        },
+      },
+      include: ["gpu-io"],
+    },
+    server: {
+      fs: {
+        allow: ["../router", "../gpu-io", "."],
       },
     },
-    include: [
-      // necessary because gpu-io only builds a UMD module
-      "gpu-io",
-    ],
-  },
-  server: {
-    fs: {
-      allow: ["../router", "../gpu-io", "."],
-    },
-  },
+  };
 
-
+  if (mode === "lib") {
+    // Configuration for building the library
+    return {
+      ...commonConfig,
+      build: {
+        sourcemap: true,
+        lib: {
+          entry: resolve(__dirname, "src/main.ts"),
+          name: "WebscapeWanderer",
+          fileName: "webscape-wanderer",
+        },
+      },
+    };
+  } else {
+    // Configuration for building the examples
+    return {
+      ...commonConfig,
+      build: {
+        rollupOptions: {
+          input: {
+            // Automatically include all HTML files in the ./examples directory
+            ...getExampleInputs(),
+          },
+        },
+      },
+    };
+  }
 });
+
+// Helper function to get all HTML files in the ./examples directory
+function getExampleInputs() {
+  const examplesDir = path.resolve(__dirname, "examples");
+  const exampleFiles = fs.readdirSync(examplesDir);
+
+  const inputs = {};
+
+  exampleFiles.forEach((file) => {
+    if (file.endsWith(".html")) {
+      const name = path.basename(file, ".html");
+      inputs[name] = path.resolve(examplesDir, file);
+    }
+  });
+
+  return inputs;
+}
