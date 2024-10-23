@@ -1,6 +1,6 @@
 import moize from "moize";
 import { getCanvasAndGLContext, getGPUComposer } from "./rendering";
-import { FLOAT, GPULayer, GPULayerType, GPULayerNumComponents, GPUProgram, INT } from "gpu-io";
+import { HALF_FLOAT, FLOAT, GPULayer, GPULayerType, GPULayerNumComponents, GPUProgram, INT } from "gpu-io";
 import { App } from "picogl";
 import { renderRGBProgram } from "gpu-io/dist/types/Programs";
 import { Texture } from "three";
@@ -12,8 +12,8 @@ export const hasEnoughFramebufferAttachments = moize(() => {
 })
 
 export const getLayers = (name, {
-  type = FLOAT as GPULayerType,
-  numComponents = 1 as GPULayerNumComponents, 
+  type = HALF_FLOAT as GPULayerType,
+  numComponents = 1 as GPULayerNumComponents,
   dimensions = 32,
 } = {}) => {
   const gpuComposer = getGPUComposer();
@@ -24,7 +24,7 @@ export const getLayers = (name, {
     type, dimensions, numComponents,
     numBuffers: 2,
   })
-  
+
   const target = new GPULayer(gpuComposer, {
     name: `target_${name}`,
     type, dimensions, numComponents,
@@ -33,7 +33,7 @@ export const getLayers = (name, {
 
   const targetTexture = new Texture()
   target.attachToThreeTexture(targetTexture)
-  
+
   const view = new GPULayer(gpuComposer, {
     name: `view_${name}`,
     type, dimensions, numComponents,
@@ -41,7 +41,7 @@ export const getLayers = (name, {
   })
   const viewTexture = new Texture()
   view.attachToThreeTexture(viewTexture)
-  
+
   return { current, target, view, viewTexture, targetTexture }
 }
 
