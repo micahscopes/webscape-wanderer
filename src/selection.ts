@@ -63,21 +63,24 @@ export const applyVisuals = async (
   const sizesLayer = getSizeLayers(ctx);
   const emphasisLayer = getEmphasisLayers(ctx);
 
-  // console.log(getDefaultSizes(sizeMap));
+  console.log(colorsTargetLayer.target);
 
-  colorsTargetLayer.target.setFromArray(colorData);
-  sizesLayer.target.setFromArray(sizeData);
-  emphasisLayer.target.setFromArray(new Float32Array(sizeData.length).fill(0));
+  colorsTargetLayer.target.value.array = colorData;
+  sizesLayer.target.value.array = sizeData;
+  emphasisLayer.target.value.array = new Float32Array(sizeData.length).fill(0);
+  colorsTargetLayer.target.value.needsUpdate = true;
+  sizesLayer.target.value.needsUpdate = true;
+  emphasisLayer.target.value.needsUpdate = true;
 
   if (immediate) {
-    colorsTargetLayer.current.setFromArray(colorData);
-    sizesLayer.current.setFromArray(sizeData);
-    emphasisLayer.current.setFromArray(
-      new Float32Array(sizeData.length).fill(0),
+    colorsTargetLayer.current.value.array = colorData;
+    sizesLayer.current.value.array = sizeData;
+    emphasisLayer.current.value.array = new Float32Array(sizeData.length).fill(
+      0,
     );
-    colorsTargetLayer.view.setFromArray(colorData);
-    sizesLayer.view.setFromArray(sizeData);
-    emphasisLayer.view.setFromArray(new Float32Array(sizeData.length).fill(0));
+    colorsTargetLayer.current.value.needsUpdate = true;
+    sizesLayer.current.value.needsUpdate = true;
+    emphasisLayer.current.value.needsUpdate = true;
   }
 
   // colors.targetData(colorData, { immediate });
@@ -101,30 +104,22 @@ export const applyVisualsToNode = async (
   const size = new Float32Array([sizeMap(defaultSizeMap(node))]);
   const epmhasis = new Float32Array([emphasis]);
 
-  // const colorBuffers = getColorBuffers();
-  // const sizeBuffers = getRadiusBuffers();
-  // const emphasisBuffers = getEmphasisBuffers();
-
-  // console.log('applying visuals to node', node, color, size, node.index)
-  // colorBuffers.targetData(color, { offset: node.index, immediate });
-  // sizeBuffers.targetData(size, { offset: node.index, immediate });
-  // emphasisBuffers.targetData(epmhasis, { offset: node.index, immediate });
-
   const colorsTargetLayer = getColorLayers(ctx);
   const sizesLayer = getSizeLayers(ctx);
   const emphasisLayer = getEmphasisLayers(ctx);
 
-  colorsTargetLayer.target.setAtIndex1D(node.index, color);
-  sizesLayer.target.setAtIndex1D(node.index, size);
-  emphasisLayer.target.setAtIndex1D(node.index, epmhasis);
+  const nodeOffset = node.index * 4;
+  colorsTargetLayer.target.value.array.set(color, nodeOffset);
+  sizesLayer.target.value.array.set(size, node.index);
+  emphasisLayer.target.value.array.set(epmhasis, node.index);
+  colorsTargetLayer.target.value.needsUpdate = true;
+  sizesLayer.target.value.needsUpdate = true;
+  emphasisLayer.target.value.needsUpdate = true;
 
   if (immediate) {
-    colorsTargetLayer.current.setAtIndex1D(node.index, color);
-    sizesLayer.current.setAtIndex1D(node.index, size);
-    emphasisLayer.current.setAtIndex1D(node.index, epmhasis);
-    colorsTargetLayer.view.setAtIndex1D(node.index, color);
-    sizesLayer.view.setAtIndex1D(node.index, size);
-    emphasisLayer.view.setAtIndex1D(node.index, epmhasis);
+    colorsTargetLayer.current.value.array.set(color, nodeOffset);
+    sizesLayer.current.value.array.set(size, node.index);
+    emphasisLayer.current.value.array.set(epmhasis, node.index);
   }
 };
 
@@ -333,6 +328,7 @@ import { getCanvasAndGLContext } from "./gpu/rendering";
 import { state } from "./state";
 import { getComponent } from "./context";
 import { graphDb } from "./get-workers";
+import { Vector4 } from "three";
 
 extend([namesPlugin]);
 
@@ -348,10 +344,6 @@ export const getSelectedColor = (ctx) => {
   // const color = colord(getComputedStyle(host).getPropertyValue('--selected-color')).toRgb();
   // console.log('selected color:', color)
   const color = state(ctx, "selectedColor", initSelectedColor).get();
-  return new Float32Array([
-    color.r / 255.0,
-    color.g / 255.0,
-    color.b / 255.0,
-    1.0,
-  ]);
+  // console.log("setting selected color to", color);
+  return [color.r / 255.0, color.g / 255.0, color.b / 255.0, 1.0];
 };

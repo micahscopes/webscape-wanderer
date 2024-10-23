@@ -35,21 +35,21 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
       value.owner = value.owner ? projectId(value.owner) : null;
       result[projectId(key)] = value;
     },
-    {}
+    {},
   );
   projectsData = transform(
     projectsData,
     (result, value, key) => {
       result[projectId(key)] = value;
     },
-    {}
+    {},
   );
   organizationsData = transform(
     organizationsData,
     (result, value, key) => {
       result[projectId(key)] = value;
     },
-    {}
+    {},
   );
 
   return { valueNetworkData, projectsData, organizationsData };
@@ -58,7 +58,14 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
 import valueNetworkData from "../data/valuenetwork.json";
 import projectsData from "../data/projects.json";
 import organizationsData from "../data/organizations.json";
-import { getEdgeVisualizerMesh, getNodeVisualizerMesh, initializeEdgeVisualizerUniforms, initializeNodeVisualizerUniforms, loadEdgeVertexArray, loadNodeVertexArray, updateEdgeVisualizerUniforms, updateNodeVisualizerUniforms } from "./gpu/graph-viz";
+import {
+  getEdgeVisualizerMesh,
+  getNodeVisualizerMesh,
+  // initializeEdgeVisualizerUniforms,
+  // initializeNodeVisualizerUniforms,
+  loadEdgeVertexArray,
+  loadNodeVertexArray,
+} from "./gpu/graph-viz";
 import { asyncState, state } from "./state";
 
 export const nodeScaleFn = (dependents) =>
@@ -86,7 +93,7 @@ export const makeNavId = (project) => {
 
 export const setGraphData = async (ctx, data) => {
   // check if the promise has already been resolved
-  let { set: setter } = asyncState(ctx, 'graphData');
+  let { set: setter } = asyncState(ctx, "graphData");
   setter(data);
 
   const { nodes, linkIndexPairs } = data;
@@ -100,18 +107,22 @@ export const setGraphData = async (ctx, data) => {
 
   // use node colors
   const colors = new Float32Array(nodes.flatMap(({ color }) => color));
-  console.log('setting colors', colors, 'to', getColorLayers(ctx))
-  getColorLayers(ctx).target.setFromArray(colors);
-  getColorLayers(ctx).current.setFromArray(colors);
+  console.log("setting colors", colors, "to", getColorLayers(ctx));
+  getColorLayers(ctx).current.value.array = colors;
+  getColorLayers(ctx).current.value.needsUpdate = true;
+  getColorLayers(ctx).target.value.array = colors;
+  getColorLayers(ctx).target.value.needsUpdate = true;
 
   // sizes from node sizes
   const nodeSizes = new Float32Array(nodes.length);
   for (let i = 0; i < nodeSizes.length; i++) {
     nodeSizes[i] = Math.sqrt(nodes[i].size) / 40;
   }
-  console.log('setting sizes', nodeSizes, 'to', getSizeLayers(ctx))
-  getSizeLayers(ctx).target.setFromArray(nodeSizes);
-  getSizeLayers(ctx).current.setFromArray(nodeSizes);
+  console.log("setting sizes", nodeSizes, "to", getSizeLayers(ctx));
+  getSizeLayers(ctx).current.value.array = nodeSizes;
+  getSizeLayers(ctx).current.value.needsUpdate = true;
+  getSizeLayers(ctx).target.value.array = nodeSizes;
+  getSizeLayers(ctx).target.value.needsUpdate = true;
 
   // initialize random node positions
   const scale = 40;
@@ -122,20 +133,27 @@ export const setGraphData = async (ctx, data) => {
   ];
   // const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
   const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint));
-  getPositionLayers(ctx).target.setFromArray(initialNodePositions);
-  getPositionLayers(ctx).current.setFromArray(initialNodePositions);
-
-  getEmphasisLayers(ctx).target.setFromArray(
-    new Float32Array(nodes.length).fill(0)
+  console.log(
+    "setting positions",
+    initialNodePositions,
+    "to",
+    getPositionLayers(ctx),
   );
-  getEmphasisLayers(ctx).current.setFromArray(
-    new Float32Array(nodes.length).fill(0)
-  );
+  getPositionLayers(ctx).current.value.array = initialNodePositions;
+  getPositionLayers(ctx).current.value.needsUpdate = true;
+  getPositionLayers(ctx).target.value.array = initialNodePositions;
+  getPositionLayers(ctx).target.value.needsUpdate = true;
 
+  const zeroEmphasis = new Float32Array(nodes.length).fill(0);
+  console.log("setting emphasis", zeroEmphasis, "to", getEmphasisLayers(ctx));
+  getEmphasisLayers(ctx).current.value.array = zeroEmphasis;
+  getEmphasisLayers(ctx).current.value.needsUpdate = true;
+  getEmphasisLayers(ctx).target.value.array = zeroEmphasis;
+  getEmphasisLayers(ctx).target.value.needsUpdate = true;
 };
 
 export const getGraphData = async (context) => {
-  return asyncState(context, 'graphData').get();
+  return asyncState(context, "graphData").get();
 };
 
 export const randomGraphData = (numNodes, numEdges) => {
@@ -172,8 +190,8 @@ export const randomGraphData = (numNodes, numEdges) => {
 };
 
 // TODO: provide RDF data interfaces
-export const dataFromGraph = ({nodes: simpleNodes, links: simpleLinks}) => {
-  const nodes = simpleNodes.map(({id}, index) => ({
+export const dataFromGraph = ({ nodes: simpleNodes, links: simpleLinks }) => {
+  const nodes = simpleNodes.map(({ id }, index) => ({
     index,
     id: `node://${id}`,
     size: 10,
@@ -182,8 +200,12 @@ export const dataFromGraph = ({nodes: simpleNodes, links: simpleLinks}) => {
   }));
 
   const links = simpleLinks.map((link) => {
-    const sourceIndex = nodes.findIndex(node => node.id === `node://${link.source}`);
-    const targetIndex = nodes.findIndex(node => node.id === `node://${link.target}`);
+    const sourceIndex = nodes.findIndex(
+      (node) => node.id === `node://${link.source}`,
+    );
+    const targetIndex = nodes.findIndex(
+      (node) => node.id === `node://${link.target}`,
+    );
     return {
       sourceIndex,
       targetIndex,
@@ -207,7 +229,7 @@ export const randomTreesData = (
   numLevels,
   minChildren,
   maxChildren,
-  maxNodes
+  maxNodes,
 ) => {
   const nodes = [];
   const links = [];
@@ -251,7 +273,7 @@ export const randomTreesData = (
     addNode(
       undefined,
       0,
-      [Math.random(), Math.random(), Math.random()].map((x) => x * 2 - 1)
+      [Math.random(), Math.random(), Math.random()].map((x) => x * 2 - 1),
     );
   }
 
@@ -269,7 +291,7 @@ let engine: GraphLayoutSimulator;
 
 export const getLayoutSimulator = moize.infinite(
   async (context, graphData) => {
-    const D3ForceLayout = (await graphLayout(context)).D3ForceLayout
+    const D3ForceLayout = (await graphLayout(context)).D3ForceLayout;
     engine = await new D3ForceLayout(graphData);
     engine.start();
     return engine;
@@ -278,7 +300,7 @@ export const getLayoutSimulator = moize.infinite(
     onExpire: () => {
       engine.stop();
     },
-  }
+  },
 );
 
 export const getLatestTargetPositions = moize((ctx) => {
@@ -293,14 +315,13 @@ export const updateNodePositionTargets = async (context) => {
   sim.getPositions(
     proxy((positions) => {
       if (positions.length > 0) {
+        // console.log("setting positions", positions);
         state(context, "latestTargetPositions").set(positions);
-        if (hasEnoughFramebufferAttachments(context)) {
-          getPositionLayers(context).target.setFromArray(positions);
-        } else {
-          getPositionLayers(context).view.setFromArray(positions);
-        }
+        getPositionLayers(context).target.value.array = positions;
+        getPositionLayers(context).target.value.needsUpdate = true;
+        // getPositionLayers(context).target.update();
       }
-    })
+    }),
   );
 };
 

@@ -2,7 +2,6 @@ import { expose } from "comlink";
 import { transfer } from "./transfer-but-not-on-webkit";
 import createCamera from "inertial-turntable-camera";
 import moize from "moize";
-import * as TWEEN from "@tweenjs/tween.js";
 import requestAnimationFrame from "raf";
 
 const getGlobalCamera = moize.infinite((ctx) => {
@@ -101,10 +100,6 @@ const updateCameras = (ctx, setCameraUniformBuffers, width, height) => {
     transfer(packedCameraParams, [packedCameraParams.buffer]),
   );
 };
-
-// const tween = tweenFactory().updateOnAnimationFrame();
-let centerTween: TWEEN.Tween<any>;
-let distanceTween: TWEEN.Tween<any>;
 
 // const c = globalCamera.params.center
 const getCenterSpringDamper = (ctx) =>

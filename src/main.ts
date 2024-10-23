@@ -11,8 +11,8 @@ import {
   getNodeIndexArray,
   getNodeVisualizerMesh,
   getThreeSetup,
-  initializeEdgeVisualizerUniforms,
-  initializeNodeVisualizerUniforms,
+  // initializeEdgeVisualizerUniforms,
+  // initializeNodeVisualizerUniforms,
   loadEdgeVertexArray,
   loadNodeVertexArray,
 } from "./gpu/graph-viz";

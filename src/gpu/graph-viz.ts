@@ -1,7 +1,6 @@
 import {
   Scene,
   PerspectiveCamera,
-  WebGLRenderer,
   InstancedBufferGeometry,
   InstancedBufferAttribute,
   RawShaderMaterial,
@@ -16,51 +15,42 @@ import {
   TorusGeometry,
   ObjectLoader,
   GLSL3,
-} from "three";
+  WebGPURenderer,
+  vec4,
+  InstancedMesh,
+  PointLight,
+  DirectionalLight,
+  Light,
+} from "three/webgpu";
 
-import nodeVs from "../shaders/node.vert";
-import nodeFs from "../shaders/node.frag";
+// import nodeVs from "../shaders/node-vert.tsl";
+// import nodeFs from "../shaders/node-frag.tsl";
 
-import nodePickerVs from "../shaders/node-picker.vert";
-import nodePickerFs from "../shaders/node-picker.frag";
+// import nodePickerVs from "../shaders/node-picker-vert.tsl";
+// import nodePickerFs from "../shaders/node-picker-frag.tsl";
 
-import edgeVs from "../shaders/edge.vert";
-import edgeFs from "../shaders/edge.frag";
+// import edgeVs from "../shaders/edge-vert.tsl";
+// import edgeFs from "../shaders/edge-frag.tsl";
 
 import { getCanvasAndGLContext } from "./rendering";
-import { getCamerasUniformsGroup } from "./camera";
 import {
   deviceHasMouse,
   getCurrentlyHoveringIndex,
   getPointerPositionClip,
 } from "../interaction";
-import { getSelectedColor, getSelectedIndex } from "../selection";
-import {
-  getColorLayers,
-  getEmphasisLayers,
-  getPositionLayers,
-  getSizeLayers,
-} from "./interpolation";
 import moize from "moize";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+import { OBJLoader } from "three-obj-loader";
 // import heartObjUrl from "../../data/heart.obj";
 import heartObjString from "../../data/heart.obj?raw";
-import flowerObjString from "../../data/dandelion3.obj?raw";
 
-// heartGeometry.scale(0.1, 0.1, 0.1);
-// const loadHeart = () => new Promise((resolve, reject) => {});
-// const heart = await objLoader.loadAsync(heartObjUrl);
-// let geo = (heart.children[0] as Mesh).geometry;
-// console.log(geo);
-
-export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "flower") => {
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
   let geo;
 
   if (shape === "box") {
     geo = new BoxGeometry(1, 1, 1);
-  } else if (shape === "flower") {
+  } else if (shape === "heart") {
     const objLoader = new OBJLoader();
-    const heart = objLoader.parse(flowerObjString);
+    const heart = objLoader.parse(heartObjString);
     const heartGeometry = heart.children[0].geometry;
     if (!heartGeometry.index) {
       const indices = [];
@@ -70,7 +60,7 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "flower") => {
       }
       heartGeometry.setIndex(indices);
     }
-    let scaleFactor = 1;
+    let scaleFactor = 0.25;
     heartGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
     console.log(heartGeometry);
     geo = heartGeometry;
@@ -96,101 +86,27 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "flower") => {
 
   const geometry = new InstancedBufferGeometry();
 
-  geometry.setAttribute("vertexPosition", geo.attributes.position);
-  geometry.setAttribute("vertexNormal", geo.attributes.normal);
+  geometry.setAttribute("position", geo.attributes.position);
+  geometry.setAttribute("normal", geo.attributes.normal);
 
-  // geometry.setIndex(cells.flat());
   geometry.setIndex(geo.index);
   geometry.setAttribute(
     "index",
     new InstancedBufferAttribute(new Int32Array([]), 1),
   );
 
-  const material = new RawShaderMaterial({
-    vertexShader: nodeVs,
-    fragmentShader: nodeFs,
-    glslVersion: GLSL3,
-  });
-
-  const pickerMaterial = new RawShaderMaterial({
-    vertexShader: nodePickerVs,
-    fragmentShader: nodePickerFs,
-    depthWrite: true,
-    glslVersion: GLSL3,
-  });
-
   geometry.setAttribute(
     "index",
     new InstancedBufferAttribute(new Int32Array([1, 2, 3, 4]), 1),
   );
 
-  material.uniformsGroups = [getCamerasUniformsGroup(ctx)];
+  const { graphNodeMaterial, graphNodePickerMaterial } =
+    graphNodeMaterials(ctx);
 
-  const mesh = new Mesh(geometry, material);
-  const pickerMesh = new Mesh(geometry, pickerMaterial);
+  const mesh = new Mesh(geometry, graphNodeMaterial);
+  const pickerMesh = new Mesh(geometry, graphNodePickerMaterial);
   return { mesh, pickerMesh };
 });
-
-export const initializeNodeVisualizerUniforms = (ctx) => {
-  const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
-  mesh.material.uniforms = {
-    positionTexture: { value: getPositionLayers(ctx).viewTexture },
-    colorTexture: { value: getColorLayers(ctx).viewTexture },
-    sizeTexture: { value: getSizeLayers(ctx).viewTexture },
-    emphasisTexture: { value: getEmphasisLayers(ctx).viewTexture },
-    textureDimensions: {
-      value: [getColorLayers(ctx).view.width, getColorLayers(ctx).view.height],
-    },
-    mousePosition: { value: getPointerPositionClip(ctx) },
-    selectedIndex: { value: -1 },
-    selectedColor: { value: getSelectedColor(ctx) },
-    hoveringIndex: { value: getCurrentlyHoveringIndex(ctx) },
-    time: { value: performance.now() / 1000 },
-  };
-
-  const attrs = getAttributes(ctx);
-  Object.entries(attrs).forEach(([key, value]) => {
-    mesh.material.uniforms[key] = { value };
-  });
-
-  pickerMesh.material.uniforms = mesh.material.uniforms;
-
-  mesh.material.needsUpdate = true;
-  pickerMesh.material.needsUpdate = true;
-};
-
-export const updateNodeVisualizerUniforms = (ctx) => {
-  const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
-  const attrs = getAttributes(ctx);
-  for (const uniforms of [
-    mesh.material.uniforms,
-    pickerMesh.material.uniforms,
-  ]) {
-    uniforms.globalScale.value = attrs.globalScale;
-    uniforms.nodeScale.value = attrs.nodeScale;
-    uniforms.edgeScale.value = attrs.edgeScale;
-    uniforms.edgeFrequency.value = attrs.edgeFrequency;
-    uniforms.edgePulseSpeed.value = attrs.edgePulseSpeed;
-    uniforms.positionTexture.value = getPositionLayers(ctx).viewTexture;
-    uniforms.colorTexture.value = getColorLayers(ctx).viewTexture;
-    uniforms.sizeTexture.value = getSizeLayers(ctx).viewTexture;
-    uniforms.emphasisTexture.value = getEmphasisLayers(ctx).viewTexture;
-    uniforms.textureDimensions.value = [
-      getColorLayers(ctx).view.width,
-      getColorLayers(ctx).view.height,
-    ];
-    uniforms.mousePosition.value = getPointerPositionClip(ctx);
-    uniforms.selectedIndex.value = getSelectedIndex(ctx);
-    uniforms.selectedColor.value = getSelectedColor(ctx);
-    uniforms.hoveringIndex.value = getCurrentlyHoveringIndex(ctx);
-    uniforms.time.value = performance.now() / 1000;
-  }
-
-  Object.entries(attrs).forEach(([key, value]) => {
-    mesh.material.uniforms[key].value = value;
-    pickerMesh.material.uniforms[key].value = value;
-  });
-};
 
 export const getNodeIndexArray = moize.infinite((ctx, size) => {
   const nodeIndices = new Int32Array(size);
@@ -214,13 +130,6 @@ export const loadNodeVertexArray = (ctx, size) => {
 };
 
 export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
-  // const segX = 5;
-  // const segY = 1;
-  // const segmentOffsetGeometry = grid(segX, segY);
-  // segmentOffsetGeometry.positions = segmentOffsetGeometry.positions.map(
-  //   ([x, y]) => [x / segX, y / segY]
-  // );
-  // console.log('segmentOffsetGeometry', segmentOffsetGeometry)
   const segmentOffsetGeo = new CylinderGeometry(0.5, 0.5, 1, 4, 4, true);
 
   const geometry = new InstancedBufferGeometry();
@@ -233,21 +142,7 @@ export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
     new InstancedBufferAttribute(new Int32Array([1, 2, 3]), 2),
   );
 
-  // console.log('segmentOffsetGeometry', segmentOffsetGeometry)
-
-  const material = new RawShaderMaterial({
-    vertexShader: edgeVs,
-    fragmentShader: edgeFs,
-    uniforms: {},
-    depthTest: false, // deviceHasMouse() ? true : false,
-    depthWrite: true,
-    depthFunc: LessEqualDepth,
-    transparent: true,
-    // side: DoubleSide,
-    glslVersion: GLSL3,
-  });
-
-  return new Mesh(geometry, material);
+  return new Mesh(geometry, graphEdgeMaterial(ctx));
 });
 
 export const getEdgeIndexBuffer = moize.infinite((ctx, linkIndexPairs) => {
@@ -265,75 +160,19 @@ export const loadEdgeVertexArray = (ctx, edgeData) => {
   edgeVisualizerMesh.geometry.instanceCount = edgeData.length;
 };
 
-export const initializeEdgeVisualizerUniforms = (ctx) => {
-  const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
-  edgeVisualizerMesh.material.uniforms = {
-    positionTexture: { value: getPositionLayers(ctx).viewTexture },
-    colorTexture: { value: getColorLayers(ctx).viewTexture },
-    sizeTexture: { value: getSizeLayers(ctx).viewTexture },
-    nodeDepthTexture: { value: getNodeDepthRenderTarget(ctx).depthTexture },
-    emphasisTexture: { value: getEmphasisLayers(ctx).viewTexture },
-    textureDimensions: {
-      value: [
-        getColorLayers(ctx).current.width,
-        getColorLayers(ctx).current.height,
-      ],
-    },
-    mousePosition: { value: getPointerPositionClip(ctx) },
-    selectedIndex: { value: getSelectedIndex(ctx) },
-    selectedColor: { value: getSelectedColor(ctx) },
-    hoveringIndex: { value: getCurrentlyHoveringIndex(ctx) },
-    time: { value: performance.now() / 1000 },
-    viewport: { value: [0, 0] },
-    devicePixelRatio: { value: window.devicePixelRatio },
-  };
-
-  const attrs = getAttributes(ctx);
-  Object.entries(attrs).forEach(([key, value]) => {
-    edgeVisualizerMesh.material.uniforms[key] = { value };
-  });
-
-  edgeVisualizerMesh.material.uniformsGroups = [getCamerasUniformsGroup(ctx)];
-  edgeVisualizerMesh.material.needsUpdate = true;
-};
-
-import { Vector2 } from "three";
 import { getAttributes } from "../attributes";
 import { getGraphData } from "../data";
-import WebGPURenderer from "three/examples/jsm/renderers/webgpu/WebGPURenderer.js";
-const viewport = new Vector2();
+import {
+  MeshBasicNodeMaterial,
+  MeshStandardNodeMaterial,
+  NodeMaterial,
+  uniform,
+  Vector2,
+} from "three/webgpu";
+import { graphNodeMaterials } from "../shaders/graph-node.tsl";
 
-export const updateEdgeVisualizerUniforms = (ctx) => {
-  const { renderer } = getThreeSetup(ctx);
-  renderer.getSize(viewport);
-  const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
-  for (const uniforms of [edgeVisualizerMesh.material.uniforms]) {
-    uniforms.positionTexture.value = getPositionLayers(ctx).viewTexture;
-    uniforms.colorTexture.value = getColorLayers(ctx).viewTexture;
-    uniforms.sizeTexture.value = getSizeLayers(ctx).viewTexture;
-    uniforms.emphasisTexture.value = getEmphasisLayers(ctx).viewTexture;
-    uniforms.textureDimensions.value = [
-      getColorLayers(ctx).view.width,
-      getColorLayers(ctx).view.height,
-    ];
-    uniforms.nodeDepthTexture.value =
-      getNodeDepthRenderTarget(ctx).depthTexture;
-    uniforms.mousePosition.value = getPointerPositionClip(ctx);
-    uniforms.selectedIndex.value = getSelectedIndex(ctx);
-    uniforms.selectedColor.value = getSelectedColor(ctx);
-    uniforms.hoveringIndex.value = getCurrentlyHoveringIndex(ctx);
-    uniforms.time.value = performance.now() / 1000;
-    uniforms.viewport.value = viewport.toArray();
-  }
-
-  const attrs = getAttributes(ctx);
-  Object.entries(attrs).forEach(([key, value]) => {
-    edgeVisualizerMesh.material.uniforms[key].value = value;
-  });
-};
-
+import { graphEdgeMaterial } from "../shaders/graph-edge.tsl";
 // Initialize Three.js scene, camera and renderer
-
 export const getThreeSetup = moize.infinite((ctx) => {
   const { canvas, gl } = getCanvasAndGLContext(ctx);
   const scene = new Scene();
@@ -345,18 +184,13 @@ export const getThreeSetup = moize.infinite((ctx) => {
     0.5,
     1000,
   );
-  camera.position.z = 50;
+  camera.position.z = 10;
+  const light = new DirectionalLight(0xffffff, 2);
+  scene.add(light);
 
-  const renderer = new WebGLRenderer({
+  const renderer = new WebGPURenderer({
     canvas,
-    context: gl!,
   });
-
-  // const renderer = new WebGPURenderer({
-  //   canvas,
-  // });
-
-  // renderer.debug.onShaderError(console.log);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);

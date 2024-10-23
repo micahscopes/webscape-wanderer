@@ -1,7 +1,7 @@
 import moize from "moize";
 import {
   cameraUniformsGroupUpdater,
-  updateCamerasUniformsGroup,
+  // updateCamerasUniformsGroup,
 } from "./camera";
 import {
   deviceHasMouse,
@@ -17,29 +17,27 @@ import {
 } from "../interaction";
 import { colord } from "colord";
 import { getSelectedNode } from "../selection";
-import { FLOAT, GPUComposer, copyProgram } from "gpu-io";
+// import { FLOAT, GPUComposer, copyProgram } from "gpu-io";
 import {
   getColorLayers,
   getEmphasisLayers,
-  getInterpolationProgram,
+  // getInterpolationProgram,
   getPositionLayers,
   getSizeLayers,
   hasEnoughFramebufferAttachments,
+  interpolate,
 } from "./interpolation";
-import { renderAmplitudeProgram, renderRGBProgram } from "gpu-io";
+// import { renderAmplitudeProgram, renderRGBProgram } from "gpu-io";
 import {
   getNodeDepthRenderTarget,
   getNodeVisualizerMesh,
   getPickerRenderTarget,
   getThreeSetup,
-  initializeEdgeVisualizerUniforms,
-  initializeNodeVisualizerUniforms,
-  updateEdgeVisualizerUniforms,
-  updateNodeVisualizerUniforms,
 } from "./graph-viz";
 import { getGraphData, updateNodePositionTargets } from "../data";
 import { state } from "../state";
 import { getComponent } from "../context";
+import { getUniforms, updateUniforms } from "./uniforms";
 
 let drawEdges = true;
 let drawNodes = true;
@@ -97,12 +95,7 @@ export const setCanvas = (ctx, newCanvas: HTMLCanvasElement | null = null) => {
 };
 
 export const getCanvasAndGLContext = moize.infinite((ctx) => {
-  // setCanvas(ctx);
-
   const canvas = state(ctx, "canvas").get();
-
-  // const canvas = document.createElement('canvas')
-  // document.body.appendChild(canvas);
 
   const gl = canvas.getContext("webgl2", {
     powerPreference: "high-performance",
@@ -117,12 +110,6 @@ export const getCanvasAndGLContext = moize.infinite((ctx) => {
   return { canvas, gl };
 });
 
-export const getGPUComposer = moize.infinite((ctx) => {
-  const { renderer } = getThreeSetup(ctx);
-
-  return GPUComposer.initWithThreeRenderer(renderer);
-});
-
 export const fillCanvasToWindow = (ctx) => {
   // const app = getPicoApp();
   const { canvas } = getCanvasAndGLContext(ctx);
@@ -130,16 +117,10 @@ export const fillCanvasToWindow = (ctx) => {
   const { width, height, clientWidth, clientHeight } = getWidthAndHeight(ctx);
   const component = getComponent(ctx);
 
-  // console.log('resizing canvas to', width, height, 'px')
   renderer.setSize(clientWidth, clientHeight);
   getPickerRenderTarget(ctx).setSize(clientWidth, clientHeight);
   getNodeDepthRenderTarget(ctx).setSize(width, height);
   globalCamera(ctx).resize(width / height);
-  // canvas.style.position = "absolute";
-  // canvas.style.top = "0px";
-  // canvas.style.left = "0px";
-  // canvas.style.width = "100%";
-  // canvas.style.height = "100%";
 };
 
 function checkWebGLError(gl) {
@@ -153,65 +134,14 @@ function checkWebGLError(gl) {
     );
   }
 }
-
-// const debugPositions = renderRGBProgram(getGPUComposer(), {
-//     name: 'renderPositions',
-//     type: FLOAT,
-//   })
-
-// const debugNoise = renderAmplitudeProgram(getGPUComposer(), {
-//     name: 'renderNoise',
-//     type: FLOAT,
-//     components: 'x',
-//   })
-
-// fillCanvasToWindow();
-
-// const copy = copyProgram(getGPUComposer(), {
-//   name: 'copy',
-//   type: FLOAT,
-// })
-
 export const initializeRenderer = (ctx) => {
-  initializeNodeVisualizerUniforms(ctx);
-  initializeEdgeVisualizerUniforms(ctx);
+  getUniforms(ctx);
 };
-
-// const {gl} = getCanvasAndGLContext();
-
-const interpolate = (ctx) => {
-  const gpuComposer = getGPUComposer(ctx);
-  gpuComposer.undoThreeState();
-
-  const interpolationLayers = [
-    getPositionLayers(ctx),
-    getColorLayers(ctx),
-    getSizeLayers(ctx),
-    getEmphasisLayers(ctx),
-  ];
-  const interpolationProgram = getInterpolationProgram(ctx);
-
-  gpuComposer.step({
-    program: interpolationProgram,
-    input: interpolationLayers.flatMap((layer) => [
-      layer.target,
-      layer.current,
-    ]),
-    output: interpolationLayers.flatMap((layer) => [layer.current, layer.view]),
-  });
-
-  gpuComposer.resetThreeState();
-};
-
-//   updateCameras(
-//     updateCamerasUniformsGroup,
-//     window.innerWidth,
-//     window.innerHeight,
-//   );
 
 // no need to get the picker pixel every frame
 export const animateGraph = (ctx) => {
   // clear the width/height cache
+  updateUniforms(ctx);
   getWidthAndHeight.remove(ctx);
 
   updateNodePositionTargets(ctx);
@@ -230,10 +160,6 @@ export const animateGraph = (ctx) => {
 
   const { gl } = getCanvasAndGLContext(ctx);
 
-  if (hasEnoughFramebufferAttachments(ctx)) {
-    interpolate(ctx);
-  }
-
   fillCanvasToWindow(ctx);
 
   const {
@@ -245,19 +171,14 @@ export const animateGraph = (ctx) => {
     edgeVisualizerMesh,
   } = getThreeSetup(ctx);
 
-  updateNodeVisualizerUniforms(ctx);
-  updateEdgeVisualizerUniforms(ctx);
-
-  if (nodeVisualizerMesh.material.depthTest) {
-    renderer.setRenderTarget(getNodeDepthRenderTarget(ctx));
-    renderer.render(nodeVisualizerMesh, camera);
-  }
-
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
 
   renderer.setRenderTarget(getPickerRenderTarget(ctx));
   renderer.render(nodePickerMesh, camera);
+
+  interpolate(ctx, [getPositionLayers(ctx), getColorLayers(ctx)]);
+  interpolate(ctx, [getSizeLayers(ctx), getEmphasisLayers(ctx)]);
 
   if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
 

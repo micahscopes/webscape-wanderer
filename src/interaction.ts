@@ -400,6 +400,7 @@ export const checkPickerSync = (ctx) => {
 };
 
 export const updatePickerColor = moize.infinite((ctx) => () => {
+  // return;
   // console.log("updating picker color");
   // return
   const p = pickerState(ctx);
@@ -421,42 +422,54 @@ export const updatePickerColor = moize.infinite((ctx) => () => {
     const pointerPosition = getPointerPositionPicker(ctx);
 
     const pickerRenderTarget = getPickerRenderTarget(ctx);
-    renderer.readRenderTargetPixels(
-      pickerRenderTarget,
-      ...pointerPosition,
-      1,
-      1,
-      pickedColor,
-    );
-    gl.flush();
-    const overIndex = getNodeIndexFromPickerColor(pickedColor);
-    // if (lastOverIndex !== overIndex) {
-    setTimeout(() => {
-      canvas.dispatchEvent(
-        new CustomEvent("hover", {
-          detail: {
-            wasHoveredIndex: lastOverIndex,
-            nowHoveredIndex: overIndex,
-          },
-        }),
-      );
-    }, 1);
+    if (
+      pointerPosition[0] >= 0 &&
+      pointerPosition[0] < pickerRenderTarget.width &&
+      pointerPosition[1] >= 0 &&
+      pointerPosition[1] < pickerRenderTarget.height
+    ) {
+      renderer
+        .readRenderTargetPixelsAsync(
+          pickerRenderTarget,
+          ...pointerPosition,
+          1,
+          1,
+        )
+        .then((newPickedColor) => {
+          gl.flush();
+          for (let i = 0; i < 4; i++) {
+            pickedColor[i] = newPickedColor[i];
+          }
+          const overIndex = getNodeIndexFromPickerColor(pickedColor);
+          // if (lastOverIndex !== overIndex) {
+          setTimeout(() => {
+            canvas.dispatchEvent(
+              new CustomEvent("hover", {
+                detail: {
+                  wasHoveredIndex: lastOverIndex,
+                  nowHoveredIndex: overIndex,
+                },
+              }),
+            );
+          }, 1);
 
-    if (overIndex > -1) {
-      setTimeout(() => {
-        canvas.dispatchEvent(
-          new CustomEvent("hoveron", {
-            detail: {
-              wasHoveredIndex: lastOverIndex,
-              nowHoveredIndex: overIndex,
-            },
-          }),
-        );
-      }, 10);
+          if (overIndex > -1) {
+            setTimeout(() => {
+              canvas.dispatchEvent(
+                new CustomEvent("hoveron", {
+                  detail: {
+                    wasHoveredIndex: lastOverIndex,
+                    nowHoveredIndex: overIndex,
+                  },
+                }),
+              );
+            }, 10);
+          }
+
+          // }
+          lastOverIndex = overIndex;
+        });
     }
-
-    // }
-    lastOverIndex = overIndex;
   }
 });
 

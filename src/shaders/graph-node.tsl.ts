@@ -1,0 +1,123 @@
+import {
+  vec4,
+  instanceIndex,
+  storage,
+  MeshBasicNodeMaterial,
+  vec3,
+  PointsNodeMaterial,
+  MeshStandardNodeMaterial,
+  positionLocal,
+  positionWorld,
+  positionGeometry,
+  normalGeometry,
+  normalLocal,
+  min,
+  mix,
+  max,
+  distance,
+  length,
+  oneMinus,
+  attribute,
+  MeshPhongNodeMaterial,
+  MeshMatcapNodeMaterial,
+  Fn,
+} from "three/webgpu";
+import {
+  getColorLayers,
+  getPositionLayers,
+  getSizeLayers,
+  getEmphasisLayers,
+} from "../gpu/interpolation";
+import moize from "moize";
+import { getCamerasUniforms } from "../gpu/camera";
+import { getUniforms } from "../gpu/uniforms";
+import { computeFog, graphNodeGeometryComputerFn } from "./graph-common.tsl";
+import { desaturate } from "./desaturate.tsl";
+
+const instanceIdToColor = (instanceId) => {
+  const r = instanceId.add(1).bitAnd(0x0000ff).toFloat().div(255);
+  const g = instanceId.add(1).bitAnd(0x00ff00).shiftRight(8).toFloat().div(255);
+  const b = instanceId
+    .add(1)
+    .bitAnd(0xff0000)
+    .shiftRight(16)
+    .toFloat()
+    .div(255);
+
+  return vec4(r, g, b, 1.0);
+};
+
+export const graphNodeMaterials = (ctx) => {
+  // const id = instanceIndex;
+  const id = attribute("index");
+
+  const { fixedProjection, fixedView, distance } = getCamerasUniforms(ctx);
+  const {
+    selectedIndex,
+    selectedColor,
+    lol,
+    defaultFogBoundaryClipZ,
+    nodeFog,
+  } = getUniforms(ctx);
+  const positions = getPositionLayers(ctx);
+  const colors = getColorLayers(ctx);
+  const sizes = getSizeLayers(ctx);
+  const emphases = getEmphasisLayers(ctx);
+
+  const isSelected = id.equal(selectedIndex);
+  const anythingSelected = selectedIndex.greaterThan(-1);
+  const scale = sizes.current.element(id).add(sizes.target.element(id).mul(0));
+  // .mul(mix(1.0, 1.1, isSelected.toFloat()));
+  const scalePicker = max(scale, 0.05);
+
+  const geo = graphNodeGeometryComputerFn(ctx, {
+    nodePosition: positions.current
+      .element(id)
+      .add(positions.target.element(id).mul(0)),
+    // nodePosition: currentNodePosition,
+    scale,
+  });
+
+  const geoPicker = graphNodeGeometryComputerFn(ctx, {
+    nodePosition: positions.current.element(id),
+    scale: scalePicker,
+  });
+  let normal = fixedView.mul(fixedProjection).mul(normalLocal).normalize();
+
+  let color = colors.current.element(id).add(colors.target.element(id).mul(0));
+  // const selectedColor = vec4(1, 0, 1, 1);
+
+  const selectedNodePosition = positions.current.element(selectedIndex);
+  const selectedDistance = length(
+    positions.current.element(id).sub(selectedNodePosition),
+  );
+
+  let fog = min(
+    computeFog({
+      positionClipZ: geo.globalClipPosition.z,
+      fogBoundaryClipZ: defaultFogBoundaryClipZ,
+      distance,
+    }),
+    oneMinus(isSelected.toFloat()),
+  );
+  fog = min(fog, oneMinus(emphases.current.element(id)));
+  fog = mix(0.0, fog, nodeFog);
+
+  let newRgb = color.xyz.mul(mix(1.0, 0.5, fog));
+  newRgb = desaturate(newRgb, oneMinus(0.2).mul(fog));
+  color = vec4(newRgb, color.w);
+
+  const colorNode = mix(color, selectedColor, isSelected.toFloat());
+
+  return {
+    graphNodeMaterial: new MeshMatcapNodeMaterial({
+      vertexNode: geo.orthographicClipPosition,
+      colorNode: colorNode,
+    }),
+    graphNodePickerMaterial: new MeshBasicNodeMaterial({
+      vertexNode: geoPicker.orthographicClipPosition,
+      colorNode: instanceIdToColor(id),
+      depthWrite: true,
+    }),
+  };
+};

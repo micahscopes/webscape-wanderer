@@ -3,8 +3,6 @@ import topLevelAwait from "vite-plugin-top-level-await";
 import glsl from "vite-plugin-glsl";
 import wasm from "vite-plugin-wasm";
 import { resolve } from "path";
-// const fs = require("fs");
-// const path = require("path");
 import fs from "fs";
 import path from "path";
 
@@ -35,11 +33,23 @@ export default defineConfig(({ mode }) => {
           global: "globalThis",
         },
       },
-      include: ["gpu-io"],
+      include: ["gpu-io", "three"],
     },
     server: {
       fs: {
         allow: ["../router", "../gpu-io", "."],
+      },
+    },
+    resolve: {
+      alias: {
+        "three/webgpu": path.resolve(
+          __dirname,
+          "node_modules/three/build/three.webgpu",
+        ),
+        "three-obj-loader": path.resolve(
+          __dirname,
+          "node_modules/three/examples/jsm/loaders/OBJLoader.js",
+        ),
       },
     },
   };
@@ -61,6 +71,7 @@ export default defineConfig(({ mode }) => {
     // Configuration for building the examples
     return {
       ...commonConfig,
+      base: "/webscape-wanderer/",
       build: {
         rollupOptions: {
           input: {
@@ -69,6 +80,7 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+      publicDir: resolve(__dirname, "assets"),
     };
   }
 });

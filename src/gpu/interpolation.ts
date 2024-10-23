@@ -1,19 +1,18 @@
 import moize from "moize";
-import { getCanvasAndGLContext, getGPUComposer } from "./rendering";
-import {
-  FLOAT,
-  GPULayer,
-  GPULayerType,
-  GPULayerNumComponents,
-  GPUProgram,
-  INT,
-  UNSIGNED_BYTE,
-  SHORT,
-  HALF_FLOAT,
-} from "gpu-io";
+import { getCanvasAndGLContext } from "./rendering";
 import { App } from "picogl";
 import { renderRGBProgram } from "gpu-io/dist/types/Programs";
-import { Texture } from "three";
+import {
+  FloatType,
+  Fn,
+  InstancedBufferAttribute,
+  instanceIndex,
+  storage,
+  StorageInstancedBufferAttribute,
+  Texture,
+  vec3,
+} from "three/webgpu";
+import { getThreeSetup } from "./graph-viz";
 
 export const hasEnoughFramebufferAttachments = moize((ctx) => {
   const { gl } = getCanvasAndGLContext(ctx);
@@ -24,45 +23,28 @@ export const hasEnoughFramebufferAttachments = moize((ctx) => {
 export const getLayers = (
   ctx,
   name,
-  {
-    type = HALF_FLOAT as GPULayerType,
-    numComponents = 1 as GPULayerNumComponents,
-    dimensions = 32,
-  } = {},
+  { numComponents = 1, dimensions = 32 } = {},
 ) => {
-  const gpuComposer = getGPUComposer(ctx);
-  console.log(name, "making layers", gpuComposer.gl);
-
-  const current = new GPULayer(gpuComposer, {
-    name: `current_${name}`,
-    type,
+  const current = storage(
+    new StorageInstancedBufferAttribute(
+      new Float32Array(numComponents * dimensions),
+      numComponents,
+    ),
+    floatNumToVecType(numComponents),
     dimensions,
-    numComponents,
-    numBuffers: 2,
-  });
-
-  const target = new GPULayer(gpuComposer, {
-    name: `target_${name}`,
-    type,
+  );
+  const target = storage(
+    new StorageInstancedBufferAttribute(
+      new Float32Array(numComponents * dimensions),
+      numComponents,
+    ),
+    floatNumToVecType(numComponents),
     dimensions,
-    numComponents,
-    numBuffers: 1,
-  });
+  );
 
-  const targetTexture = new Texture();
-  target.attachToThreeTexture(targetTexture);
+  console.log(name, current, target);
 
-  const view = new GPULayer(gpuComposer, {
-    name: `view_${name}`,
-    type,
-    dimensions,
-    numComponents,
-    numBuffers: 1,
-  });
-  const viewTexture = new Texture();
-  view.attachToThreeTexture(viewTexture);
-
-  return { current, target, view, viewTexture, targetTexture };
+  return { current, target };
 };
 
 export const getPositionLayers = moize.infinite((ctx) =>
@@ -78,6 +60,19 @@ export const getEmphasisLayers = moize.infinite((ctx) =>
   getLayers(ctx, "emphasis", { numComponents: 1 }),
 );
 
+const floatNumToVecType = (size) => {
+  switch (size) {
+    case 1:
+      return "float";
+    case 2:
+      return "vec2";
+    case 3:
+      return "vec3";
+    case 4:
+      return "vec4";
+  }
+};
+
 export const setAllLayerSizes = (ctx, size) => {
   console.log("setting layer sizes to", size);
   const layers = [
@@ -87,111 +82,56 @@ export const setAllLayerSizes = (ctx, size) => {
     getEmphasisLayers(ctx),
   ];
 
-  layers.forEach(({ current, target, view, viewTexture, targetTexture }) => {
-    current.resize(size);
-    target.resize(size);
-    target.attachToThreeTexture(targetTexture);
-    view.resize(size);
-    view.attachToThreeTexture(viewTexture);
+  layers.forEach(({ current, target }) => {
+    for (const layer of [current, target]) {
+      const oldArray = layer.value.array;
+      const newArray = new Float32Array(size * layer.itemSize);
+      const copyLength = Math.min(oldArray.length, newArray.length);
+      newArray.set(oldArray.subarray(0, copyLength));
+      layer.value.array = newArray;
+      layer.count = size;
+      layer.value.needsUpdate = true;
+    }
   });
 };
 
-export const getInterpolationProgram = moize.infinite((ctx) => {
-  return new GPUProgram(getGPUComposer(ctx), {
-    name: "interpolation",
-    fragmentShader: `
-      in vec2 v_uv;
-
-      // the current and target textures
-      uniform sampler2D uTargetPositions;
-      uniform sampler2D uCurrentPositions;
-      uniform sampler2D uTargetColors;
-      uniform sampler2D uCurrentColors;
-      uniform sampler2D uTargetSizes;
-      uniform sampler2D uCurrentSizes;
-      uniform sampler2D uTargetEmphasis;
-      uniform sampler2D uCurrentEmphasis;
-
-      // the interpolation ratio
-      uniform float uMixRatio;
-
-      layout(location = 0) out vec3 outPositions;
-      layout(location = 1) out vec3 viewPositions;
-      layout(location = 2) out vec4 outColors;
-      layout(location = 3) out vec4 viewColors;
-      layout(location = 4) out float outSizes;
-      layout(location = 5) out float viewSizes;
-      layout(location = 6) out float outEmphasis;
-      layout(location = 7) out float viewEmphasis;
-
-      void main() {
-        vec3 targetPosition = texture(uTargetPositions, v_uv).xyz;
-        vec3 currentPosition = texture(uCurrentPositions, v_uv).xyz;
-        outPositions = mix(currentPosition, targetPosition, uMixRatio);
-        viewPositions = outPositions;
-
-        vec4 targetColor = texture(uTargetColors, v_uv);
-        vec4 currentColor = texture(uCurrentColors, v_uv);
-        outColors = mix(currentColor, targetColor, uMixRatio);
-        viewColors = outColors;
-
-        float targetSize = texture(uTargetSizes, v_uv).r;
-        float currentSize = texture(uCurrentSizes, v_uv).r;
-        outSizes = mix(currentSize, targetSize, uMixRatio);
-        viewSizes = outSizes;
-
-        float targetEmphasis = texture(uTargetEmphasis, v_uv).r;
-        float currentEmphasis = texture(uCurrentEmphasis, v_uv).r;
-        outEmphasis = mix(currentEmphasis, targetEmphasis, uMixRatio);
-        viewEmphasis = outEmphasis;
-      }
-    `,
-    uniforms: [
-      {
-        name: "uTargetPositions",
-        type: INT,
-        value: 0,
-      },
-      {
-        name: "uCurrentPositions",
-        type: INT,
-        value: 1,
-      },
-      {
-        name: "uTargetColors",
-        type: INT,
-        value: 2,
-      },
-      {
-        name: "uCurrentColors",
-        type: INT,
-        value: 3,
-      },
-      {
-        name: "uTargetSizes",
-        type: INT,
-        value: 4,
-      },
-      {
-        name: "uCurrentSizes",
-        type: INT,
-        value: 5,
-      },
-      {
-        name: "uTargetEmphasis",
-        type: INT,
-        value: 6,
-      },
-      {
-        name: "uCurrentEmphasis",
-        type: INT,
-        value: 7,
-      },
-      {
-        name: "uMixRatio",
-        type: FLOAT,
-        value: 0.1,
-      },
-    ],
+export const interpolator = moize.infinite((...layers) => {
+  console.log("executing interpolation setup");
+  const interpolatorFn = Fn(() => {
+    for (const { current, target } of layers) {
+      let currentElement = current.element(instanceIndex);
+      let targetElement = target.element(instanceIndex);
+      currentElement.addAssign(
+        // targetElement.mul(0.05),
+        targetElement.sub(currentElement).mul(0.05),
+      );
+    }
   });
+
+  const size = layers[0]?.target.count;
+  return interpolatorFn().compute(size);
 });
+
+export const interpolate = (ctx, layers) => {
+  const { renderer } = getThreeSetup(ctx);
+  renderer.compute(interpolator(...layers));
+};
+
+// export const interpolator =
+//
+// moize.infinite(
+//   //
+//   (...layers) => {
+//     // const interpolationLayers = [
+//     //   getPositionLayers(ctx),
+//     //   getColorLayers(ctx),
+//     //   // getSizeLayers(ctx),
+//     //   // getEmphasisLayers(ctx),
+//     // ];
+
+//     const size = interpolationLayers[0]?.target.count;
+//     // console.log("preparing interpolation", size, interpolationLayers);
+//     return interpolationFn(interpolationLayers)().compute(size);
+//   },
+//
+// );
