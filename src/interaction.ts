@@ -4,11 +4,9 @@ import { getGraphData, getNodePosition } from "./data";
 import moize from "moize";
 import { setSelectedIndex, getSelectedIndex } from "./selection";
 import { throttle, debounce, curry } from "lodash-es";
-import navigation from "./navigation";
 import { render, html, TemplateResult } from "lit-html";
 import { getPickerRenderTarget, getThreeSetup } from "./gpu/graph-viz";
 import { graphCameraAnimation } from "./get-workers";
-import { start } from "fdg-wasm";
 import { state } from "./state";
 import { getComponent } from "./context";
 // convert event coordinates to normalized coordinates

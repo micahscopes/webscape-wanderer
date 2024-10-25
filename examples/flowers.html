@@ -73,15 +73,21 @@
         </div>
         <script type="module" src="/src/main.ts"></script>
         <script type="module">
-            import { randomGraphData } from "/src/main.ts";
+            import {
+                randomGraphData,
+                startWebscapeWanderer,
+            } from "/src/main.ts";
             window.addEventListener("DOMContentLoaded", () => {
+                startWebscapeWanderer();
+
                 for (let wanderer of document.querySelectorAll(
                     "webscape-wanderer",
                 )) {
-                    wanderer.graphData = randomGraphData(10, 30);
-                    // setTimeout(() => {
+                    wanderer.graphData = randomGraphData(30, 40);
+                    // setInterval(() => {
+                    //     console.log("changing graph data");
                     //     wanderer.graphData = randomGraphData(8, 10);
-                    // }, 10000);
+                    // }, 5000);
                 }
             });
         </script>

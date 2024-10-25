@@ -1,8 +1,6 @@
-import { expose } from "comlink";
 import { transfer } from "./transfer-but-not-on-webkit";
 import createCamera from "inertial-turntable-camera";
 import moize from "moize";
-import requestAnimationFrame from "raf";
 
 const getGlobalCamera = moize.infinite((ctx) => {
   const camera = createCamera({
@@ -222,7 +220,7 @@ const getGlobalCameraParams = (ctx) => {
   return globalCamera.params;
 };
 
-import { mat4, vec4, vec2 } from "gl-matrix";
+import { mat4, vec4 } from "gl-matrix";
 import SpringDamper from "./spring-damper";
 import { curry, debounce } from "lodash-es";
 import { state } from "./state";

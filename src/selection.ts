@@ -20,7 +20,6 @@ import {
   setCameraCenter,
   setCameraDistance,
 } from "./interaction";
-import { marked } from "marked";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
 import { hue, normal } from "color-blend/unit";
@@ -136,69 +135,7 @@ export const initializeSelectionVisuals = async (ctx, immediate = false) => {
 const onImgErrorHandler = "this.parentNode.style.display='none'";
 const onImgSuccessHandler = "this.parentNode.style.display='initial'";
 // const onImgErrorHandler = (e) => {}
-const selectionInfo = (node) => html`
-  <div class="project">
-    <h3>
-      <a target="_blank" href="${node.data?.homepage}">${node.data?.name}</a>
-    </h3>
-    <div class="description">
-      ${node.data?.description &&
-      unsafeHTML(marked.parse(node.data?.description))}
-    </div>
-    <div class="links">
-      <span class="owner">
-        <div class="owner-name-container">
-          ${node.ownerData?.html_url
-            ? html`<a target="_blank" href="${node.ownerData?.html_url}"
-                >${node.ownerData?.name}</a
-              >`
-            : html`<span>${node.ownerData?.name}</span>`}
-        </div>
-        <div class="avatar-container">
-          <img
-            class="avatar-stroke"
-            src="${node.ownerData?.avatar_url}"
-            onerror=${onImgErrorHandler}
-            onload=${onImgSuccessHandler}
-            alt=""
-          />
-          <img
-            class="avatar"
-            src="${node.ownerData?.avatar_url}"
-            onerror=${onImgErrorHandler}
-            onload=${onImgSuccessHandler}
-            alt="${node.ownerData?.name}"
-          />
-        </div>
-      </span>
-      <span><a target="_blank" href="${node.navId}">NPM</a></span>
-      ${node.data?.repository
-        ? html`<span
-            ><a target="_blank" href="${node.data?.repository}">Git</a></span
-          >`
-        : html``}
-      ${node.data?.bugs
-        ? html`<span
-            ><a target="_blank" href="${node.data?.bugs}">Issues</a></span
-          >`
-        : html``}
-      <!-- <a href="${node.ownerData?.html_url}">Owner Profile</a> -->
-    </div>
-  </div>
-`;
 
-export const showSelectionInfo = debounce((ctx, selectedNode) => {
-  const component = getComponent(ctx);
-  const selectionInfoElement =
-    component?.shadowRoot?.getElementById("selection-info");
-  if (selectedNode) {
-    const result = selectionInfo(selectedNode);
-    // console.log(result)
-    selectionInfoElement && render(result, selectionInfoElement!);
-  } else {
-    selectionInfoElement && render(html``, selectionInfoElement!);
-  }
-}, 0);
 
 export const selectNodeAndDownstreamDependents = async (
   ctx,
@@ -280,7 +217,6 @@ export const selectNodeAndDownstreamDependents = async (
     setSelectedIndex(ctx, -1);
   }
 
-  showSelectionInfo(ctx, node);
 };
 
 export const selectNothingAndZoomOut = (ctx) => {

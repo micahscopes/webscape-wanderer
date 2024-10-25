@@ -1,31 +1,10 @@
 import {
-  Scene,
-  PerspectiveCamera,
-  InstancedBufferGeometry,
-  InstancedBufferAttribute,
-  RawShaderMaterial,
-  Mesh,
-  BoxGeometry,
-  WebGLRenderTarget,
-  CylinderGeometry,
-  DepthTexture,
-  LessEqualDepth,
-  Object3D,
-  TorusKnotGeometry,
-  TorusGeometry,
-  ObjectLoader,
-  GLSL3,
-  WebGPURenderer,
-  uniform,
-  vec4,
-  Vector4,
+  uniform, Vector4
 } from "three/webgpu";
 
-import { getCanvasAndGLContext } from "./rendering";
 import {
-  deviceHasMouse,
   getCurrentlyHoveringIndex,
-  getPointerPositionClip,
+  getPointerPositionClip
 } from "../interaction";
 import { getSelectedColor, getSelectedIndex } from "../selection";
 import moize from "moize";

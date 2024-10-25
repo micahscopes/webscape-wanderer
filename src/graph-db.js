@@ -16,7 +16,7 @@ async function buildGraph(data) {
   console.log("BUILDING GRAPH", data)
   const { nodes, links } = data
   const linkQuads = links
-    .map(({source, target}) => 
+    .map(({source, target}) =>
           df.quad(
             df.namedNode(target.id),
             df.namedNode(DOWNSTREAM_FROM),
@@ -30,11 +30,11 @@ async function buildGraph(data) {
     //       value && df.quad(df.namedNode(org), df.namedNode(key), df.literal(value))
     //     ).filter(x => x)
     //   )
-    
+
   const entries = [...linkQuads]
-  
+
   console.log('putting entries', entries)
-  
+
   await store.open();
   await store.clear();
   await store.multiPut(entries)

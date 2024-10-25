@@ -6,9 +6,9 @@ import navigation from "./navigation";
 import { defaultAttributes, getAttributes } from "./attributes";
 
 import {
-  getEdgeIndexBuffer,
+  // getEdgeIndexBuffer,
   getEdgeVisualizerMesh,
-  getNodeIndexArray,
+  // getNodeIndexArray,
   getNodeVisualizerMesh,
   getThreeSetup,
   // initializeEdgeVisualizerUniforms,
@@ -113,4 +113,8 @@ class WebscapeWanderer extends HTMLElement {
   }
 }
 
-customElements.define("webscape-wanderer", WebscapeWanderer);
+export function startWebscapeWanderer(tagName = 'webscape-wanderer') {
+  if (!customElements.get(tagName)) {
+    customElements.define(tagName, WebscapeWanderer);
+  }
+}

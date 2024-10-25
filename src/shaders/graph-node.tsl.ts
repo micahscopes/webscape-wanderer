@@ -44,8 +44,8 @@ const instanceIdToColor = (instanceId) => {
 };
 
 export const graphNodeMaterials = (ctx) => {
-  // const id = instanceIndex;
-  const id = attribute("index");
+  const id = instanceIndex;
+  // const id = attribute("index");
 
   const { fixedProjection, fixedView, distance } = getCamerasUniforms(ctx);
   const {
@@ -104,11 +104,11 @@ export const graphNodeMaterials = (ctx) => {
   return {
     graphNodeMaterial: new MeshMatcapNodeMaterial({
       vertexNode: geo.orthographicClipPosition,
-      // vertexNode: vec4(1, 1, 1, 1),
-      // colorNode: colorNode,
+      // vertexNode: vec4(positions.element(id), 1),
+      colorNode: colorNode,
     }),
     graphNodePickerMaterial: new MeshBasicNodeMaterial({
-      // vertexNode: geoPicker.orthographicClipPosition,
+      vertexNode: geoPicker.orthographicClipPosition,
       colorNode: instanceIdToColor(id),
       depthWrite: true,
     }),

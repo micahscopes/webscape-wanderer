@@ -1,7 +1,7 @@
 import moize from "moize";
 import { graphLayout, graphDb } from "./get-workers";
 import { proxy } from "comlink";
-import { fromPairs, uniqWith } from "lodash-es";
+import { fromPairs } from "lodash-es";
 import ColorHash from "color-hash";
 import { GraphLayoutSimulator } from "./graph-layout-simulator";
 
@@ -50,11 +50,7 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
 // import valueNetworkData from "../data/valuenetwork.json";
 // import projectsData from "../data/projects.json";
 // import organizationsData from "../data/organizations.json";
-import {
-  getEdgeVisualizerMesh,
-  getNodeVisualizerMesh,
-  loadNodeVertexArray,
-} from "./gpu/graph-viz";
+import { getEdgeVisualizerMesh, loadNodeVertexArray } from "./gpu/graph-viz";
 import { asyncState, state } from "./state";
 
 export const nodeScaleFn = (dependents) =>
@@ -84,6 +80,7 @@ import { graphBufferState } from "./state";
 
 export const graphBuffers = moize.infinite((ctx) => {
   const bufferState = graphBufferState(ctx);
+  window.bufferState = bufferState;
   // Initialize blank graph properties
   const properties = [
     { name: "position", type: "vec3" },
@@ -148,7 +145,7 @@ export const setGraphData = async (ctx, data) => {
   // loadEdgeVertexArray(ctx, linkIndexPairs);
   // loadNodeVertexArray(ctx, nodes.length);
   // loadEdgeVertexArray(ctx);
-  // loadNodeVertexArray(ctx);
+  loadNodeVertexArray(ctx);
 
   getEdgeVisualizerMesh(ctx).geometry.instanceCount = linkIndexPairs.length;
 

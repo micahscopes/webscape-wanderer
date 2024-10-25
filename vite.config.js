@@ -6,7 +6,41 @@ import { resolve } from "path";
 import fs from "fs";
 import path from "path";
 
-// Define your plugins once to reuse them
+// Worker Chunk Plugin
+function workerChunkPlugin() {
+  return {
+    name: 'worker-chunk-plugin',
+    apply: 'build',
+    enforce: 'pre',
+    async resolveId(source, importer, options) {
+      if (source.endsWith("?worker")) {
+        const resolved = await this.resolve(source.split("?")[0], importer, {
+          ...options,
+          skipSelf: true,
+        });
+        return resolved ? "\0" + resolved.id + "?worker-chunk" : null;
+      }
+    },
+    load(id) {
+      if (id.startsWith("\0") && id.endsWith("?worker-chunk")) {
+        const referenceId = this.emitFile({
+          type: "chunk",
+          id: id.slice(1).split("?")[0],
+        });
+        return `
+          export default function WorkerWrapper() {
+            return new Worker(
+              import.meta.ROLLUP_FILE_URL_${referenceId},
+              { type: "module" }
+            );
+          }
+        `;
+      }
+    },
+  };
+}
+
+// Define your plugins
 const plugins = [
   topLevelAwait({
     promiseExportName: "__tla",
@@ -14,6 +48,7 @@ const plugins = [
   }),
   glsl(),
   wasm(),
+  workerChunkPlugin(),
 ];
 
 // Export a function that returns the configuration based on the mode
@@ -52,6 +87,11 @@ export default defineConfig(({ mode }) => {
         ),
       },
     },
+    build: {
+      minify: true, // Consider enabling for production
+      modulePreload: false,
+      sourcemap: true,
+    },
   };
 
   if (mode === "lib") {
@@ -59,11 +99,12 @@ export default defineConfig(({ mode }) => {
     return {
       ...commonConfig,
       build: {
-        sourcemap: true,
+        ...commonConfig.build,
         lib: {
           entry: resolve(__dirname, "src/main.ts"),
           name: "WebscapeWanderer",
           fileName: "webscape-wanderer",
+          formats: ['es'],
         },
       },
     };
@@ -73,10 +114,20 @@ export default defineConfig(({ mode }) => {
       ...commonConfig,
       base: "/webscape-wanderer/",
       build: {
+        ...commonConfig.build,
         rollupOptions: {
           input: {
             // Automatically include all HTML files in the ./examples directory
             ...getExampleInputs(),
+          },
+          output: {
+            manualChunks(id) {
+              // You can define manual chunks here if needed
+              // For example, to vendor large dependencies:
+              // if (id.includes('node_modules/large-dependency')) {
+              //   return 'vendor-large-dependency';
+              // }
+            },
           },
         },
       },

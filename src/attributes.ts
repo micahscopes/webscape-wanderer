@@ -1,6 +1,5 @@
 import GUI from "lil-gui";
 import { state } from "./state";
-import moize from "moize";
 
 export const defaultAttributes = {
   globalScale: 1.0,

@@ -1,8 +1,7 @@
 import moize from "moize";
 import { proxy } from "comlink";
-import { throttle } from "lodash-es";
 
-import { UniformsGroup, Uniform, Matrix4, Vector3 } from "three/webgpu";
+import { Matrix4, Vector3 } from "three/webgpu";
 import { uniform } from "three/webgpu";
 
 // TODO: maybe this needs a serializable context id argument?

@@ -95,7 +95,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
   let edgesVersion = 0;
   const propVersions: Record<string, number> = {};
   let nodeCount = 0;
-  const state = {
+  const bufferState = {
     edges: null as number[][] | null,
     nodeProps: {} as Record<string, PropertyData>,
     buffers: {} as Record<string, StorageBufferNode>,
@@ -108,7 +108,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
   ) => {
     const { itemSize } = getTypeInfo(type);
     const attribute = new StorageInstancedBufferAttribute(data, itemSize);
-    return storage(attribute, type, data.length / itemSize);
+    return storage(attribute, type, Math.max(data.length / itemSize, 1));
   };
 
   const updateOrCreateBuffer = (
@@ -116,14 +116,15 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     data: Float32Array | Uint32Array,
     type: PropertyType,
   ) => {
-    if (state.buffers[key]) {
+    if (bufferState.buffers[key]) {
       // Update existing StorageBufferNode with new data
-      const existingBuffer = state.buffers[key];
+      const existingBuffer = bufferState.buffers[key];
       existingBuffer.value.array = data;
+      existingBuffer.value.count = nodeCount;
       existingBuffer.value.needsUpdate = true;
     } else {
       // Create new StorageBufferNode if it doesn't exist
-      state.buffers[key] = createBuffer(key, data, type);
+      bufferState.buffers[key] = createBuffer(key, data, type);
     }
   };
 
@@ -131,19 +132,19 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     const { itemSize, arrayType } = getTypeInfo(type);
     const emptyData = new arrayType(itemSize); // Create a minimal buffer
     const attribute = new StorageInstancedBufferAttribute(emptyData, itemSize);
-    state.buffers[key] = storage(attribute, type, 1);
+    bufferState.buffers[key] = storage(attribute, type, 1000);
   };
 
   const getBuffer = moize.maxSize(Infinity)(
     (key: string) => {
-      if (!state.buffers[key]) {
+      if (!bufferState.buffers[key]) {
         // Initialize with an empty buffer if not exists
         const type = key.startsWith("nodeProps_")
-          ? state.nodeProps[key.slice(10)]?.type || "float"
+          ? bufferState.nodeProps[key.slice(10)]?.type || "float"
           : "float";
         initializeBuffer(key, type);
       }
-      return state.buffers[key];
+      return bufferState.buffers[key];
     },
     {
       maxArgs: 2,
@@ -161,12 +162,13 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
   );
 
   return {
+    _state: bufferState,
     setNodeCount: (count: number) => {
       nodeCount = count;
     },
 
     setEdges: (edges: number[][]) => {
-      state.edges = edges;
+      bufferState.edges = edges;
       edgesVersion++;
       updateOrCreateBuffer(
         "edgeIndices",
@@ -186,13 +188,13 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
           "Data length does not match node count and components per node",
         );
       }
-      state.nodeProps[key] = { type, data: data.slice() };
+      bufferState.nodeProps[key] = { type, data: data.slice() };
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, data, type);
     },
 
     setNodeProperty: (key: string, index: number, value: number | number[]) => {
-      const propData = state.nodeProps[key];
+      const propData = bufferState.nodeProps[key];
       if (!propData) {
         throw new Error(`Property ${key} does not exist`);
       }
@@ -218,8 +220,8 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
 
     getEdgePairs: moize.maxSize(Infinity)(
       (propertyKey: string) => {
-        const edges = state.edges;
-        const propData = state.nodeProps[propertyKey];
+        const edges = bufferState.edges;
+        const propData = bufferState.nodeProps[propertyKey];
 
         if (!edges || !propData) return null;
 

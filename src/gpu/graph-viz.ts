@@ -3,24 +3,16 @@ import {
   PerspectiveCamera,
   InstancedBufferGeometry,
   InstancedBufferAttribute,
-  RawShaderMaterial,
   Mesh,
   BoxGeometry,
   WebGLRenderTarget,
   CylinderGeometry,
   DepthTexture,
-  LessEqualDepth,
-  Object3D,
   TorusKnotGeometry,
-  TorusGeometry,
-  ObjectLoader,
-  GLSL3,
   WebGPURenderer,
-  vec4,
-  InstancedMesh,
-  PointLight,
   DirectionalLight,
-  Light,
+  InstancedMesh,
+  BufferGeometry,
 } from "three/webgpu";
 
 // import nodeVs from "../shaders/node-vert.tsl";
@@ -33,13 +25,8 @@ import {
 // import edgeFs from "../shaders/edge-frag.tsl";
 
 import { getCanvasAndGLContext } from "./rendering";
-import {
-  deviceHasMouse,
-  getCurrentlyHoveringIndex,
-  getPointerPositionClip,
-} from "../interaction";
 import moize from "moize";
-import { OBJLoader } from "three-obj-loader";
+import { OBJLoader } from "../../lib/OBJLoader";
 import heartObjString from "../../data/heart.obj?raw";
 
 export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
@@ -83,46 +70,50 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
   // geo = new TorusGeometry();
   // console.log(geo)
 
-  const geometry = new InstancedBufferGeometry();
+  const geometry = new BufferGeometry();
 
   geometry.setAttribute("position", geo.attributes.position);
   geometry.setAttribute("normal", geo.attributes.normal);
 
   geometry.setIndex(geo.index);
-  geometry.setAttribute(
-    "index",
-    new InstancedBufferAttribute(new Int32Array([]), 1),
-  );
+  // geometry.setAttribute(
+  //   "index",
+  //   new InstancedBufferAttribute(new Int32Array([]), 1),
+  // );
 
-  geometry.setAttribute(
-    "index",
-    new InstancedBufferAttribute(new Int32Array([1, 2, 3, 4]), 1),
-  );
+  // geometry.setAttribute(
+  //   "index",
+  //   new InstancedBufferAttribute(new Int32Array([1, 2, 3, 4]), 1),
+  // );
 
   const { graphNodeMaterial, graphNodePickerMaterial } =
     graphNodeMaterials(ctx);
 
   const mesh = new Mesh(geometry, graphNodeMaterial);
-  const pickerMesh = new Mesh(geometry, graphNodePickerMaterial);
+  const pickerMesh = new InstancedMesh(
+    geometry,
+    graphNodePickerMaterial,
+    10000,
+  );
   return { mesh, pickerMesh };
 });
 
-// export const getNodeIndexArray = moize.infinite((ctx, size) => {
-//   const nodeIndices = new Int32Array(size);
-//   for (let i = 0; i < size; i++) {
-//     nodeIndices[i] = i;
-//   }
-//   return new InstancedBufferAttribute(nodeIndices, 1);
-// });
+export const getNodeIndexArray = moize.infinite((ctx, size) => {
+  const nodeIndices = new Int32Array(size);
+  for (let i = 0; i < size; i++) {
+    nodeIndices[i] = i;
+  }
+  return new InstancedBufferAttribute(nodeIndices, 1);
+});
 
 export const loadNodeVertexArray = (ctx, size) => {
   console.log("loading node vertex array", size);
   const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
-  mesh.geometry.instanceCount = size;
-  pickerMesh.geometry.instanceCount = size;
-  // const indexBuffer = getNodeIndexArray(ctx, 10000);
+  mesh.count = size;
+  // mesh.geometry.instanceCount = size;
+  // pickerMesh.geometry.instanceCount = size;
+  // const indexBuffer = getNodeIndexArray(ctx, size);
   // mesh.geometry.setAttribute("index", indexBuffer);
-  // mesh.geometry.setDrawRange(0, size);
   // pickerMesh.geometry.setAttribute("index", indexBuffer);
   // pickerMesh.geometry.setDrawRange(0, size);
 };
@@ -140,7 +131,7 @@ export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
     new InstancedBufferAttribute(new Int32Array([1, 2, 3]), 2),
   );
 
-  return new Mesh(geometry, graphEdgeMaterial(ctx));
+  return new InstancedMesh(geometry, graphEdgeMaterial(ctx), 10000);
 });
 
 // export const getEdgeIndexBuffer = moize.infinite((ctx, linkIndexPairs) => {
@@ -158,19 +149,9 @@ export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
 //   edgeVisualizerMesh.geometry.instanceCount = edgeData.length;
 // };
 
-import { getAttributes } from "../attributes";
-import { getGraphData } from "../data";
-import {
-  MeshBasicNodeMaterial,
-  MeshStandardNodeMaterial,
-  NodeMaterial,
-  uniform,
-  Vector2,
-} from "three/webgpu";
 import { graphNodeMaterials } from "../shaders/graph-node.tsl";
 
 import { graphEdgeMaterial } from "../shaders/graph-edge.tsl";
-import { graphBufferState } from "../state";
 // Initialize Three.js scene, camera and renderer
 export const getThreeSetup = moize.infinite((ctx) => {
   const { canvas, gl } = getCanvasAndGLContext(ctx);

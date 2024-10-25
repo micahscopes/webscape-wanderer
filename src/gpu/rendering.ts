@@ -5,27 +5,21 @@ import {
 } from "./camera";
 import {
   deviceHasMouse,
-  getCurrentlyHoveringNode,
-  getPointerPositionCanvas,
-  globalCamera,
+  getCurrentlyHoveringNode, globalCamera,
   hoveredCursor,
   hoveredTooltip,
   selectedCursor,
-  updateCameras,
-  updatePickerColor,
-  updatePickerColorThrottled,
+  updateCameras, updatePickerColorThrottled
 } from "../interaction";
 import { colord } from "colord";
 import { getSelectedNode } from "../selection";
 
 import {
-  getNodeDepthRenderTarget,
-  getNodeVisualizerMesh,
-  getPickerRenderTarget,
-  getThreeSetup,
+  getNodeDepthRenderTarget, getPickerRenderTarget,
+  getThreeSetup
 } from "./graph-viz";
-import { getGraphData, graphBuffers, updateNodePositionTargets } from "../data";
-import { graphBufferState, state } from "../state";
+import { graphBuffers, updateNodePositionTargets } from "../data";
+import { state } from "../state";
 import { getComponent } from "../context";
 import { getUniforms, updateUniforms } from "./uniforms";
 
