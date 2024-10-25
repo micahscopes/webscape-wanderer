@@ -13,8 +13,8 @@ import {
   getThreeSetup,
   // initializeEdgeVisualizerUniforms,
   // initializeNodeVisualizerUniforms,
-  loadEdgeVertexArray,
-  loadNodeVertexArray,
+  // loadEdgeVertexArray,
+  // loadNodeVertexArray,
 } from "./gpu/graph-viz";
 import { camelCase, kebabCase, snakeCase } from "lodash-es";
 import { getComponent, setComponent } from "./context";

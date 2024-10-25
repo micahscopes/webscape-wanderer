@@ -17,25 +17,15 @@ import {
 } from "../interaction";
 import { colord } from "colord";
 import { getSelectedNode } from "../selection";
-// import { FLOAT, GPUComposer, copyProgram } from "gpu-io";
-import {
-  getColorLayers,
-  getEmphasisLayers,
-  // getInterpolationProgram,
-  getPositionLayers,
-  getSizeLayers,
-  hasEnoughFramebufferAttachments,
-  interpolate,
-} from "./interpolation";
-// import { renderAmplitudeProgram, renderRGBProgram } from "gpu-io";
+
 import {
   getNodeDepthRenderTarget,
   getNodeVisualizerMesh,
   getPickerRenderTarget,
   getThreeSetup,
 } from "./graph-viz";
-import { getGraphData, updateNodePositionTargets } from "../data";
-import { state } from "../state";
+import { getGraphData, graphBuffers, updateNodePositionTargets } from "../data";
+import { graphBufferState, state } from "../state";
 import { getComponent } from "../context";
 import { getUniforms, updateUniforms } from "./uniforms";
 
@@ -136,6 +126,7 @@ function checkWebGLError(gl) {
 }
 export const initializeRenderer = (ctx) => {
   getUniforms(ctx);
+  graphBuffers(ctx);
 };
 
 // no need to get the picker pixel every frame
@@ -176,9 +167,6 @@ export const animateGraph = (ctx) => {
 
   renderer.setRenderTarget(getPickerRenderTarget(ctx));
   renderer.render(nodePickerMesh, camera);
-
-  interpolate(ctx, [getPositionLayers(ctx), getColorLayers(ctx)]);
-  interpolate(ctx, [getSizeLayers(ctx), getEmphasisLayers(ctx)]);
 
   if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
 

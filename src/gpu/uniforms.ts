@@ -21,15 +21,6 @@ import {
   Vector4,
 } from "three/webgpu";
 
-// import nodeVs from "../shaders/node-vert.tsl";
-// import nodeFs from "../shaders/node-frag.tsl";
-
-// import nodePickerVs from "../shaders/node-picker-vert.tsl";
-// import nodePickerFs from "../shaders/node-picker-frag.tsl";
-
-// import edgeVs from "../shaders/edge-vert.tsl";
-// import edgeFs from "../shaders/edge-frag.tsl";
-
 import { getCanvasAndGLContext } from "./rendering";
 import {
   deviceHasMouse,
@@ -37,12 +28,6 @@ import {
   getPointerPositionClip,
 } from "../interaction";
 import { getSelectedColor, getSelectedIndex } from "../selection";
-import {
-  getColorLayers,
-  getEmphasisLayers,
-  getPositionLayers,
-  getSizeLayers,
-} from "./interpolation";
 import moize from "moize";
 import { getAttributes } from "../attributes";
 import { getThreeSetup } from "./graph-viz";

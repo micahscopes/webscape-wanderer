@@ -40,7 +40,6 @@ import {
 } from "../interaction";
 import moize from "moize";
 import { OBJLoader } from "three-obj-loader";
-// import heartObjUrl from "../../data/heart.obj";
 import heartObjString from "../../data/heart.obj?raw";
 
 export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
@@ -108,25 +107,24 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
   return { mesh, pickerMesh };
 });
 
-export const getNodeIndexArray = moize.infinite((ctx, size) => {
-  const nodeIndices = new Int32Array(size);
-  for (let i = 0; i < size; i++) {
-    nodeIndices[i] = i;
-  }
-  return new InstancedBufferAttribute(nodeIndices, 1);
-});
+// export const getNodeIndexArray = moize.infinite((ctx, size) => {
+//   const nodeIndices = new Int32Array(size);
+//   for (let i = 0; i < size; i++) {
+//     nodeIndices[i] = i;
+//   }
+//   return new InstancedBufferAttribute(nodeIndices, 1);
+// });
 
 export const loadNodeVertexArray = (ctx, size) => {
   console.log("loading node vertex array", size);
   const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
-  const indexBuffer = getNodeIndexArray(ctx, 10000);
-
-  mesh.geometry.setAttribute("index", indexBuffer);
-  // mesh.geometry.setDrawRange(0, size);
   mesh.geometry.instanceCount = size;
-  pickerMesh.geometry.setAttribute("index", indexBuffer);
-  // pickerMesh.geometry.setDrawRange(0, size);
   pickerMesh.geometry.instanceCount = size;
+  // const indexBuffer = getNodeIndexArray(ctx, 10000);
+  // mesh.geometry.setAttribute("index", indexBuffer);
+  // mesh.geometry.setDrawRange(0, size);
+  // pickerMesh.geometry.setAttribute("index", indexBuffer);
+  // pickerMesh.geometry.setDrawRange(0, size);
 };
 
 export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
@@ -145,20 +143,20 @@ export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
   return new Mesh(geometry, graphEdgeMaterial(ctx));
 });
 
-export const getEdgeIndexBuffer = moize.infinite((ctx, linkIndexPairs) => {
-  // const edgePairIndices = new Int32Array(linkIndexPairs.flat());
-  const edgePairIndices = new Int32Array(10000);
-  edgePairIndices.set(linkIndexPairs.flat());
-  return new InstancedBufferAttribute(edgePairIndices, 2);
-});
+// export const getEdgeIndexBuffer = moize.infinite((ctx, linkIndexPairs) => {
+//   // const edgePairIndices = new Int32Array(linkIndexPairs.flat());
+//   const edgePairIndices = new Int32Array(10000);
+//   edgePairIndices.set(linkIndexPairs.flat());
+//   return new InstancedBufferAttribute(edgePairIndices, 2);
+// });
 
-export const loadEdgeVertexArray = (ctx, edgeData) => {
-  console.log("loading edge vertex array", edgeData);
-  const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
-  const indexBuffer = getEdgeIndexBuffer(ctx, edgeData);
-  edgeVisualizerMesh.geometry.setAttribute("edgeIndices", indexBuffer);
-  edgeVisualizerMesh.geometry.instanceCount = edgeData.length;
-};
+// export const loadEdgeVertexArray = (ctx) => {
+//   const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
+//   // maybe this is unnecessary now...
+//   // let edgeIndexBuffer = graphBuffers(ctx).getEdgeIndices();
+//   // edgeVisualizerMesh.geometry.setAttribute("edgeIndices", edgeIndexBuffer);
+//   edgeVisualizerMesh.geometry.instanceCount = edgeData.length;
+// };
 
 import { getAttributes } from "../attributes";
 import { getGraphData } from "../data";
@@ -172,6 +170,7 @@ import {
 import { graphNodeMaterials } from "../shaders/graph-node.tsl";
 
 import { graphEdgeMaterial } from "../shaders/graph-edge.tsl";
+import { graphBufferState } from "../state";
 // Initialize Three.js scene, camera and renderer
 export const getThreeSetup = moize.infinite((ctx) => {
   const { canvas, gl } = getCanvasAndGLContext(ctx);

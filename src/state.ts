@@ -1,38 +1,268 @@
 import moize from "moize";
 
+export const asyncState = moize(
+  (ctx, key) => {
+    let hasBeenSet = false;
+    let resolver;
+    let state = new Promise((resolve) => {
+      resolver = resolve;
+    });
+    const set = (data) => {
+      if (hasBeenSet) {
+        state = data;
+      } else {
+        hasBeenSet = true;
+        resolver(data);
+      }
+    };
+    const get = () => state;
+    return { set, get };
+  },
+  {
+    maxSize: Infinity,
+  },
+);
 
-export const asyncState = moize((ctx, key) => {
-  let hasBeenSet = false;
-  let resolver;
-  let state = new Promise((resolve) => {
-    resolver = resolve;
-  });
-  const set = (data) => {
-    if (hasBeenSet) {
-      state = data;
+export const state = moize.maxArgs(2)(
+  (ctx, key, initFn = () => undefined) => {
+    let state;
+    const get = () => {
+      if (state === undefined) {
+        state = initFn();
+      }
+      return state;
+    };
+    const set = (positions) => {
+      state = positions;
+    };
+    return { set, get };
+  },
+  {
+    maxSize: Infinity,
+  },
+);
+
+// import * as THREE from 'three';
+import {
+  storage,
+  StorageBufferNode,
+  StorageInstancedBufferAttribute,
+} from "three/webgpu";
+
+type PropertyType =
+  | "float"
+  | "vec2"
+  | "vec3"
+  | "vec4"
+  | "uint"
+  | "uvec2"
+  | "uvec3"
+  | "uvec4";
+
+interface PropertyData {
+  type: PropertyType;
+  data: Float32Array | Uint32Array;
+}
+
+function getTypeInfo(type: PropertyType): {
+  itemSize: number;
+  arrayType: Float32ArrayConstructor | Uint32ArrayConstructor;
+} {
+  const itemSizes = {
+    float: 1,
+    vec2: 2,
+    vec3: 3,
+    vec4: 4,
+    uint: 1,
+    uvec2: 2,
+    uvec3: 3,
+    uvec4: 4,
+  };
+  const arrayTypes = {
+    float: Float32Array,
+    vec2: Float32Array,
+    vec3: Float32Array,
+    vec4: Float32Array,
+    uint: Uint32Array,
+    uvec2: Uint32Array,
+    uvec3: Uint32Array,
+    uvec4: Uint32Array,
+  };
+  return { itemSize: itemSizes[type], arrayType: arrayTypes[type] };
+}
+
+export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
+  let edgesVersion = 0;
+  const propVersions: Record<string, number> = {};
+  let nodeCount = 0;
+  const state = {
+    edges: null as number[][] | null,
+    nodeProps: {} as Record<string, PropertyData>,
+    buffers: {} as Record<string, StorageBufferNode>,
+  };
+
+  const createBuffer = (
+    key: string,
+    data: Float32Array | Uint32Array,
+    type: PropertyType,
+  ) => {
+    const { itemSize } = getTypeInfo(type);
+    const attribute = new StorageInstancedBufferAttribute(data, itemSize);
+    return storage(attribute, type, data.length / itemSize);
+  };
+
+  const updateOrCreateBuffer = (
+    key: string,
+    data: Float32Array | Uint32Array,
+    type: PropertyType,
+  ) => {
+    if (state.buffers[key]) {
+      // Update existing StorageBufferNode with new data
+      const existingBuffer = state.buffers[key];
+      existingBuffer.value.array = data;
+      existingBuffer.value.needsUpdate = true;
     } else {
-      hasBeenSet = true;
-      resolver(data);
+      // Create new StorageBufferNode if it doesn't exist
+      state.buffers[key] = createBuffer(key, data, type);
     }
   };
-  const get = () => state;
-  return { set, get };
-}, {
-  maxSize: Infinity
-});
 
-export const state = moize.maxArgs(2)((ctx, key, initFn=()=>undefined) => {
-  let state;
-  const get = () => {
-    if (state === undefined) {
-      state = initFn();
-    }
-    return state
+  const initializeBuffer = (key: string, type: PropertyType) => {
+    const { itemSize, arrayType } = getTypeInfo(type);
+    const emptyData = new arrayType(itemSize); // Create a minimal buffer
+    const attribute = new StorageInstancedBufferAttribute(emptyData, itemSize);
+    state.buffers[key] = storage(attribute, type, 1);
   };
-  const set = (positions) => {
-    state = positions;
+
+  const getBuffer = moize.maxSize(Infinity)(
+    (key: string) => {
+      if (!state.buffers[key]) {
+        // Initialize with an empty buffer if not exists
+        const type = key.startsWith("nodeProps_")
+          ? state.nodeProps[key.slice(10)]?.type || "float"
+          : "float";
+        initializeBuffer(key, type);
+      }
+      return state.buffers[key];
+    },
+    {
+      maxArgs: 2,
+      transformArgs: ([key]) => {
+        if (key === "edgeIndices") return [key, edgesVersion];
+        if (key.startsWith("nodeProps_"))
+          return [key, propVersions[key.slice(10)] || 0];
+        if (key.startsWith("edgePairs_")) {
+          const propKey = key.slice(10);
+          return [key, edgesVersion, propVersions[propKey] || 0];
+        }
+        return [key, edgesVersion]; // fallback
+      },
+    },
+  );
+
+  return {
+    setNodeCount: (count: number) => {
+      nodeCount = count;
+    },
+
+    setEdges: (edges: number[][]) => {
+      state.edges = edges;
+      edgesVersion++;
+      updateOrCreateBuffer(
+        "edgeIndices",
+        new Uint32Array(edges.flat()),
+        "uvec2",
+      );
+    },
+
+    setNodeProperties: (
+      key: string,
+      type: PropertyType,
+      data: Float32Array | Uint32Array,
+    ) => {
+      const { itemSize, arrayType } = getTypeInfo(type);
+      if (data.length !== nodeCount * itemSize) {
+        throw new Error(
+          "Data length does not match node count and components per node",
+        );
+      }
+      state.nodeProps[key] = { type, data: data.slice() };
+      propVersions[key] = (propVersions[key] || 0) + 1;
+      updateOrCreateBuffer(`nodeProps_${key}`, data, type);
+    },
+
+    setNodeProperty: (key: string, index: number, value: number | number[]) => {
+      const propData = state.nodeProps[key];
+      if (!propData) {
+        throw new Error(`Property ${key} does not exist`);
+      }
+      const { itemSize } = getTypeInfo(propData.type);
+      const valueArray = Array.isArray(value) ? value : [value];
+      if (valueArray.length !== itemSize) {
+        throw new Error(
+          `Value length does not match itemSize for property ${key}`,
+        );
+      }
+      const dataIndex = index * itemSize;
+      if (dataIndex + itemSize > propData.data.length) {
+        throw new Error(`Node index out of bounds for property ${key}`);
+      }
+      propData.data.set(valueArray, dataIndex);
+      propVersions[key] = (propVersions[key] || 0) + 1;
+      updateOrCreateBuffer(`nodeProps_${key}`, propData.data, propData.type);
+    },
+
+    getNodeProperties: (key: string) => {
+      return getBuffer(`nodeProps_${key}`);
+    },
+
+    getEdgePairs: moize.maxSize(Infinity)(
+      (propertyKey: string) => {
+        const edges = state.edges;
+        const propData = state.nodeProps[propertyKey];
+
+        if (!edges || !propData) return null;
+
+        const { type, data } = propData;
+        const { itemSize, arrayType } = getTypeInfo(type);
+        const result = new arrayType(edges.length * 2 * itemSize);
+
+        for (let i = 0; i < edges.length; i++) {
+          const [fromIdx, toIdx] = edges[i];
+          const baseIndex = i * 2 * itemSize;
+          result.set(
+            data.subarray(fromIdx * itemSize, (fromIdx + 1) * itemSize),
+            baseIndex,
+          );
+          result.set(
+            data.subarray(toIdx * itemSize, (toIdx + 1) * itemSize),
+            baseIndex + itemSize,
+          );
+        }
+
+        const edgePairType = type.startsWith("u") ? `u${type}` : type;
+        updateOrCreateBuffer(
+          `edgePairs_${propertyKey}`,
+          result,
+          edgePairType as PropertyType,
+        );
+        return getBuffer(`edgePairs_${propertyKey}`);
+      },
+      {
+        maxArgs: 3,
+        transformArgs: ([propertyKey]) => [
+          propertyKey,
+          edgesVersion,
+          propVersions[propertyKey] || 0,
+        ],
+      },
+    ),
+    getEdgeIndices: () => getBuffer("edgeIndices"),
+    getBuffer,
+
+    dispose: () => {
+      // Object.values(state.buffers).forEach((buffer) => buffer.value.dispose());
+      // state.buffers = {};
+    },
   };
-  return { set, get };
-}, {
-  maxSize: Infinity,
-});
+}, {});

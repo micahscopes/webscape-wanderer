@@ -3,14 +3,6 @@ import { graphLayout, graphDb } from "./get-workers";
 import { proxy } from "comlink";
 import { fromPairs, uniqWith } from "lodash-es";
 import ColorHash from "color-hash";
-import {
-  getColorLayers,
-  getEmphasisLayers,
-  getPositionLayers,
-  getSizeLayers,
-  hasEnoughFramebufferAttachments,
-  setAllLayerSizes,
-} from "./gpu/interpolation";
 import { GraphLayoutSimulator } from "./graph-layout-simulator";
 
 // console.log(graphLayout, 'graphLayout???')
@@ -55,15 +47,12 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
   return { valueNetworkData, projectsData, organizationsData };
 };
 
-import valueNetworkData from "../data/valuenetwork.json";
-import projectsData from "../data/projects.json";
-import organizationsData from "../data/organizations.json";
+// import valueNetworkData from "../data/valuenetwork.json";
+// import projectsData from "../data/projects.json";
+// import organizationsData from "../data/organizations.json";
 import {
   getEdgeVisualizerMesh,
   getNodeVisualizerMesh,
-  // initializeEdgeVisualizerUniforms,
-  // initializeNodeVisualizerUniforms,
-  loadEdgeVertexArray,
   loadNodeVertexArray,
 } from "./gpu/graph-viz";
 import { asyncState, state } from "./state";
@@ -91,65 +80,80 @@ export const makeNavId = (project) => {
   return id; //.split('-').reverse().join('-')
 };
 
+import { graphBufferState } from "./state";
+
+export const graphBuffers = moize.infinite((ctx) => {
+  const bufferState = graphBufferState(ctx);
+  // Initialize blank graph properties
+  const properties = [
+    { name: "position", type: "vec3" },
+    { name: "color", type: "vec4" },
+    { name: "emphasis", type: "float" },
+    { name: "size", type: "float" },
+  ];
+
+  properties.forEach(({ name, type }) => {
+    const initialArray = new Float32Array(0);
+    const targetArray = new Float32Array(0);
+
+    bufferState.setNodeProperties(`${name}Initial`, type, initialArray);
+    bufferState.setNodeProperties(`${name}Target`, type, targetArray);
+  });
+
+  return bufferState;
+});
+
 export const setGraphData = async (ctx, data) => {
-  // check if the promise has already been resolved
-  let { set: setter } = asyncState(ctx, "graphData");
+  const { set: setter } = asyncState(ctx, "graphData");
   setter(data);
 
   const { nodes, linkIndexPairs } = data;
-  setAllLayerSizes(ctx, nodes.length);
-  // getLayoutSimulator.remove(ctx);
+  const bufferState = graphBuffers(ctx);
 
-  prepareGraphDBWorker(ctx, data);
-  // getLayoutSimulator(ctx, data);
-  loadEdgeVertexArray(ctx, linkIndexPairs);
-  loadNodeVertexArray(ctx, nodes.length);
+  // Set node count
+  bufferState.setNodeCount(nodes.length);
 
-  // use node colors
-  const colors = new Float32Array(nodes.flatMap(({ color }) => color));
-  console.log("setting colors", colors, "to", getColorLayers(ctx));
-  getColorLayers(ctx).current.value.array = colors;
-  getColorLayers(ctx).current.value.needsUpdate = true;
-  getColorLayers(ctx).target.value.array = colors;
-  getColorLayers(ctx).target.value.needsUpdate = true;
+  // Set edges
+  bufferState.setEdges(linkIndexPairs);
 
-  // sizes from node sizes
-  const nodeSizes = new Float32Array(nodes.length);
-  for (let i = 0; i < nodeSizes.length; i++) {
-    nodeSizes[i] = Math.sqrt(nodes[i].size) / 40;
-  }
-  console.log("setting sizes", nodeSizes, "to", getSizeLayers(ctx));
-  getSizeLayers(ctx).current.value.array = nodeSizes;
-  getSizeLayers(ctx).current.value.needsUpdate = true;
-  getSizeLayers(ctx).target.value.array = nodeSizes;
-  getSizeLayers(ctx).target.value.needsUpdate = true;
-
-  // initialize random node positions
+  // Set positions (initial random positions)
   const scale = 40;
   const randomPoint = () => [
-    Math.random() * scale - 1,
-    Math.random() * scale - 1,
-    Math.random() * scale - 1,
+    Math.random() * scale - scale / 2,
+    Math.random() * scale - scale / 2,
+    Math.random() * scale - scale / 2,
   ];
-  // const initialNodePositions = new Float32Array(nodes.flatMap(n => [n.x, n.y, n.z]))
-  const initialNodePositions = new Float32Array(nodes.flatMap(randomPoint));
-  console.log(
-    "setting positions",
-    initialNodePositions,
-    "to",
-    getPositionLayers(ctx),
-  );
-  getPositionLayers(ctx).current.value.array = initialNodePositions;
-  getPositionLayers(ctx).current.value.needsUpdate = true;
-  getPositionLayers(ctx).target.value.array = initialNodePositions;
-  getPositionLayers(ctx).target.value.needsUpdate = true;
+  const initialPositions = new Float32Array(nodes.flatMap(randomPoint));
+  bufferState.setNodeProperties("positionInitial", "vec3", initialPositions);
+  bufferState.setNodeProperties("positionTarget", "vec3", initialPositions);
 
-  const zeroEmphasis = new Float32Array(nodes.length).fill(0);
-  console.log("setting emphasis", zeroEmphasis, "to", getEmphasisLayers(ctx));
-  getEmphasisLayers(ctx).current.value.array = zeroEmphasis;
-  getEmphasisLayers(ctx).current.value.needsUpdate = true;
-  getEmphasisLayers(ctx).target.value.array = zeroEmphasis;
-  getEmphasisLayers(ctx).target.value.needsUpdate = true;
+  // Set colors
+  const colors = new Float32Array(nodes.flatMap(({ color }) => color));
+  bufferState.setNodeProperties("colorInitial", "vec4", colors);
+  bufferState.setNodeProperties("colorTarget", "vec4", colors);
+
+  // Set sizes
+  const sizes = new Float32Array(
+    nodes.map((node) => Math.sqrt(node.size) / 40),
+  );
+  bufferState.setNodeProperties("sizeInitial", "float", sizes);
+  bufferState.setNodeProperties("sizeTarget", "float", sizes);
+
+  // Set initial emphasis (all zero)
+  const emphasis = new Float32Array(nodes.length).fill(0);
+  bufferState.setNodeProperties("emphasisInitial", "float", emphasis);
+  bufferState.setNodeProperties("emphasisTarget", "float", emphasis);
+
+  // Load vertex arrays (if still needed)
+  // loadEdgeVertexArray(ctx, linkIndexPairs);
+  // loadNodeVertexArray(ctx, nodes.length);
+  // loadEdgeVertexArray(ctx);
+  // loadNodeVertexArray(ctx);
+
+  getEdgeVisualizerMesh(ctx).geometry.instanceCount = linkIndexPairs.length;
+
+  // Prepare graph DB worker (if still needed)
+  prepareGraphDBWorker(ctx, data);
 };
 
 export const getGraphData = async (context) => {
@@ -315,10 +319,12 @@ export const updateNodePositionTargets = async (context) => {
   sim.getPositions(
     proxy((positions) => {
       if (positions.length > 0) {
-        // console.log("setting positions", positions);
         state(context, "latestTargetPositions").set(positions);
-        getPositionLayers(context).target.value.array = positions;
-        getPositionLayers(context).target.value.needsUpdate = true;
+        let buffers = graphBuffers(context);
+        // graphBuffers.setNodeProperties("positionInitial", "vec3", positions);
+        buffers.setNodeProperties("positionTarget", "vec3", positions);
+        // getPositionLayers(context).target.value.array = positions;
+        // getPositionLayers(context).target.value.needsUpdate = true;
         // getPositionLayers(context).target.update();
       }
     }),
@@ -336,14 +342,3 @@ export const getNodePosition = (ctx, node) => {
     positions[index * 3 + 2],
   ]; //.map(x => x * params.globalScale)
 };
-
-// const doQuery = (ctx) => {
-//   graphDb(ctx).doQuery;
-// }
-
-// const buildGraph = (ctx) => {
-//   graphDb(ctx).buildGraph;
-// }
-
-// export const { doQuery, buildGraph } = graphDb;
-// export { graphDb as graphWorker, graphLayout as graphLayoutWorker };

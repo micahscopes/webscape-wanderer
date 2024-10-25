@@ -22,17 +22,13 @@ import {
   MeshMatcapNodeMaterial,
   Fn,
 } from "three/webgpu";
-import {
-  getColorLayers,
-  getPositionLayers,
-  getSizeLayers,
-  getEmphasisLayers,
-} from "../gpu/interpolation";
 import moize from "moize";
 import { getCamerasUniforms } from "../gpu/camera";
 import { getUniforms } from "../gpu/uniforms";
 import { computeFog, graphNodeGeometryComputerFn } from "./graph-common.tsl";
 import { desaturate } from "./desaturate.tsl";
+// import { graphBufferState } from "../state";
+import { graphBuffers } from "../data";
 
 const instanceIdToColor = (instanceId) => {
   const r = instanceId.add(1).bitAnd(0x0000ff).toFloat().div(255);
@@ -59,38 +55,34 @@ export const graphNodeMaterials = (ctx) => {
     defaultFogBoundaryClipZ,
     nodeFog,
   } = getUniforms(ctx);
-  const positions = getPositionLayers(ctx);
-  const colors = getColorLayers(ctx);
-  const sizes = getSizeLayers(ctx);
-  const emphases = getEmphasisLayers(ctx);
+
+  const buffers = graphBuffers(ctx);
+
+  const positions = buffers.getNodeProperties("positionTarget");
+  const colors = buffers.getNodeProperties("colorTarget");
+  const sizes = buffers.getNodeProperties("sizeTarget");
+  const emphases = buffers.getNodeProperties("emphasisTarget");
 
   const isSelected = id.equal(selectedIndex);
   const anythingSelected = selectedIndex.greaterThan(-1);
-  const scale = sizes.current.element(id).add(sizes.target.element(id).mul(0));
+  const scale = sizes.element(id);
   // .mul(mix(1.0, 1.1, isSelected.toFloat()));
   const scalePicker = max(scale, 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {
-    nodePosition: positions.current
-      .element(id)
-      .add(positions.target.element(id).mul(0)),
-    // nodePosition: currentNodePosition,
+    nodePosition: positions.element(id),
     scale,
   });
 
   const geoPicker = graphNodeGeometryComputerFn(ctx, {
-    nodePosition: positions.current.element(id),
+    nodePosition: positions.element(id),
     scale: scalePicker,
   });
   let normal = fixedView.mul(fixedProjection).mul(normalLocal).normalize();
 
-  let color = colors.current.element(id).add(colors.target.element(id).mul(0));
-  // const selectedColor = vec4(1, 0, 1, 1);
-
-  const selectedNodePosition = positions.current.element(selectedIndex);
-  const selectedDistance = length(
-    positions.current.element(id).sub(selectedNodePosition),
-  );
+  let color = colors.element(id);
+  const selectedNodePosition = positions.element(selectedIndex);
+  const selectedDistance = length(positions.element(id));
 
   let fog = min(
     computeFog({
@@ -100,7 +92,7 @@ export const graphNodeMaterials = (ctx) => {
     }),
     oneMinus(isSelected.toFloat()),
   );
-  fog = min(fog, oneMinus(emphases.current.element(id)));
+  fog = min(fog, oneMinus(emphases.element(id)));
   fog = mix(0.0, fog, nodeFog);
 
   let newRgb = color.xyz.mul(mix(1.0, 0.5, fog));
@@ -112,10 +104,11 @@ export const graphNodeMaterials = (ctx) => {
   return {
     graphNodeMaterial: new MeshMatcapNodeMaterial({
       vertexNode: geo.orthographicClipPosition,
-      colorNode: colorNode,
+      // vertexNode: vec4(1, 1, 1, 1),
+      // colorNode: colorNode,
     }),
     graphNodePickerMaterial: new MeshBasicNodeMaterial({
-      vertexNode: geoPicker.orthographicClipPosition,
+      // vertexNode: geoPicker.orthographicClipPosition,
       colorNode: instanceIdToColor(id),
       depthWrite: true,
     }),

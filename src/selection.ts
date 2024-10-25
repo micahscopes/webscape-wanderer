@@ -4,7 +4,7 @@ import {
   getEmphasisBuffers,
   getRadiusBuffers,
 } from "./gpu/animation";
-import { getGraphData, getNodePosition } from "./data";
+import { getGraphData, getNodePosition, graphBuffers } from "./data";
 import { identity, debounce } from "lodash-es";
 import { html, render } from "lit-html";
 import {
@@ -53,39 +53,32 @@ export const applyVisuals = async (
   ctx,
   { colorMap = identity, sizeMap = identity, immediate = false } = {},
 ) => {
-  immediate = !hasEnoughFramebufferAttachments(ctx) || immediate;
+  // immediate = !hasEnoughFramebufferAttachments(ctx) || immediate;
   // const colors = getColorBuffers();
   // const sizes = getRadiusBuffers();
   // const emphasis = getEmphasisBuffers();
   const colorData = await getDefaultColors(await getGraphData(ctx), colorMap);
   const sizeData = await getDefaultSizes(await getGraphData(ctx), sizeMap);
-  const colorsTargetLayer = getColorLayers(ctx);
-  const sizesLayer = getSizeLayers(ctx);
-  const emphasisLayer = getEmphasisLayers(ctx);
 
-  console.log(colorsTargetLayer.target);
+  const buffers = graphBuffers(ctx);
 
-  colorsTargetLayer.target.value.array = colorData;
-  sizesLayer.target.value.array = sizeData;
-  emphasisLayer.target.value.array = new Float32Array(sizeData.length).fill(0);
-  colorsTargetLayer.target.value.needsUpdate = true;
-  sizesLayer.target.value.needsUpdate = true;
-  emphasisLayer.target.value.needsUpdate = true;
+  buffers.setNodeProperties("colorTarget", "vec4", colorData);
+  buffers.setNodeProperties("sizeTarget", "float", sizeData);
+  buffers.setNodeProperties(
+    "emphasisTarget",
+    "float",
+    new Float32Array(sizeData.length).fill(0),
+  );
 
   if (immediate) {
-    colorsTargetLayer.current.value.array = colorData;
-    sizesLayer.current.value.array = sizeData;
-    emphasisLayer.current.value.array = new Float32Array(sizeData.length).fill(
-      0,
+    buffers.setNodeProperties("colorInitial", "vec4", colorData);
+    buffers.setNodeProperties("sizeInitial", "float", sizeData);
+    buffers.setNodeProperties(
+      "emphasisInitial",
+      "float",
+      new Float32Array(sizeData.length).fill(0),
     );
-    colorsTargetLayer.current.value.needsUpdate = true;
-    sizesLayer.current.value.needsUpdate = true;
-    emphasisLayer.current.value.needsUpdate = true;
   }
-
-  // colors.targetData(colorData, { immediate });
-  // sizes.targetData(sizeData, { immediate });
-  // emphasis.targetData(new Float32Array(emphasis.target.numItems).fill(0), { immediate })
 };
 
 export const applyVisualsToNode = async (
@@ -98,28 +91,21 @@ export const applyVisualsToNode = async (
     immediate = false,
   } = {},
 ) => {
-  immediate = !hasEnoughFramebufferAttachments(ctx) || immediate;
+  // immediate = !hasEnoughFramebufferAttachments(ctx) || immediate;
 
-  const color = new Float32Array(colorMap(defaultColorMap(node)));
-  const size = new Float32Array([sizeMap(defaultSizeMap(node))]);
-  const epmhasis = new Float32Array([emphasis]);
+  const color = colorMap(defaultColorMap(node));
+  const size = sizeMap(defaultSizeMap(node));
 
-  const colorsTargetLayer = getColorLayers(ctx);
-  const sizesLayer = getSizeLayers(ctx);
-  const emphasisLayer = getEmphasisLayers(ctx);
+  const buffers = graphBuffers(ctx);
 
-  const nodeOffset = node.index * 4;
-  colorsTargetLayer.target.value.array.set(color, nodeOffset);
-  sizesLayer.target.value.array.set(size, node.index);
-  emphasisLayer.target.value.array.set(epmhasis, node.index);
-  colorsTargetLayer.target.value.needsUpdate = true;
-  sizesLayer.target.value.needsUpdate = true;
-  emphasisLayer.target.value.needsUpdate = true;
+  buffers.setNodeProperty("colorTarget", node.index, color);
+  buffers.setNodeProperty("sizeTarget", node.index, size);
+  buffers.setNodeProperty("emphasisTarget", node.index, emphasis);
 
   if (immediate) {
-    colorsTargetLayer.current.value.array.set(color, nodeOffset);
-    sizesLayer.current.value.array.set(size, node.index);
-    emphasisLayer.current.value.array.set(epmhasis, node.index);
+    buffers.setNodeProperty("colorInitial", node.index, color);
+    buffers.setNodeProperty("sizeInitial", node.index, size);
+    buffers.setNodeProperty("emphasisInitial", node.index, emphasis);
   }
 };
 
@@ -319,13 +305,13 @@ export const getSelectedNode = async (ctx) => {
 import { colord, extend } from "colord";
 import namesPlugin from "colord/plugins/names";
 import {
-  getColorLayers,
-  getEmphasisLayers,
-  getSizeLayers,
+  // getColorLayers,
+  // getEmphasisLayers,
+  // getSizeLayers,
   hasEnoughFramebufferAttachments,
 } from "./gpu/interpolation";
 import { getCanvasAndGLContext } from "./gpu/rendering";
-import { state } from "./state";
+import { graphBufferState, state } from "./state";
 import { getComponent } from "./context";
 import { graphDb } from "./get-workers";
 import { Vector4 } from "three";
