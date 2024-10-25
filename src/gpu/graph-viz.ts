@@ -45,6 +45,7 @@ import moize from "moize";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 // import heartObjUrl from "../../data/heart.obj";
 import heartObjString from "../../data/heart.obj?raw";
+import flowerObjString from "../../data/dandelion3.obj?raw";
 
 // heartGeometry.scale(0.1, 0.1, 0.1);
 // const loadHeart = () => new Promise((resolve, reject) => {});
@@ -52,14 +53,14 @@ import heartObjString from "../../data/heart.obj?raw";
 // let geo = (heart.children[0] as Mesh).geometry;
 // console.log(geo);
 
-export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "heart") => {
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "flower") => {
   let geo;
 
   if (shape === "box") {
     geo = new BoxGeometry(1, 1, 1);
-  } else if (shape === "heart") {
+  } else if (shape === "flower") {
     const objLoader = new OBJLoader();
-    const heart = objLoader.parse(heartObjString);
+    const heart = objLoader.parse(flowerObjString);
     const heartGeometry = heart.children[0].geometry;
     if (!heartGeometry.index) {
       const indices = [];
@@ -69,7 +70,7 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "heart") => {
       }
       heartGeometry.setIndex(indices);
     }
-    let scaleFactor = 0.25;
+    let scaleFactor = 1;
     heartGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
     console.log(heartGeometry);
     geo = heartGeometry;

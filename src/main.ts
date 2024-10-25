@@ -39,16 +39,7 @@ class WebscapeWanderer extends HTMLElement {
   }
 
   set graphData(data) {
-    // getNodeVisualizerMesh.clear()
-    // getEdgeVisualizerMesh.clear()
-    // getThreeSetup.clear()
     setGraphData(this.context, data);
-    // getEdgeIndexBuffer.clear()
-    // getNodeIndexArray.clear()
-
-    // initializeRenderer(this.context);
-    // getThreeSetup(this.context);
-    // initializeRenderer(this.context);
   }
 
   get graphData() {
