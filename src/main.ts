@@ -1,4 +1,10 @@
-import { animateGraph, initializeRenderer, setCanvas } from "./gpu/rendering";
+import {
+  animateGraph,
+  fillCanvasToWindow,
+  getWidthAndHeight,
+  initializeRenderer,
+  setCanvas,
+} from "./gpu/rendering";
 import { getGraphData, randomGraphData, setGraphData } from "./data";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
@@ -28,6 +34,7 @@ class WebscapeWanderer extends HTMLElement {
   static observedAttributes = Object.keys(defaultAttributes).map(kebabCase);
   private context;
   private canvas;
+  private resizeObserver;
 
   constructor() {
     super();
@@ -36,6 +43,11 @@ class WebscapeWanderer extends HTMLElement {
     if (getComponent(this.context) !== this) {
       throw new Error("What the heck");
     }
+
+    this.resizeObserver = new ResizeObserver((entries) => {
+      getWidthAndHeight.clear(this.context);
+      fillCanvasToWindow(this.context);
+    });
   }
 
   set graphData(data) {
@@ -54,8 +66,6 @@ class WebscapeWanderer extends HTMLElement {
     style.textContent = `
       :host {
         display: block;
-        // width: 800px;
-        // height: 600px;
         min-width: 100%;
         min-height: 99vh;
         max-height: 100vh;
@@ -89,9 +99,12 @@ class WebscapeWanderer extends HTMLElement {
       navigation.start();
       console.log("Navigation started");
     });
+
+    this.resizeObserver.observe(this);
   }
 
   disconnectedCallback() {
+    this.resizeObserver.unobserve(this);
     // console.log("Custom element removed from page.");
   }
 

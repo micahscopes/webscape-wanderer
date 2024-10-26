@@ -47,7 +47,7 @@ const getClearColor = () =>
     ({ r, g, b, a }) => [r, g, b, a].map((x) => x / 255),
   ) as [number, number, number, number];
 
-const getWidthAndHeight = moize((ctx) => {
+export const getWidthAndHeight = moize.infinite((ctx) => {
   const host = getComponent(ctx);
   // Calculate the device pixel ratio
   const devicePixelRatio = window.devicePixelRatio || 1;
@@ -98,13 +98,13 @@ export const getCanvasAndGLContext = moize.infinite((ctx) => {
 });
 
 export const fillCanvasToWindow = (ctx) => {
-  // const app = getPicoApp();
   const { canvas } = getCanvasAndGLContext(ctx);
-  const { renderer } = getThreeSetup(ctx);
+  const { renderer, camera } = getThreeSetup(ctx);
   const { width, height, clientWidth, clientHeight } = getWidthAndHeight(ctx);
   const component = getComponent(ctx);
 
   renderer.setSize(clientWidth, clientHeight);
+  camera.aspect = clientWidth / clientHeight;
   getPickerRenderTarget(ctx).setSize(clientWidth, clientHeight);
   getNodeDepthRenderTarget(ctx).setSize(width, height);
   globalCamera(ctx).resize(width / height);
@@ -128,10 +128,9 @@ export const initializeRenderer = (ctx) => {
 
 // no need to get the picker pixel every frame
 export const animateGraph = (ctx) => {
-  // clear the width/height cache
-  fillCanvasToWindow(ctx);
   updateUniforms(ctx);
-  getWidthAndHeight.remove(ctx);
+
+  // getWidthAndHeight.remove(ctx);
 
   updateNodePositionTargets(ctx);
   getSelectedNode(ctx).then((node) => {
@@ -158,11 +157,11 @@ export const animateGraph = (ctx) => {
     edgeVisualizerMesh,
   } = getThreeSetup(ctx);
 
-  renderer.setRenderTarget(null);
-  renderer.render(scene, camera);
-
   renderer.setRenderTarget(getPickerRenderTarget(ctx));
   renderer.render(nodePickerMesh, camera);
+
+  renderer.setRenderTarget(null);
+  renderer.render(scene, camera);
 
   if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
 
