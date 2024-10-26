@@ -24,14 +24,6 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
 import { hue, normal } from "color-blend/unit";
 
-// export const getCurrentSelection = moize.infinite(() => new Set());
-
-// export const applySelectionVisuals = async () => {
-//   const {nodes, links} = await getGraphData();
-//   const colors = getColorBuffers();
-//   const sizes = getRadiusBuffers();
-// }
-
 const defaultColorMap = ({ color }) => color;
 export const getDefaultColors = moize.infinite(
   async (graphData, fn = identity) => {
@@ -136,7 +128,6 @@ const onImgErrorHandler = "this.parentNode.style.display='none'";
 const onImgSuccessHandler = "this.parentNode.style.display='initial'";
 // const onImgErrorHandler = (e) => {}
 
-
 export const selectNodeAndDownstreamDependents = async (
   ctx,
   node,
@@ -216,7 +207,6 @@ export const selectNodeAndDownstreamDependents = async (
     applyVisuals(ctx);
     setSelectedIndex(ctx, -1);
   }
-
 };
 
 export const selectNothingAndZoomOut = (ctx) => {

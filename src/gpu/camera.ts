@@ -20,18 +20,6 @@ export const getCamerasUniforms = moize.infinite((ctx) => {
   };
 });
 
-// export const getCamerasUniformsGroup = moize.infinite((ctx) => {
-//   const group = new UniformsGroup();
-//   group.setName("cameras");
-//   const uniforms = getCamerasUniforms(ctx);
-
-//   Object.values(uniforms).forEach((uniform) => {
-//     group.add(uniform);
-//   });
-
-//   return group;
-// });
-
 export const cameraUniformsGroupUpdater = (ctx) =>
   moize(
     proxy(

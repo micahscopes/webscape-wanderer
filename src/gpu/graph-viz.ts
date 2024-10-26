@@ -28,7 +28,8 @@ import {
 import { getCanvasAndGLContext } from "./rendering";
 import moize from "moize";
 import { OBJLoader } from "../../lib/OBJLoader";
-import heartObjString from "../../data/dandelion3.obj?raw";
+import heartObjString from "../../data/heart.obj?raw";
+// import dandelion from "../../data/dandelion3.obj?raw";
 
 export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "heart") => {
   let geo;
