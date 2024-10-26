@@ -149,7 +149,7 @@ export const setGraphData = async (ctx, data) => {
   // loadEdgeVertexArray(ctx, 10000);
   // loadNodeVertexArray(ctx, nodes.length);
   // loadEdgeVertexArray(ctx);
-  loadNodeVertexArray(ctx, 10000);
+  loadNodeVertexArray(ctx, nodes.length);
 
   getEdgeVisualizerMesh(ctx).geometry.instanceCount = linkIndexPairs.length;
 

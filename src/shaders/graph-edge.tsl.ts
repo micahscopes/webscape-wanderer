@@ -312,7 +312,7 @@ export const graphEdgeMaterialDebug = (ctx) => {
       nodeDepthTexture,
     }),
     depthTest: false,
-    depthWrite: true,
+    depthWrite: false,
     transparent: true,
   });
 };
@@ -365,7 +365,7 @@ const edgeFragmentShader = (
 
   const { sourceSize } = getEdgeAttributes(ctx);
   // Waves
-  const frequency = edgeLength2D.mul(edgeFrequency).mul(sourceSize);
+  const frequency = edgeLength2D.mul(edgeFrequency).mul(0.1);
   const waveSpeed = float(4.0).mul(edgeWaveSpeed).div(edgeLength2D);
   const waves = wave(u_2D.sub(time.mul(waveSpeed)), frequency);
 

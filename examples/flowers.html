@@ -83,11 +83,11 @@
                 for (let wanderer of document.querySelectorAll(
                     "webscape-wanderer",
                 )) {
-                    wanderer.graphData = randomGraphData(30, 40);
-                    // setInterval(() => {
-                    //     console.log("changing graph data");
-                    //     wanderer.graphData = randomGraphData(8, 10);
-                    // }, 5000);
+                    wanderer.graphData = randomGraphData(100, 100);
+                    setInterval(() => {
+                        console.log("changing graph data");
+                        wanderer.graphData = randomGraphData(100, 100);
+                    }, 100000);
                 }
             });
         </script>
