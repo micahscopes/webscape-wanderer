@@ -17,7 +17,9 @@ export const defaultAttributes = {
 };
 
 export const getAttributes = (ctx) =>
-  state(ctx, "attributes", () => structuredClone(defaultAttributes)).get();
+  state(ctx, "attributes", () =>
+    JSON.parse(JSON.stringify(defaultAttributes)),
+  ).get();
 
 const getGui = (ctx) =>
   state(ctx, "gui", () => {

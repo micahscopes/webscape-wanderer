@@ -5,18 +5,21 @@ import {
 } from "./camera";
 import {
   deviceHasMouse,
-  getCurrentlyHoveringNode, globalCamera,
+  getCurrentlyHoveringNode,
+  globalCamera,
   hoveredCursor,
   hoveredTooltip,
   selectedCursor,
-  updateCameras, updatePickerColorThrottled
+  updateCameras,
+  updatePickerColorThrottled,
 } from "../interaction";
 import { colord } from "colord";
 import { getSelectedNode } from "../selection";
 
 import {
-  getNodeDepthRenderTarget, getPickerRenderTarget,
-  getThreeSetup
+  getNodeDepthRenderTarget,
+  getPickerRenderTarget,
+  getThreeSetup,
 } from "./graph-viz";
 import { graphBuffers, updateNodePositionTargets } from "../data";
 import { state } from "../state";
@@ -126,6 +129,7 @@ export const initializeRenderer = (ctx) => {
 // no need to get the picker pixel every frame
 export const animateGraph = (ctx) => {
   // clear the width/height cache
+  fillCanvasToWindow(ctx);
   updateUniforms(ctx);
   getWidthAndHeight.remove(ctx);
 
@@ -144,8 +148,6 @@ export const animateGraph = (ctx) => {
   updateCameras(ctx, cameraUniformsGroupUpdater(ctx), width, height);
 
   const { gl } = getCanvasAndGLContext(ctx);
-
-  fillCanvasToWindow(ctx);
 
   const {
     renderer,

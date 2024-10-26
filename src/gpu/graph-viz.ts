@@ -27,9 +27,9 @@ import {
 import { getCanvasAndGLContext } from "./rendering";
 import moize from "moize";
 import { OBJLoader } from "../../lib/OBJLoader";
-import heartObjString from "../../data/heart.obj?raw";
+import heartObjString from "../../data/dandelion3.obj?raw";
 
-export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "heart") => {
   let geo;
 
   if (shape === "box") {
@@ -46,7 +46,7 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "box") => {
       }
       heartGeometry.setIndex(indices);
     }
-    let scaleFactor = 0.25;
+    let scaleFactor = 1;
     heartGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
     console.log(heartGeometry);
     geo = heartGeometry;
@@ -167,7 +167,9 @@ export const getThreeSetup = moize.infinite((ctx) => {
 
   const renderer = new WebGPURenderer({
     canvas,
+    forceWebGL: true,
   });
+  renderer.setClearColor("#ffffff00");
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);

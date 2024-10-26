@@ -9,9 +9,9 @@ import path from "path";
 // Worker Chunk Plugin
 function workerChunkPlugin() {
   return {
-    name: 'worker-chunk-plugin',
-    apply: 'build',
-    enforce: 'pre',
+    name: "worker-chunk-plugin",
+    apply: "build",
+    enforce: "pre",
     async resolveId(source, importer, options) {
       if (source.endsWith("?worker")) {
         const resolved = await this.resolve(source.split("?")[0], importer, {
@@ -91,6 +91,7 @@ export default defineConfig(({ mode }) => {
       minify: true, // Consider enabling for production
       modulePreload: false,
       sourcemap: true,
+      target: "module",
     },
   };
 
@@ -104,7 +105,7 @@ export default defineConfig(({ mode }) => {
           entry: resolve(__dirname, "src/main.ts"),
           name: "WebscapeWanderer",
           fileName: "webscape-wanderer",
-          formats: ['es'],
+          formats: ["es"],
         },
       },
     };
