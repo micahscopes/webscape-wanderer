@@ -48,17 +48,23 @@ export const graphNodeMaterials = (ctx) => {
   // const id = attribute("index");
 
   const { fixedProjection, fixedView, distance } = getCamerasUniforms(ctx);
-  const {
-    selectedIndex,
-    selectedColor,
-    lol,
-    defaultFogBoundaryClipZ,
-    nodeFog,
-  } = getUniforms(ctx);
+  const { selectedIndex, selectedColor, defaultFogBoundaryClipZ, nodeFog } =
+    getUniforms(ctx);
 
   const buffers = graphBuffers(ctx);
 
   const positions = buffers.getNodeProperties("positionTarget");
+  // const positions = buffers.getEdgePairs("positionTarget").source;
+
+  const targetPosition = buffers
+    .getNodeProperties("positionTarget")
+    .element(id);
+  const currentPosition = buffers
+    .getNodeProperties("positionCurrent")
+    .element(id);
+
+  // currentPosition.addAssign(targetPosition.sub(currentPosition).mul(0.01));
+
   const colors = buffers.getNodeProperties("colorTarget");
   const sizes = buffers.getNodeProperties("sizeTarget");
   const emphases = buffers.getNodeProperties("emphasisTarget");

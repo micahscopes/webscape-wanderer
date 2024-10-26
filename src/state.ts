@@ -139,10 +139,16 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     (key: string) => {
       if (!bufferState.buffers[key]) {
         // Initialize with an empty buffer if not exists
-        const type = key.startsWith("nodeProps_")
-          ? bufferState.nodeProps[key.slice(10)]?.type || "float"
-          : "float";
-        initializeBuffer(key, type);
+        if (key.startsWith("edgeSource_") || key.startsWith("edgeTarget_")) {
+          const propKey = key.slice(11);
+          const type = bufferState.nodeProps[propKey]?.type || "float";
+          initializeBuffer(key, type);
+        } else {
+          const type = key.startsWith("nodeProps_")
+            ? bufferState.nodeProps[key.slice(10)]?.type || "float"
+            : "float";
+          initializeBuffer(key, type);
+        }
       }
       return bufferState.buffers[key];
     },
@@ -152,14 +158,41 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
         if (key === "edgeIndices") return [key, edgesVersion];
         if (key.startsWith("nodeProps_"))
           return [key, propVersions[key.slice(10)] || 0];
-        if (key.startsWith("edgePairs_")) {
-          const propKey = key.slice(10);
+        if (key.startsWith("edgeSource_") || key.startsWith("edgeTarget_")) {
+          const propKey = key.slice(11);
           return [key, edgesVersion, propVersions[propKey] || 0];
         }
         return [key, edgesVersion]; // fallback
       },
     },
   );
+
+  const updateEdgePairBuffers = () => {
+    if (!bufferState.edges) return;
+
+    Object.keys(bufferState.nodeProps).forEach((propertyKey) => {
+      const propData = bufferState.nodeProps[propertyKey];
+      const { type, data } = propData;
+      const { itemSize, arrayType } = getTypeInfo(type);
+      const sourceResult = new arrayType(bufferState.edges!.length * itemSize);
+      const targetResult = new arrayType(bufferState.edges!.length * itemSize);
+
+      for (let i = 0; i < bufferState.edges!.length; i++) {
+        const [fromIdx, toIdx] = bufferState.edges![i];
+        sourceResult.set(
+          data.subarray(fromIdx * itemSize, (fromIdx + 1) * itemSize),
+          i * itemSize,
+        );
+        targetResult.set(
+          data.subarray(toIdx * itemSize, (toIdx + 1) * itemSize),
+          i * itemSize,
+        );
+      }
+
+      updateOrCreateBuffer(`edgeSource_${propertyKey}`, sourceResult, type);
+      updateOrCreateBuffer(`edgeTarget_${propertyKey}`, targetResult, type);
+    });
+  };
 
   return {
     _state: bufferState,
@@ -175,6 +208,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
         new Uint32Array(edges.flat()),
         "uvec2",
       );
+      updateEdgePairBuffers();
     },
 
     setNodeProperties: (
@@ -191,6 +225,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       bufferState.nodeProps[key] = { type, data: data.slice() };
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, data, type);
+      updateEdgePairBuffers();
     },
 
     setNodeProperty: (key: string, index: number, value: number | number[]) => {
@@ -212,6 +247,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       propData.data.set(valueArray, dataIndex);
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, propData.data, propData.type);
+      updateEdgePairBuffers();
     },
 
     getNodeProperties: (key: string) => {
@@ -220,35 +256,10 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
 
     getEdgePairs: moize.maxSize(Infinity)(
       (propertyKey: string) => {
-        const edges = bufferState.edges;
-        const propData = bufferState.nodeProps[propertyKey];
-
-        if (!edges || !propData) return null;
-
-        const { type, data } = propData;
-        const { itemSize, arrayType } = getTypeInfo(type);
-        const result = new arrayType(edges.length * 2 * itemSize);
-
-        for (let i = 0; i < edges.length; i++) {
-          const [fromIdx, toIdx] = edges[i];
-          const baseIndex = i * 2 * itemSize;
-          result.set(
-            data.subarray(fromIdx * itemSize, (fromIdx + 1) * itemSize),
-            baseIndex,
-          );
-          result.set(
-            data.subarray(toIdx * itemSize, (toIdx + 1) * itemSize),
-            baseIndex + itemSize,
-          );
-        }
-
-        const edgePairType = type.startsWith("u") ? `u${type}` : type;
-        updateOrCreateBuffer(
-          `edgePairs_${propertyKey}`,
-          result,
-          edgePairType as PropertyType,
-        );
-        return getBuffer(`edgePairs_${propertyKey}`);
+        return {
+          source: getBuffer(`edgeSource_${propertyKey}`),
+          target: getBuffer(`edgeTarget_${propertyKey}`),
+        };
       },
       {
         maxArgs: 3,

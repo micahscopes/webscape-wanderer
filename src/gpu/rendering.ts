@@ -120,7 +120,7 @@ function checkWebGLError(gl) {
 }
 export const initializeRenderer = (ctx) => {
   getUniforms(ctx);
-  graphBuffers(ctx);
+  // graphBuffers(ctx);
 };
 
 // no need to get the picker pixel every frame

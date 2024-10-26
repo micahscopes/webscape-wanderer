@@ -119,6 +119,7 @@ void main() {
     // fragColor = vec4(u, 0,0, u);
 
     // fragColor = vec4(gl_FragDepth, 0,0,1);
-    // fragColor = vec4(nodeDepth, 0, 0, 1);
+    fragColor = vec4(nodeDepth, 0, 0, 1);
+    fragColor = vec4(1, 1, 0, 1);
     // gl_FragDepth = -1.0;
 }

@@ -50,7 +50,11 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
 // import valueNetworkData from "../data/valuenetwork.json";
 // import projectsData from "../data/projects.json";
 // import organizationsData from "../data/organizations.json";
-import { getEdgeVisualizerMesh, loadNodeVertexArray } from "./gpu/graph-viz";
+import {
+  getEdgeVisualizerMesh,
+  loadEdgeVertexArray,
+  loadNodeVertexArray,
+} from "./gpu/graph-viz";
 import { asyncState, state } from "./state";
 
 export const nodeScaleFn = (dependents) =>
@@ -142,10 +146,10 @@ export const setGraphData = async (ctx, data) => {
   bufferState.setNodeProperties("emphasisTarget", "float", emphasis);
 
   // Load vertex arrays (if still needed)
-  // loadEdgeVertexArray(ctx, linkIndexPairs);
+  // loadEdgeVertexArray(ctx, 10000);
   // loadNodeVertexArray(ctx, nodes.length);
   // loadEdgeVertexArray(ctx);
-  loadNodeVertexArray(ctx);
+  loadNodeVertexArray(ctx, 10000);
 
   getEdgeVisualizerMesh(ctx).geometry.instanceCount = linkIndexPairs.length;
 

@@ -102,7 +102,9 @@ class WebscapeWanderer extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     const ctx = this.context;
     const attrs = getAttributes(this.context);
-    attrs[camelCase(name)] = newValue || defaultAttributes[camelCase(name)];
+    attrs[camelCase(name)] = parseFloat(
+      newValue || defaultAttributes[camelCase(name)],
+    );
 
     if (name == "focus") {
       getGraphData(ctx).then(({ nodesByNavId }) => {
@@ -113,7 +115,7 @@ class WebscapeWanderer extends HTMLElement {
   }
 }
 
-export function startWebscapeWanderer(tagName = 'webscape-wanderer') {
+export function startWebscapeWanderer(tagName = "webscape-wanderer") {
   if (!customElements.get(tagName)) {
     customElements.define(tagName, WebscapeWanderer);
   }

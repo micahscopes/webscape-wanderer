@@ -1,12 +1,382 @@
-import { LessEqualDepth, MeshMatcapNodeMaterial, vec4 } from "three/webgpu";
+import {
+  attribute,
+  clamp,
+  dot,
+  equal,
+  float,
+  greaterThan,
+  instanceIndex,
+  length,
+  max,
+  MeshBasicNodeMaterial,
+  mix,
+  normalize,
+  oneMinus,
+  or,
+  positionGeometry,
+  pow,
+  screenCoordinate,
+  sin,
+  smoothstep,
+  varying,
+  vec2,
+  vec3,
+  vec4,
+} from "three/webgpu";
+import { getCamerasUniforms } from "../gpu/camera";
+import { getUniforms } from "../gpu/uniforms";
+import { graphBuffers } from "../data";
+import { bump } from "./bump.tsl";
 
-export const graphEdgeMaterial = (ctx) => {
-  return new MeshMatcapNodeMaterial({
-    colorNode: vec4(1, 0, 0, 1),
-    depthTest: false,
+const getEdgeAttributes = (ctx) => {
+  const buffers = graphBuffers(ctx);
+  // const sourceIndex = attribute("edgeIndices").x;
+  // const targetIndex = attribute("edgeIndices").y;
+  const id = instanceIndex;
+  const positions = buffers.getEdgePairs("positionTarget");
+  const colors = buffers.getEdgePairs("colorTarget");
+  const sizes = buffers.getEdgePairs("sizeTarget");
+  const emphases = buffers.getEdgePairs("emphasisTarget");
+
+  return {
+    sourcePosition: positions.source.element(id).toVar("srcPosition"),
+    targetPosition: positions.target.element(id).toVar("tgtPosition"),
+    sourceColor: colors.source.element(id).toVar("srcColor"),
+    targetColor: colors.target.element(id).toVar("tgtColor"),
+    sourceSize: sizes.source.element(id).toVar("srcSize"),
+    targetSize: sizes.target.element(id).toVar("tgtSize"),
+    sourceEmphasis: emphases.source.element(id).x.toVar("srcEmphasis"),
+    targetEmphasis: emphases.target.element(id).y.toVar("tgtEmphasis"),
+  };
+};
+
+const edgeGeometry = ({
+  nodePosition,
+  vertexPosition,
+  edgeDirection,
+  scale,
+  flatness,
+  globalView,
+  globalProjection,
+  globalScale,
+  edgeScale,
+}) => {
+  const normalizedEdgeDirection = normalize(edgeDirection);
+  const edgePerpendicular = vec2(
+    normalizedEdgeDirection.y.negate(),
+    normalizedEdgeDirection.x,
+  )
+    .toVar("edgePerpendicular")
+    .mul(scale)
+    .mul(globalScale)
+    .mul(edgeScale)
+    .div(3.0);
+
+  const position = globalProjection
+    .toVar("projection")
+    .mul(globalView.toVar("view"))
+    .mul(vec4(nodePosition, 1.0))
+    .toVar("position");
+  const positionNDC = position.div(position.w);
+
+  const positionClip = vec4(
+    position.xy.add(vertexPosition.y.mul(edgePerpendicular)),
+    position.zw,
+  );
+
+  const positionFixedStrokeNDC = positionNDC.add(
+    vec4(vertexPosition.y.mul(edgePerpendicular), 0.0, 0.0),
+  );
+  const positionFixedStrokeClip = positionFixedStrokeNDC.mul(position.w);
+
+  return mix(positionClip, positionFixedStrokeClip, flatness);
+};
+export const graphEdgeMaterialDebug = (ctx) => {
+  const { globalProjection, globalView, distance } = getCamerasUniforms(ctx);
+
+  const {
+    selectedIndex,
+    selectedColor,
+    mousePosition,
+    hoveringIndex,
+    edgeFrequency,
+    edgePulseSpeed,
+    edgeWaveSpeed,
+    time,
+    devicePixelRatio,
+    viewport,
+    nodeDepthTexture,
+  } = getUniforms(ctx);
+
+  // Add these as they seem to be missing from getUniforms
+  const globalScale = float(1).toVar("globalScale");
+  const edgeScale = float(1).toVar("edgeScale");
+  const edgeOvershoot = float(1).toVar("edgeOvershoot");
+  const defaultFogBoundaryClipZ = float(1000).toVar("defaultFogBoundaryClipZ");
+  const edgeFog = float(1).toVar("edgeFog");
+
+  const segmentOffset = attribute("segmentOffset", "vec3");
+  const edgeIndices = attribute("edgeIndices");
+
+  let {
+    sourcePosition,
+    targetPosition,
+    sourceColor,
+    targetColor,
+    sourceSize,
+    targetSize,
+    sourceEmphasis,
+    targetEmphasis,
+  } = getEdgeAttributes(ctx);
+
+  // Create offset (matching GLSL version more closely)
+  const offset = vec3(
+    segmentOffset.y.mul(edgeOvershoot),
+    segmentOffset.x,
+    segmentOffset.z,
+  );
+
+  // Create segmentPosition (matching GLSL version)
+  const segmentPosition = offset
+    .add(vec3(edgeOvershoot.mul(0.5), 0, 0))
+    .toVar("segmentPosition");
+
+  // Calculate isSource and isTarget
+  const isSource = segmentPosition.x.toVar("isSource");
+  const isTarget = oneMinus(isSource).toVar("isTarget");
+
+  // Create vertexOffset
+  const vertexOffset = segmentPosition.toVar("vertexOffset");
+
+  const nodePosition = sourcePosition
+    .mul(isSource)
+    .add(targetPosition.mul(isTarget))
+    .toVar("nodePosition");
+
+  // Calculate edge direction accounting for perspective division
+  const sourcePositionClip = globalProjection
+    .mul(globalView)
+    .mul(vec4(sourcePosition, 1.0));
+  const targetPositionClip = globalProjection
+    .mul(globalView)
+    .mul(vec4(targetPosition, 1.0));
+  const edgeDirection = normalize(
+    targetPositionClip.xyz
+      .div(targetPositionClip.w)
+      .sub(sourcePositionClip.xyz.div(sourcePositionClip.w)),
+  ).xy.toVar("edgeDirection");
+
+  const size = sourceSize
+    .mul(isSource)
+    .add(targetSize.mul(isTarget))
+    .mul(0.4)
+    .toVar("size");
+
+  const flatness = float(1.0).toVar("flatness");
+
+  const positionClip = edgeGeometry({
+    nodePosition,
+    vertexPosition: vertexOffset,
+    edgeDirection,
+    scale: size,
+    flatness,
+    globalView,
+    globalProjection,
+    globalScale,
+    edgeScale,
+  }).toVar("positionClip");
+
+  // Color calculation
+  let edgeColor = sourceColor
+    .mul(isSource)
+    .add(targetColor.mul(isTarget))
+    .toVar("color");
+
+  const selected = float(
+    or(
+      equal(selectedIndex, edgeIndices.x),
+      equal(selectedIndex, edgeIndices.y),
+    ),
+  ).toVar("selected");
+
+  const hovering = float(
+    or(
+      equal(hoveringIndex, edgeIndices.x),
+      equal(hoveringIndex, edgeIndices.y),
+    ),
+  ).toVar("hovering");
+
+  const isAnySelected = float(greaterThan(selectedIndex, -1)).toVar(
+    "isAnySelected",
+  );
+
+  const emphasis = max(sourceEmphasis, targetEmphasis).toVar("emphasis");
+
+  // Desaturate color based on emphasis
+  let rgb = desaturate(edgeColor.xyz, mix(1.0, 0.2, emphasis));
+  let alpha = edgeColor.w.mul(mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected)));
+  alpha = alpha.mul(mix(0.4, 1.0, mix(1.0, selected, isAnySelected)));
+
+  // Dim edges for larger distances
+  alpha = alpha.mul(
+    mix(1.0, mix(0.3, 1.0, selected), smoothstep(400.0, 1200.0, distance)),
+  );
+
+  edgeColor = vec4(rgb, alpha);
+
+  // Fog calculation
+  const fog = computeFog(
+    positionClip.z,
+    defaultFogBoundaryClipZ.div(2.0),
+  ).toVar("fog");
+
+  // Create varying nodes
+  const vColor = varying(edgeColor);
+  const vFog = varying(fog);
+  const vSelected = varying(selected);
+  const vEmphasis = varying(emphasis);
+  const vSize = varying(size);
+  const vIsTarget = varying(isTarget);
+
+  const vSourcePosition2D = varying(
+    sourcePositionClip.xy.div(sourcePositionClip.w),
+  );
+  const vTargetPosition2D = varying(
+    targetPositionClip.xy.div(targetPositionClip.w),
+  );
+  const vEdgeLength = varying(length(targetPosition.sub(sourcePosition)));
+  const vEdgeLength2D = varying(
+    length(vTargetPosition2D.sub(vSourcePosition2D)),
+  );
+
+  const vY = varying(vertexOffset.y);
+  const vV = varying(segmentPosition.y);
+
+  return new MeshBasicNodeMaterial({
+    vertexNode: positionClip,
+    colorNode: edgeFragmentShader({
+      color: vColor,
+      fog: vFog,
+      selected: vSelected,
+      isTarget: vIsTarget,
+      emphasis: vEmphasis,
+      size: vSize,
+      sourcePosition2D: vSourcePosition2D,
+      targetPosition2D: vTargetPosition2D,
+      edgeLength: vEdgeLength,
+      edgeLength2D: vEdgeLength2D,
+      y: vY,
+      v: vV,
+      edgeFrequency,
+      edgePulseSpeed,
+      edgeWaveSpeed,
+      edgeOvershoot,
+      time,
+      devicePixelRatio,
+      viewport,
+      nodeDepthTexture,
+    }),
+    depthTest: true,
     depthWrite: true,
-    depthFunc: LessEqualDepth,
     transparent: true,
-    colorNode: vec4(1, 1, 0, 1),
   });
 };
+
+// Helper functions
+const desaturate = (color, amount) => {
+  const luminance = dot(color, vec3(0.299, 0.587, 0.114));
+  return mix(color, vec3(luminance), amount);
+};
+
+const computeFog = (z, fogBoundary) => {
+  return smoothstep(0.0, 1.0, z.sub(fogBoundary).div(fogBoundary));
+};
+
+// Fragment shader function
+const edgeFragmentShader = ({
+  color,
+  fog,
+  selected,
+  isTarget,
+  emphasis,
+  size,
+  sourcePosition2D,
+  targetPosition2D,
+  edgeLength,
+  edgeLength2D,
+  y,
+  v,
+  edgeFrequency,
+  edgePulseSpeed,
+  edgeWaveSpeed,
+  edgeOvershoot,
+  time,
+  devicePixelRatio,
+  viewport,
+  nodeDepthTexture,
+}) => {
+  const fragCoord = screenCoordinate;
+  const u_2D = length(fragCoord.sub(sourcePosition2D)).div(edgeLength2D);
+  const u_3D = isTarget;
+
+  // Softness
+  let alpha = color.w.mul(
+    mix(bump(v, float(2).mul(oneMinus(fog)), 1.0), 1.0, fog),
+  );
+
+  // Waves
+  const frequency = edgeLength2D.mul(1.0).mul(edgeFrequency).mul(size);
+  const waveSpeed = float(4.0).mul(edgeWaveSpeed).div(edgeLength2D);
+  const waves = mix(
+    1.0,
+    wave(u_2D.sub(time.mul(waveSpeed)), frequency),
+    mix(0.5, 1.0, emphasis),
+  );
+
+  // Wave packets
+  const highFrequency = edgeLength.div(4.0).mul(edgeFrequency);
+  const pulseSpeed = float(20.0).div(edgeLength).mul(edgePulseSpeed);
+  const pulse = clamp(
+    pow(wave(u_2D.sub(time.mul(pulseSpeed)), 1.0), edgeLength2D.div(5.0)),
+    0.0,
+    1.0,
+  );
+
+  // Golden pulse
+  let rgb = mix(color.xyz, vec3(1.0, 1.0, 0.0), mix(0.0, pulse, 0.1));
+
+  // Dashed lines
+  alpha = color.w.mul(mix(1.0, waves, oneMinus(pulse)));
+
+  // Add bumps
+  alpha = alpha.mul(
+    bump(
+      v,
+      1.0,
+      pulse
+        .mul(mix(0.2, 0.4, selected))
+        .mul(wave(u_3D, highFrequency))
+        .add(0.6),
+    ),
+  );
+
+  // Emphasize selected edges
+  alpha = alpha.mul(mix(0.4, 1.0, selected));
+
+  // Fade ends of edges
+  alpha = alpha.mul(bump(u_3D.sub(0.5), 2.0, edgeOvershoot));
+
+  // Check the depth of the nodes at this same fragment coordinate
+  // const nodeDepth = texture(nodeDepthTexture, fragCoord.div(viewport)).r;
+
+  return vec4(rgb, alpha);
+};
+
+// Helper functions for the fragment shader
+const wave = (t, freq) => pow(sin(t.mul(freq).mul(Math.PI * 2)), 2.0);
+
+// const bump = (x, width, height) => {
+//   const x1 = smoothstep(0.0, width, x);
+//   const x2 = oneMinus(smoothstep(1.0 - width, 1.0, x));
+//   return x1.mul(x2).mul(height);
+// };
