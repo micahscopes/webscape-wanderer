@@ -29,6 +29,8 @@ import {
   viewportUV,
   uv,
   distance,
+  bool,
+  int,
 } from "three/webgpu";
 import { getCamerasUniforms } from "../gpu/camera";
 import { getUniforms } from "../gpu/uniforms";
@@ -55,6 +57,7 @@ const getEdgeAttributes = (ctx) => {
     targetSize: sizes.target.element(id).toVar("tgtSize"),
     sourceEmphasis: emphases.source.element(id).x.toVar("srcEmphasis"),
     targetEmphasis: emphases.target.element(id).y.toVar("tgtEmphasis"),
+    edgeIndices: buffers.getEdgeIndices().element(id).toVar("edgeIndices"),
   };
 };
 
@@ -125,10 +128,10 @@ export const graphEdgeMaterialDebug = (ctx) => {
     edgeOvershoot,
     defaultFogBoundaryClipZ,
     edgeFog,
+    selectedEdgeColor,
   } = getUniforms(ctx);
 
   const segmentOffset = attribute("segmentOffset", "vec3");
-  const edgeIndices = attribute("edgeIndices");
 
   let {
     sourcePosition,
@@ -139,6 +142,7 @@ export const graphEdgeMaterialDebug = (ctx) => {
     targetSize,
     sourceEmphasis,
     targetEmphasis,
+    edgeIndices,
   } = getEdgeAttributes(ctx);
 
   // Create offset (matching GLSL version more closely)
@@ -209,19 +213,30 @@ export const graphEdgeMaterialDebug = (ctx) => {
     .add(targetColor.mul(isTarget))
     .toVar("color");
 
-  const selected = float(
-    or(
-      equal(selectedIndex, edgeIndices.x),
-      equal(selectedIndex, edgeIndices.y),
-    ),
-  ).toVar("selected");
+  // edgeIndices = edgeIndices.toVar("edgeIndices");
+  const sourceIndex = edgeIndices.x;
+  const targetIndex = edgeIndices.y;
+  const selected = equal(selectedIndex, sourceIndex)
+    .or(equal(selectedIndex, targetIndex))
+    .toInt();
+  // const selected = float(1);
+  // let selected =
+  // .toFloat()
+  // .toVar("selected"),
 
-  const hovering = float(
-    or(
-      equal(hoveringIndex, edgeIndices.x),
-      equal(hoveringIndex, edgeIndices.y),
-    ),
-  ).toVar("hovering");
+  // selected = varying(selected.toFloat());
+  // or(
+  // equal(selectedIndex, edgeIndices).toFloat();
+  // equal(selectedIndex, edgeIndices.y),
+  // ).toFloat(),
+  // const selected = float(1);
+
+  // const hovering = float(
+  //   or(
+  //     equal(hoveringIndex, edgeIndices.x.toFloat()),
+  // equal(hoveringIndex, edgeIndices.y.toFloat()),
+  //   ),
+  // ).toVar("hovering");
 
   const isAnySelected = float(greaterThan(selectedIndex, -1)).toVar(
     "isAnySelected",
@@ -229,14 +244,16 @@ export const graphEdgeMaterialDebug = (ctx) => {
 
   const emphasis = max(sourceEmphasis, targetEmphasis).toVar("emphasis");
 
+  const vertSelected = selected;
+
   // Desaturate color based on emphasis
   let rgb = desaturate(edgeColor.xyz, mix(1.0, 0.2, emphasis));
   let alpha = edgeColor.w.mul(mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected)));
-  alpha = alpha.mul(mix(0.4, 1.0, mix(1.0, selected, isAnySelected)));
+  alpha = alpha.mul(mix(0.4, 1.0, mix(1.0, vertSelected, isAnySelected)));
 
   // Dim edges for larger distances
   alpha = alpha.mul(
-    mix(1.0, mix(0.3, 1.0, selected), smoothstep(400.0, 1200.0, distance)),
+    mix(1.0, mix(0.3, 1.0, vertSelected), smoothstep(400.0, 1200.0, distance)),
   );
 
   edgeColor = vec4(rgb, alpha);
@@ -250,7 +267,6 @@ export const graphEdgeMaterialDebug = (ctx) => {
   // Create varying nodes
   const vColor = varying(edgeColor);
   const vFog = varying(fog);
-  const vSelected = varying(selected);
   const vEmphasis = varying(emphasis);
   const vSize = varying(size);
   const vIsTarget = varying(isTarget);
@@ -291,7 +307,7 @@ export const graphEdgeMaterialDebug = (ctx) => {
     colorNode: edgeFragmentShader(ctx, {
       color: vColor,
       fog: vFog,
-      selected: vSelected,
+      selected,
       isTarget: vIsTarget,
       emphasis: vEmphasis,
       size: vSize,
@@ -312,16 +328,10 @@ export const graphEdgeMaterialDebug = (ctx) => {
       nodeDepthTexture,
     }),
     depthTest: false,
-    depthWrite: false,
+    // depthWrite: true,
     transparent: true,
   });
 };
-
-// Helper functions
-// const desaturate = (color, amount) => {
-//   const luminance = dot(color, vec3(0.299, 0.587, 0.114));
-//   return mix(color, vec3(luminance), amount);
-// };
 
 const computeFog = (z, fogBoundary) => {
   return smoothstep(0.0, 1.0, z.sub(fogBoundary).div(fogBoundary));
@@ -419,16 +429,10 @@ const edgeFragmentShader = (
   const redFactor = smoothstep(proximityThreshold, float(0.0), proximity);
 
   // Mix red color based on proximity
-  // rgb = mix(rgb, vec3(1.0, 0.0, 0.0), redFactor);
+  rgb = mix(rgb, selectedCo, selected);
 
   return vec4(rgb, alpha);
 };
 
 // Helper functions for the fragment shader
 const wave = (t, freq) => pow(sin(t.mul(freq).mul(Math.PI)), 2.0);
-
-// const bump = (x, width, height) => {
-//   const x1 = smoothstep(0.0, width, x);
-//   const x2 = oneMinus(smoothstep(1.0 - width, 1.0, x));
-//   return x1.mul(x2).mul(height);
-// };

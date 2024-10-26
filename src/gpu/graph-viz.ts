@@ -13,6 +13,7 @@ import {
   DirectionalLight,
   InstancedMesh,
   BufferGeometry,
+  Color,
 } from "three/webgpu";
 
 // import nodeVs from "../shaders/node-vert.tsl";
@@ -169,7 +170,7 @@ export const getThreeSetup = moize.infinite((ctx) => {
     canvas,
     forceWebGL: true,
   });
-  renderer.setClearColor("#ffffff00");
+  renderer.setClearColor(new Color("#000000"), 0);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);

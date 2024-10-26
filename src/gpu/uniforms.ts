@@ -1,10 +1,8 @@
-import {
-  uniform, Vector4
-} from "three/webgpu";
+import { uniform, Vector4 } from "three/webgpu";
 
 import {
   getCurrentlyHoveringIndex,
-  getPointerPositionClip
+  getPointerPositionClip,
 } from "../interaction";
 import { getSelectedColor, getSelectedIndex } from "../selection";
 import moize from "moize";
