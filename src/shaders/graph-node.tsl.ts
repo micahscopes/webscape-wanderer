@@ -110,7 +110,6 @@ export const graphNodeMaterials = (ctx) => {
   return {
     graphNodeMaterial: new MeshMatcapNodeMaterial({
       vertexNode: geo.orthographicClipPosition,
-      // vertexNode: vec4(positions.element(id), 1),
       colorNode: colorNode,
     }),
     graphNodePickerMaterial: new MeshBasicNodeMaterial({

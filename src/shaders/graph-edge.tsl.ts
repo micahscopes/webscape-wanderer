@@ -110,7 +110,11 @@ const nodeClipPosition = ({ nodePosition, globalView, globalProjection }) => {
     .mul(vec4(nodePosition, 1.0));
 };
 export const graphEdgeMaterialDebug = (ctx) => {
-  const { globalProjection, globalView, distance } = getCamerasUniforms(ctx);
+  const {
+    globalProjection,
+    globalView,
+    distance: camDistance,
+  } = getCamerasUniforms(ctx);
 
   const {
     selectedIndex,
@@ -253,7 +257,11 @@ export const graphEdgeMaterialDebug = (ctx) => {
 
   // Dim edges for larger distances
   alpha = alpha.mul(
-    mix(1.0, mix(0.3, 1.0, vertSelected), smoothstep(400.0, 1200.0, distance)),
+    mix(
+      1.0,
+      mix(0.3, 1.0, vertSelected),
+      smoothstep(400.0, 1200.0, camDistance),
+    ),
   );
 
   edgeColor = vec4(rgb, alpha);
@@ -280,53 +288,99 @@ export const graphEdgeMaterialDebug = (ctx) => {
     .div(targetPositionClip.w)
     .toVar("targetPosition2DNDC");
 
-  const vSourcePosition2D = varying(
+  const sourcePosition2D = varying(
     sourcePosition2DNDC
       .reflect(vec2(0, 1))
       .add(vec2(1, 1))
       .mul(0.5)
       .mul(viewportSize),
   );
-  const vTargetPosition2D = varying(
+  const targetPosition2D = varying(
     targetPosition2DNDC
       .reflect(vec2(0, 1))
       .add(vec2(1, 1))
       .mul(0.5)
       .mul(viewportSize),
   );
-  const vEdgeLength = varying(length(targetPosition.sub(sourcePosition)));
-  const vEdgeLength2D = varying(
-    length(vTargetPosition2D.sub(vSourcePosition2D)),
-  );
+  const edgeLength = varying(length(targetPosition.sub(sourcePosition)));
+  const edgeLength2D = varying(length(targetPosition2D.sub(sourcePosition2D)));
 
   const vY = varying(vertexOffset.y);
   const vV = varying(segmentPosition.y);
+  const colorNode = () => {
+    const u_2D = distance(sourcePosition2D, screenCoordinate).div(edgeLength2D);
+    const u_3D = isTarget;
+
+    // Softness
+    let color = vColor;
+    let alpha = color.w.mul(
+      mix(bump(vV, float(2).mul(oneMinus(fog)), 1.0), 1.0, fog),
+    );
+
+    const { sourceSize } = getEdgeAttributes(ctx);
+    // Waves
+    const frequency = edgeLength2D.mul(edgeFrequency).mul(0.1);
+    const waveSpeed = float(4.0).mul(edgeWaveSpeed).div(edgeLength2D);
+    const waves = wave(u_2D.sub(time.mul(waveSpeed)), frequency);
+
+    // Wave packets
+    const highFrequency = edgeLength.div(4.0).mul(edgeFrequency);
+    const pulseSpeed = float(20.0).div(edgeLength).mul(edgePulseSpeed);
+    const pulse = clamp(
+      pow(wave(u_2D.sub(time.mul(pulseSpeed)), 1.0), edgeLength2D.div(5.0)),
+      0.0,
+      1.0,
+    );
+    // const pulse = clamp(
+    //   pow(wave(u_2D.sub(time.mul(pulseSpeed)), 1.0), edgeLength2D.div(5.0)),
+    //   0.0,
+    //   1.0,
+    // );
+
+    // Golden pulse
+    let rgb = color.xyz;
+    rgb = mix(color.xyz, vec3(1.0, 1.0, 0.0), mix(0.0, pulse, 0.1));
+
+    // Dashed lines
+    alpha = color.w.mul(mix(1.0, waves, oneMinus(pulse)));
+
+    // Add bumps
+    alpha = alpha.mul(
+      bump(
+        vV,
+        1.0,
+        pulse
+          .mul(mix(0.2, 0.4, selected))
+          .mul(wave(u_3D, highFrequency))
+          .add(0.6),
+      ),
+    );
+
+    // Emphasize selected edges
+    alpha = alpha.mul(mix(0.4, 1.0, selected));
+
+    // Fade ends of edges
+    alpha = alpha.mul(bump(u_3D.sub(0.5), 2.0, edgeOvershoot));
+
+    // Check the depth of the nodes at this same fragment coordinate
+    // const nodeDepth = texture(nodeDepthTexture, fragCoord.div(viewport)).r;
+
+    // return vec4(rgb, alpha);
+
+    // Check proximity to sourcePosition2D
+    const proximity = distance(screenCoordinate, sourcePosition2D);
+    const proximityThreshold = float(100.0); // Adjust this value as needed
+    const redFactor = smoothstep(proximityThreshold, float(0.0), proximity);
+
+    // Mix red color based on proximity
+    rgb = mix(rgb, selectedColor.xyz, selected);
+
+    return vec4(rgb, alpha);
+  };
 
   return new MeshBasicNodeMaterial({
     vertexNode: positionClip,
-    colorNode: edgeFragmentShader(ctx, {
-      color: vColor,
-      fog: vFog,
-      selected,
-      isTarget: vIsTarget,
-      emphasis: vEmphasis,
-      size: vSize,
-      sourcePosition2DNDC,
-      sourcePosition2D: vSourcePosition2D,
-      targetPosition2D: vTargetPosition2D,
-      edgeLength: vEdgeLength,
-      edgeLength2D: vEdgeLength2D,
-      edgeDirection,
-      y: vY,
-      v: vV,
-      edgeFrequency,
-      edgePulseSpeed,
-      edgeWaveSpeed,
-      edgeOvershoot,
-      time,
-      devicePixelRatio,
-      nodeDepthTexture,
-    }),
+    colorNode: colorNode(),
     depthTest: false,
     // depthWrite: true,
     transparent: true,
@@ -338,101 +392,6 @@ const computeFog = (z, fogBoundary) => {
 };
 
 // Fragment shader function
-const edgeFragmentShader = (
-  ctx,
-  {
-    color,
-    fog,
-    selected,
-    isTarget,
-    emphasis,
-    size,
-    sourcePosition2DNDC,
-    sourcePosition2D,
-    targetPosition2D,
-    edgeLength,
-    edgeLength2D,
-    y,
-    u,
-    v,
-    edgeFrequency,
-    edgePulseSpeed,
-    edgeWaveSpeed,
-    edgeOvershoot,
-    time,
-    devicePixelRatio,
-    edgeDirection,
-    nodeDepthTexture,
-  },
-) => {
-  const u_2D = distance(sourcePosition2D, screenCoordinate).div(edgeLength2D);
-  const u_3D = isTarget;
-
-  // Softness
-  let alpha = color.w.mul(
-    mix(bump(v, float(2).mul(oneMinus(fog)), 1.0), 1.0, fog),
-  );
-
-  const { sourceSize } = getEdgeAttributes(ctx);
-  // Waves
-  const frequency = edgeLength2D.mul(edgeFrequency).mul(0.1);
-  const waveSpeed = float(4.0).mul(edgeWaveSpeed).div(edgeLength2D);
-  const waves = wave(u_2D.sub(time.mul(waveSpeed)), frequency);
-
-  // Wave packets
-  const highFrequency = edgeLength.div(4.0).mul(edgeFrequency);
-  const pulseSpeed = float(20.0).div(edgeLength).mul(edgePulseSpeed);
-  const pulse = clamp(
-    pow(wave(u_2D.sub(time.mul(pulseSpeed)), 1.0), edgeLength2D.div(5.0)),
-    0.0,
-    1.0,
-  );
-  // const pulse = clamp(
-  //   pow(wave(u_2D.sub(time.mul(pulseSpeed)), 1.0), edgeLength2D.div(5.0)),
-  //   0.0,
-  //   1.0,
-  // );
-
-  // Golden pulse
-  let rgb = color.xyz;
-  rgb = mix(color.xyz, vec3(1.0, 1.0, 0.0), mix(0.0, pulse, 0.1));
-
-  // Dashed lines
-  alpha = color.w.mul(mix(1.0, waves, oneMinus(pulse)));
-
-  // Add bumps
-  alpha = alpha.mul(
-    bump(
-      v,
-      1.0,
-      pulse
-        .mul(mix(0.2, 0.4, selected))
-        .mul(wave(u_3D, highFrequency))
-        .add(0.6),
-    ),
-  );
-
-  // Emphasize selected edges
-  alpha = alpha.mul(mix(0.4, 1.0, selected));
-
-  // Fade ends of edges
-  alpha = alpha.mul(bump(u_3D.sub(0.5), 2.0, edgeOvershoot));
-
-  // Check the depth of the nodes at this same fragment coordinate
-  // const nodeDepth = texture(nodeDepthTexture, fragCoord.div(viewport)).r;
-
-  // return vec4(rgb, alpha);
-
-  // Check proximity to sourcePosition2D
-  const proximity = distance(screenCoordinate, sourcePosition2D);
-  const proximityThreshold = float(100.0); // Adjust this value as needed
-  const redFactor = smoothstep(proximityThreshold, float(0.0), proximity);
-
-  // Mix red color based on proximity
-  rgb = mix(rgb, selectedCo, selected);
-
-  return vec4(rgb, alpha);
-};
 
 // Helper functions for the fragment shader
 const wave = (t, freq) => pow(sin(t.mul(freq).mul(Math.PI)), 2.0);
