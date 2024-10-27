@@ -134,9 +134,7 @@ export const setGraphData = async (ctx, data) => {
   bufferState.setNodeProperties("colorTarget", "vec4", colors);
 
   // Set sizes
-  const sizes = new Float32Array(
-    nodes.map((node) => Math.sqrt(node.size) / 40),
-  );
+  const sizes = new Float32Array(nodes.map((node) => node.size));
   bufferState.setNodeProperties("sizeInitial", "float", sizes);
   bufferState.setNodeProperties("sizeTarget", "float", sizes);
 
@@ -165,7 +163,7 @@ export const randomGraphData = (numNodes, numEdges) => {
   const nodes = [...Array(numNodes).keys()].map((index) => ({
     index,
     id: `node://${index}`,
-    size: 10,
+    size: 1,
     color: [...colorHash.rgb(String(index)).map((x) => x / 255), 1],
     navId: makeNavId(`node-${index}`),
   }));
@@ -199,7 +197,7 @@ export const dataFromGraph = ({ nodes: simpleNodes, links: simpleLinks }) => {
   const nodes = simpleNodes.map(({ id }, index) => ({
     index,
     id: `node://${id}`,
-    size: 10,
+    size: 1,
     color: [...colorHash.rgb(String(id)).map((x) => x / 255), 1],
     navId: makeNavId(`node-${id}`),
   }));
@@ -309,9 +307,8 @@ export const getLayoutSimulator = moize.infinite(
 );
 
 export const getLatestTargetPositions = moize((ctx) => {
-  return state(ctx, "latestTargetPositions").get();
-  // let latestTargetPositions;
-  // return latestTargetPositions;
+  const buffers = graphBuffers(ctx);
+  return buffers.getNodeProperties("positionTarget", "vec3").value.array;
 });
 
 export const updateNodePositionTargets = async (context) => {
@@ -320,13 +317,8 @@ export const updateNodePositionTargets = async (context) => {
   sim.getPositions(
     proxy((positions) => {
       if (positions.length > 0) {
-        state(context, "latestTargetPositions").set(positions);
         let buffers = graphBuffers(context);
-        // graphBuffers.setNodeProperties("positionInitial", "vec3", positions);
         buffers.setNodeProperties("positionTarget", "vec3", positions);
-        // getPositionLayers(context).target.value.array = positions;
-        // getPositionLayers(context).target.value.needsUpdate = true;
-        // getPositionLayers(context).target.update();
       }
     }),
   );

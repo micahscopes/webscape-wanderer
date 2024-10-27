@@ -37,11 +37,10 @@ import { getUniforms } from "../gpu/uniforms";
 import { graphBuffers } from "../data";
 import { bump } from "./bump.tsl";
 import { desaturate } from "./desaturate.tsl";
+import { scaleAdjustment } from "./graph-common.tsl";
 
 const getEdgeAttributes = (ctx) => {
   const buffers = graphBuffers(ctx);
-  // const sourceIndex = attribute("edgeIndices").x;
-  // const targetIndex = attribute("edgeIndices").y;
   const id = instanceIndex;
   const positions = buffers.getEdgePairs("positionTarget");
   const colors = buffers.getEdgePairs("colorTarget");
@@ -53,8 +52,8 @@ const getEdgeAttributes = (ctx) => {
     targetPosition: positions.target.element(id).toVar("tgtPosition"),
     sourceColor: colors.source.element(id).toVar("srcColor"),
     targetColor: colors.target.element(id).toVar("tgtColor"),
-    sourceSize: sizes.source.element(id).toVar("srcSize"),
-    targetSize: sizes.target.element(id).toVar("tgtSize"),
+    sourceSize: sizes.source.element(id).mul(scaleAdjustment).toVar("srcSize"),
+    targetSize: sizes.target.element(id).mul(scaleAdjustment).toVar("tgtSize"),
     sourceEmphasis: emphases.source.element(id).x.toVar("srcEmphasis"),
     targetEmphasis: emphases.target.element(id).y.toVar("tgtEmphasis"),
     edgeIndices: buffers.getEdgeIndices().element(id).toVar("edgeIndices"),

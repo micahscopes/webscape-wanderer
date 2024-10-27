@@ -1,4 +1,5 @@
 import moize from "moize";
+import { debounce } from "lodash-es";
 
 export const asyncState = moize(
   (ctx, key) => {
@@ -100,6 +101,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     nodeProps: {} as Record<string, PropertyData>,
     buffers: {} as Record<string, StorageBufferNode>,
   };
+  const updateSet = new Set<string>();
 
   const createBuffer = (
     key: string,
@@ -130,7 +132,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       const existingBuffer = bufferState.buffers[key];
       existingBuffer.value.array = data;
       existingBuffer.value.count = count;
-      existingBuffer.value.needsUpdate = true;
+      updateSet.add(key);
     } else {
       // Create new StorageBufferNode if it doesn't exist
       const { itemSize } = getTypeInfo(type);
@@ -219,6 +221,15 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     });
   };
 
+  const debouncedUpdateBuffers = debounce(() => {
+    updateSet.forEach((key) => {
+      if (bufferState.buffers[key]) {
+        bufferState.buffers[key].value.needsUpdate = true;
+      }
+    });
+    updateSet.clear();
+  }, 8); // Debounce for approximately one frame (assuming 60fps)
+
   return {
     _state: bufferState,
     setNodeCount: (count: number) => {
@@ -236,6 +247,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
 
       console.log("set edges", getBuffer("edgeIndices"));
       updateEdgePairBuffers();
+      debouncedUpdateBuffers();
     },
 
     setNodeProperties: (
@@ -254,6 +266,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, data, type);
       updateEdgePairBuffers();
+      debouncedUpdateBuffers();
     },
 
     setNodeProperty: (key: string, index: number, value: number | number[]) => {
@@ -281,6 +294,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, propData.data, propData.type);
       updateEdgePairBuffers();
+      debouncedUpdateBuffers();
     },
 
     getNodeProperties: (key: string) => {

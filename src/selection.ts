@@ -32,7 +32,7 @@ export const getDefaultColors = moize.infinite(
   },
 );
 
-const defaultSizeMap = ({ size }) => Math.sqrt(size) / 40;
+const defaultSizeMap = ({ size }) => size;
 export const getDefaultSizes = moize.infinite(
   async (graphData, fn = identity) => {
     const { nodes, links } = graphData;
@@ -61,7 +61,7 @@ export const applyVisuals = async (
     new Float32Array(sizeData.length).fill(0),
   );
 
-  if (immediate) {
+  if (immediate || true) {
     buffers.setNodeProperties("colorInitial", "vec4", colorData);
     buffers.setNodeProperties("sizeInitial", "float", sizeData);
     buffers.setNodeProperties(
@@ -93,7 +93,7 @@ export const applyVisualsToNode = async (
   buffers.setNodeProperty("sizeTarget", node.index, size);
   buffers.setNodeProperty("emphasisTarget", node.index, emphasis);
 
-  if (immediate) {
+  if (immediate || true) {
     buffers.setNodeProperty("colorInitial", node.index, color);
     buffers.setNodeProperty("sizeInitial", node.index, size);
     buffers.setNodeProperty("emphasisInitial", node.index, emphasis);
@@ -105,7 +105,7 @@ export const initializationVisualMaps = {
     const mean = color.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
     return [...color.slice(0, 3).map((x) => mean), 0.5];
   },
-  sizeMap: (size) => size * 0.5,
+  sizeMap: (size) => size,
 };
 
 export const initializeSelectionVisuals = async (ctx, immediate = false) => {
@@ -148,25 +148,23 @@ export const selectNodeAndDownstreamDependents = async (
       (data, get) => {
         // if (node !== selectedNode) return;
         get(["upstream", "downstream"]).then(({ upstream, downstream }) => {
-          //  console.log("query result:", data);
-          applyVisualsToNode(ctx, nodesById[upstream?.value || node.id], {
-            sizeMap,
-            emphasis,
-            colorMap,
-          });
-          applyVisualsToNode(ctx, nodesById[downstream?.value || node.id], {
+          // console.log("query result:", upstream, downstream);
+          const nodeId = upstream?.value || downstream?.value;
+          const node = nodesById[nodeId];
+          applyVisualsToNode(ctx, node, {
             sizeMap,
             emphasis,
             colorMap,
           });
         });
       };
+    // initializeSelectionVisuals(ctx).then(() => {
     initializeSelectionVisuals(ctx).then(() => {
       graphDb(ctx).doQuery(
         downstreamQuery,
         proxy(
           resultHandler({
-            sizeMap: (size) => size * 2,
+            sizeMap: (size) => size * 1.5,
             colorMap: (color) => {
               const c = { r: color[0], g: color[1], b: color[2], a: color[3] };
               const green = { r: 57 / 255, g: 179 / 255, b: 83 / 255, a: 0.8 };
@@ -178,14 +176,14 @@ export const selectNodeAndDownstreamDependents = async (
         // proxy(() => {console.log('downstream query done')})
       );
       applyVisualsToNode(ctx, node, {
-        sizeMap: (size) => size * 4,
+        sizeMap: (size) => size * 2,
         emphasis: 1,
       });
       graphDb(ctx).doQuery(
         upstreamQuery,
         proxy(
           resultHandler({
-            sizeMap: (size) => size * 2,
+            sizeMap: (size) => size * 1.5,
             colorMap: (color) => {
               const c = { r: color[0], g: color[1], b: color[2], a: color[3] };
               const blue = { r: 0, g: 102 / 255, b: 209 / 255, a: 0.8 };
@@ -196,9 +194,9 @@ export const selectNodeAndDownstreamDependents = async (
         ),
         // proxy(() => {console.log('upstream query done')})
       );
-      // console.log(nodePosition, 'setting camera center')
+      console.log(nodePosition, "setting camera center");
       zoom && setCameraCenter(ctx, nodePosition);
-      zoom && setCameraDistance(ctx, selectedZoom || 75);
+      zoom && setCameraDistance(ctx, selectedZoom || 1500);
     });
   } else {
     // console.log("no selection");

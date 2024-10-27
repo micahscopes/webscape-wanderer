@@ -35,6 +35,7 @@ class WebscapeWanderer extends HTMLElement {
   private context;
   private canvas;
   private resizeObserver;
+  private onTapHandler: (node: any) => void;
 
   constructor() {
     super();
@@ -48,6 +49,11 @@ class WebscapeWanderer extends HTMLElement {
       getWidthAndHeight.clear(this.context);
       fillCanvasToWindow(this.context);
     });
+
+    // Default onTap handler
+    this.onTapHandler = (evt) => {
+      this.setAttribute("focus", evt.detail?.info?.navId);
+    };
   }
 
   set graphData(data) {
@@ -56,6 +62,10 @@ class WebscapeWanderer extends HTMLElement {
 
   get graphData() {
     return getGraphData(this.context);
+  }
+
+  onTap(handler: (event: CustomEvent) => void) {
+    this.onTapHandler = handler;
   }
 
   connectedCallback() {
@@ -101,6 +111,13 @@ class WebscapeWanderer extends HTMLElement {
     });
 
     this.resizeObserver.observe(this);
+
+    // Setup tap event listener
+    this.addEventListener("tap", (event) => {
+      if (event) {
+        this.onTapHandler(event);
+      }
+    });
   }
 
   disconnectedCallback() {
@@ -125,6 +142,12 @@ class WebscapeWanderer extends HTMLElement {
         selectNodeAndDownstreamDependents(ctx, node, true);
       });
     }
+  }
+
+  private getNodeFromEvent(event: MouseEvent): any {
+    // Implementation of getting node from event
+    // This is a placeholder and should be replaced with actual logic
+    return null;
   }
 }
 

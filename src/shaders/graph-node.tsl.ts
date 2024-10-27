@@ -21,11 +21,16 @@ import {
   MeshPhongNodeMaterial,
   MeshMatcapNodeMaterial,
   Fn,
+  float,
 } from "three/webgpu";
 import moize from "moize";
 import { getCamerasUniforms } from "../gpu/camera";
 import { getUniforms } from "../gpu/uniforms";
-import { computeFog, graphNodeGeometryComputerFn } from "./graph-common.tsl";
+import {
+  computeFog,
+  graphNodeGeometryComputerFn,
+  scaleAdjustment,
+} from "./graph-common.tsl";
 import { desaturate } from "./desaturate.tsl";
 // import { graphBufferState } from "../state";
 import { graphBuffers } from "../data";
@@ -66,18 +71,21 @@ export const graphNodeMaterials = (ctx) => {
   // currentPosition.addAssign(targetPosition.sub(currentPosition).mul(0.01));
 
   const colors = buffers.getNodeProperties("colorTarget");
-  const sizes = buffers.getNodeProperties("sizeTarget");
   const emphases = buffers.getNodeProperties("emphasisTarget");
 
   const isSelected = id.equal(selectedIndex);
   const anythingSelected = selectedIndex.greaterThan(-1);
-  const scale = sizes.element(id);
+  const scale = buffers
+    .getNodeProperties("sizeTarget")
+    .element(id)
+    .mul(scaleAdjustment);
   // .mul(mix(1.0, 1.1, isSelected.toFloat()));
   const scalePicker = max(scale, 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {
     nodePosition: positions.element(id),
     scale,
+    // scale: float(1),
   });
 
   const geoPicker = graphNodeGeometryComputerFn(ctx, {

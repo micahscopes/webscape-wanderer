@@ -13,6 +13,7 @@ import {
   Node,
   positionGeometry,
   smoothstep,
+  uniform,
 } from "three/webgpu";
 
 import moize from "moize";
@@ -21,6 +22,7 @@ import { getUniforms } from "../gpu/uniforms";
 import { bump } from "./bump.tsl";
 // import { getNodeVisualizerUniforms } from "../gpu/graph-viz";
 
+export const scaleAdjustment = float(0.1);
 /**
  * Computes the geometry bundle for a node.
  *
@@ -65,9 +67,10 @@ export const graphNodeGeometryComputerFn = (ctx, { nodePosition, scale }) => {
   );
 
   // Compute ortho zoomed clip position and NDC
-  const orthoZoomedClipPosition = zoomedProjection
-    .mul(zoomedView.mul(vec4(scaledVertexPosition, float(1.0))))
-    .mul(float(0.5));
+  const orthoZoomedClipPosition = zoomedProjection.mul(
+    zoomedView.mul(vec4(scaledVertexPosition, float(1.0))),
+  );
+  // .mul(float(0.5));
   const orthoZoomedNDC = orthoZoomedClipPosition.xyz.div(
     orthoZoomedClipPosition.w,
   );

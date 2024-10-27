@@ -126,6 +126,16 @@ const incrementDragEvents = () => {
   countLastDragEvents++;
 };
 
+const notifyTapped = async (ctx, tappedIndex) => {
+  const { nodes } = await getGraphData(ctx);
+  const tappedNode = nodes[tappedIndex];
+  getComponent(ctx).dispatchEvent(
+    new CustomEvent("tap", {
+      detail: { tappedIndex, info: tappedNode },
+    }),
+  );
+};
+
 export const getPointerPositionCanvas: (ctx) => [number, number] = (ctx) =>
   [
     getPointerPositionInfo(ctx).canvasX,
@@ -207,18 +217,32 @@ export const setupSelection = moize.infinite((component) => {
       dragging = false;
 
       if (!wasDrag) {
-        const selectedIndex = getCurrentlyHoveringIndex(ctx);
-        setSelectedIndex(ctx, selectedIndex);
-        console.log("selected index set to", selectedIndex);
+        const tappedIndex = getCurrentlyHoveringIndex(ctx);
+        notifyTapped(ctx, tappedIndex)
+          // .then(() => {
+          //   console.log("Tapped notification completed");
+          // })
+          .catch((error) => {
+            console.error("Error in notifyTapped:", error);
+          });
+        // getComponent(ctx).dispatchEvent(
+        //   new CustomEvent("tapped", {
+        //     detail: { tappedIndex: tappedIndex, info },
+        //   }),
+        // );
+        // setSelectedIndex(ctx, tappedIndex);
+        // console.log("selected index set to", tappedIndex);
 
-        getSelectedInfo(ctx).then((info) => {
-          canvas.dispatchEvent(
-            new CustomEvent("selected", { detail: { selectedIndex, info } }),
-          );
-        });
-        canvas.dispatchEvent(
-          new CustomEvent("tap", { detail: { selectedIndex } }),
-        );
+        // getSelectedInfo(ctx).then((info) => {
+        //   getComponent(ctx).dispatchEvent(
+        //     new CustomEvent("selected", {
+        //       detail: { selectedIndex: tappedIndex, info },
+        //     }),
+        //   );
+        // });
+        // getComponent(ctx).dispatchEvent(
+        //   new CustomEvent("tap", { detail: { selectedIndex: tappedIndex } }),
+        // );
         // }
         // , 150);
       }
