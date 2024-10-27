@@ -196,7 +196,7 @@ export const selectNodeAndDownstreamDependents = async (
       );
       console.log(nodePosition, "setting camera center");
       zoom && setCameraCenter(ctx, nodePosition);
-      zoom && setCameraDistance(ctx, selectedZoom || 1500);
+      zoom && setCameraDistance(ctx, selectedZoom || 500);
     });
   } else {
     // console.log("no selection");

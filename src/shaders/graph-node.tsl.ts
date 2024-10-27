@@ -79,7 +79,6 @@ export const graphNodeMaterials = (ctx) => {
     .getNodeProperties("sizeTarget")
     .element(id)
     .mul(scaleAdjustment);
-  // .mul(mix(1.0, 1.1, isSelected.toFloat()));
   const scalePicker = max(scale, 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {

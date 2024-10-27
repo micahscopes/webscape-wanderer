@@ -140,8 +140,8 @@ const getDistanceSpringDamper = (ctx) =>
     () => new SpringDamper(getGlobalCamera(ctx).params.distance),
   ).get();
 
-const distanceUpdate = (ctx, newDistance) => {
-  // console.log('setCameraDistance', newDistance)
+const distanceUpdate = (ctx) => (newDistance) => {
+  console.log("setCameraDistance", newDistance);
   const globalCamera = getGlobalCamera(ctx);
   globalCamera.params.distance = newDistance;
   // zoomedOrthographicCamera.params.distance = newDistance;
@@ -152,17 +152,14 @@ const startDistanceSpring = debounce((ctx) => {
   const distanceSpringDamper = getDistanceSpringDamper(ctx);
   distanceSpringDamper.updateTarget(globalCamera.params.distance);
   distanceSpringDamper.updateInitialValues(globalCamera.params.distance);
-  distanceSpringDamper.animate(distanceUpdate);
+  distanceSpringDamper.animate(distanceUpdate(ctx));
 }, 100);
 
 const setCameraDistance = (ctx, distance, duration = 5000) => {
-  // console.log('setCameraDistance', distance)
+  console.log("setCameraDistance", distance);
   const distanceSpringDamper = getDistanceSpringDamper(ctx);
   distanceSpringDamper.updateTarget(distance);
 };
-
-// startCenterSpring()
-// startDistanceSpring()
 
 const startCameraAnimation = (ctx) => {
   startCenterSpring(ctx);

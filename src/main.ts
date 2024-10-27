@@ -25,6 +25,7 @@ import {
 import { camelCase, kebabCase, snakeCase } from "lodash-es";
 import { getComponent, setComponent } from "./context";
 import { selectNodeAndDownstreamDependents } from "./selection";
+import { startCameraAnimation } from "./camera-animation";
 
 // import "./parameters";
 
@@ -109,6 +110,8 @@ class WebscapeWanderer extends HTMLElement {
       navigation.start();
       console.log("Navigation started");
     });
+
+    startCameraAnimation(this.context);
 
     this.resizeObserver.observe(this);
 
