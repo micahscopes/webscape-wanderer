@@ -58,44 +58,53 @@ export const graphNodeMaterials = (ctx) => {
 
   const buffers = graphBuffers(ctx);
 
-  const positions = buffers.getNodeProperties("positionTarget");
-  // const positions = buffers.getEdgePairs("positionTarget").source;
+  const positionsInitial = buffers.getNodeProperties("positionInitial");
+  const positionsTarget = buffers.getNodeProperties("positionTarget");
+  const positionCurrent = positionsInitial
+    .element(id)
+    .sub(positionsTarget.element(id).mul(0));
 
-  const targetPosition = buffers
-    .getNodeProperties("positionTarget")
-    .element(id);
-  const currentPosition = buffers
-    .getNodeProperties("positionCurrent")
-    .element(id);
+  const colorsInitial = buffers.getNodeProperties("colorInitial");
+  const colorsTarget = buffers.getNodeProperties("colorTarget");
+  const colorCurrent = colorsInitial
+    .element(id)
+    .sub(colorsTarget.element(id).mul(0));
 
-  // currentPosition.addAssign(targetPosition.sub(currentPosition).mul(0.01));
+  const sizesInitial = buffers.getNodeProperties("sizeInitial");
+  const sizesTarget = buffers.getNodeProperties("sizeTarget");
+  const sizeCurrent = sizesInitial
+    .element(id)
+    .sub(sizesTarget.element(id).mul(0));
+
+  const emphasesInitial = buffers.getNodeProperties("emphasisInitial");
+  const emphasesTarget = buffers.getNodeProperties("emphasisTarget");
+  const emphasisCurrent = emphasesInitial
+    .element(id)
+    .sub(emphasesTarget.element(id).mul(0));
 
   const colors = buffers.getNodeProperties("colorTarget");
   const emphases = buffers.getNodeProperties("emphasisTarget");
 
   const isSelected = id.equal(selectedIndex);
   const anythingSelected = selectedIndex.greaterThan(-1);
-  const scale = buffers
-    .getNodeProperties("sizeTarget")
-    .element(id)
-    .mul(scaleAdjustment);
+  const scale = sizeCurrent.mul(scaleAdjustment);
   const scalePicker = max(scale, 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {
-    nodePosition: positions.element(id),
+    nodePosition: positionCurrent,
     scale,
     // scale: float(1),
   });
 
   const geoPicker = graphNodeGeometryComputerFn(ctx, {
-    nodePosition: positions.element(id),
+    nodePosition: positionCurrent,
     scale: scalePicker,
   });
   let normal = fixedView.mul(fixedProjection).mul(normalLocal).normalize();
 
   let color = colors.element(id);
-  const selectedNodePosition = positions.element(selectedIndex);
-  const selectedDistance = length(positions.element(id));
+  const selectedNodePosition = positionsInitial.element(selectedIndex);
+  const selectedDistance = length(positionsInitial.element(id));
 
   let fog = min(
     computeFog({

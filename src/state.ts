@@ -190,10 +190,10 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     },
   );
 
-  const updateEdgePairBuffers = () => {
+  const updateEdgePairBuffers = (forKeys = null) => {
     if (!bufferState.edges) return;
-
-    Object.keys(bufferState.nodeProps).forEach((propertyKey) => {
+    const keys = forKeys || Object.keys(bufferState.nodeProps);
+    keys.forEach((propertyKey) => {
       const propData = bufferState.nodeProps[propertyKey];
       const { type, data } = propData;
       const { itemSize, arrayType } = getTypeInfo(type);
@@ -265,7 +265,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       bufferState.nodeProps[key] = { type, data: data.slice() };
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, data, type);
-      updateEdgePairBuffers();
+      updateEdgePairBuffers([key]);
       debouncedUpdateBuffers();
     },
 
@@ -293,7 +293,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       propData.data.set(valueArray, dataIndex);
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, propData.data, propData.type);
-      updateEdgePairBuffers();
+      updateEdgePairBuffers([key]);
       debouncedUpdateBuffers();
     },
 

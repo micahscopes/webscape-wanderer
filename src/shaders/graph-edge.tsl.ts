@@ -42,20 +42,50 @@ import { scaleAdjustment } from "./graph-common.tsl";
 const getEdgeAttributes = (ctx) => {
   const buffers = graphBuffers(ctx);
   const id = instanceIndex;
-  const positions = buffers.getEdgePairs("positionTarget");
-  const colors = buffers.getEdgePairs("colorTarget");
-  const sizes = buffers.getEdgePairs("sizeTarget");
-  const emphases = buffers.getEdgePairs("emphasisTarget");
+  const positionsInitial = buffers.getEdgePairs("positionInitial");
+  const positionsTarget = buffers.getEdgePairs("positionTarget");
+  const sizesInitial = buffers.getEdgePairs("sizeInitial");
+  const sizesTarget = buffers.getEdgePairs("sizeTarget");
+  const colorsInitial = buffers.getEdgePairs("colorInitial");
+  const colorsTarget = buffers.getEdgePairs("colorTarget");
+  const emphasesInitial = buffers.getEdgePairs("emphasisInitial");
+  const emphasesTarget = buffers.getEdgePairs("emphasisTarget");
 
   return {
-    sourcePosition: positions.source.element(id).toVar("srcPosition"),
-    targetPosition: positions.target.element(id).toVar("tgtPosition"),
-    sourceColor: colors.source.element(id).toVar("srcColor"),
-    targetColor: colors.target.element(id).toVar("tgtColor"),
-    sourceSize: sizes.source.element(id).mul(scaleAdjustment).toVar("srcSize"),
-    targetSize: sizes.target.element(id).mul(scaleAdjustment).toVar("tgtSize"),
-    sourceEmphasis: emphases.source.element(id).x.toVar("srcEmphasis"),
-    targetEmphasis: emphases.target.element(id).y.toVar("tgtEmphasis"),
+    sourcePosition: positionsInitial.source
+      .element(id)
+      .add(positionsTarget.source.element(id).mul(0))
+      .toVar("srcPosition"),
+    targetPosition: positionsInitial.target
+      .element(id)
+      .add(positionsTarget.target.element(id).mul(0))
+      .toVar("tgtPosition"),
+    sourceColor: colorsInitial.source
+      .element(id)
+      .sub(colorsTarget.source.element(id).mul(0))
+      .toVar("srcColor"),
+    targetColor: colorsInitial.target
+      .element(id)
+      .sub(colorsTarget.target.element(id).mul(0))
+      .toVar("tgtColor"),
+    sourceSize: sizesInitial.source
+      .element(id)
+      .sub(sizesInitial.source.element(id).mul(0))
+      .mul(scaleAdjustment)
+      .toVar("srcSize"),
+    targetSize: sizesInitial.target
+      .element(id)
+      .sub(sizesTarget.target.element(id).mul(0))
+      .mul(scaleAdjustment)
+      .toVar("tgtSize"),
+    sourceEmphasis: emphasesInitial.source
+      .element(id)
+      // .sub(emphasesTarget.source.element(id).mul(0))
+      .x.toVar("srcEmphasis"),
+    targetEmphasis: emphasesInitial.target
+      .element(id)
+      // .sub(emphasesTarget.target.element(id).mul(0))
+      .y.toVar("tgtEmphasis"),
     edgeIndices: buffers.getEdgeIndices().element(id).toVar("edgeIndices"),
   };
 };

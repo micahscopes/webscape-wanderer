@@ -131,7 +131,7 @@ export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
   //   new InstancedBufferAttribute(new Int32Array([1, 2, 3]), 2),
   // );
 
-  return new Mesh(geometry, graphEdgeMaterialDebug(ctx));
+  return new Mesh(geometry, graphEdgeMaterial(ctx));
 });
 
 // export const getEdgeIndexBuffer = moize.infinite((ctx, linkIndexPairs) => {
@@ -153,7 +153,7 @@ import { graphNodeMaterials } from "../shaders/graph-node.tsl";
 
 import {
   graphEdgeMaterial,
-  graphEdgeMaterialDebug,
+  graphEdgeMaterialDebug as graphEdgeMaterial,
 } from "../shaders/graph-edge.tsl";
 // Initialize Three.js scene, camera and renderer
 export const getThreeSetup = moize.infinite((ctx) => {

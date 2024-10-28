@@ -61,7 +61,7 @@ export const applyVisuals = async (
     new Float32Array(sizeData.length).fill(0),
   );
 
-  if (immediate || true) {
+  if (immediate) {
     buffers.setNodeProperties("colorInitial", "vec4", colorData);
     buffers.setNodeProperties("sizeInitial", "float", sizeData);
     buffers.setNodeProperties(
@@ -93,7 +93,7 @@ export const applyVisualsToNode = async (
   buffers.setNodeProperty("sizeTarget", node.index, size);
   buffers.setNodeProperty("emphasisTarget", node.index, emphasis);
 
-  if (immediate || true) {
+  if (immediate) {
     buffers.setNodeProperty("colorInitial", node.index, color);
     buffers.setNodeProperty("sizeInitial", node.index, size);
     buffers.setNodeProperty("emphasisInitial", node.index, emphasis);
@@ -199,7 +199,7 @@ export const selectNodeAndDownstreamDependents = async (
       zoom && setCameraDistance(ctx, selectedZoom || 500);
     });
   } else {
-    // console.log("no selection");
+    console.log("no selection, setting disatnce to", deselectedZoom || 1500);
     zoom && setCameraDistance(ctx, deselectedZoom || 1500);
     zoom && setCameraCenter(ctx, [0, 0, 0], 4000);
     applyVisuals(ctx);
