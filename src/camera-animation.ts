@@ -114,16 +114,23 @@ const centerUpdate = curry((ctx, newCenter) => {
   // zoomedOrthographicCamera.params.center = newCenter;
 });
 
-const startCenterSpring = debounce((ctx) => {
-  console.debug("starting center spring for", ctx);
-  // centerSpringDamper.updateTarget(globalCamera.params.center)
-  const globalCamera = getGlobalCamera(ctx);
-  const centerSpringDamper = getCenterSpringDamper(ctx);
-  centerSpringDamper.updateInitialValues(globalCamera.params.center);
-  centerSpringDamper.animate(centerUpdate(ctx));
-}, 100);
+const startCenterSpring = debounce(
+  (ctx) => {
+    console.debug("starting center spring for", ctx);
+    // centerSpringDamper.updateTarget(globalCamera.params.center)
+    const globalCamera = getGlobalCamera(ctx);
+    const centerSpringDamper = getCenterSpringDamper(ctx);
+    centerSpringDamper.updateInitialValues(globalCamera.params.center);
+    centerSpringDamper.animate(centerUpdate(ctx));
+  },
+  2,
+  {
+    maxWait: 2,
+    trailing: true,
+  },
+);
 
-const setCameraCenter = (ctx, newCenter, duration = 3000) => {
+const setCameraCenter = (ctx, newCenter) => {
   console.debug("setCameraCenter, updating target", [...newCenter]);
   const globalCamera = getGlobalCamera(ctx);
   const centerSpringDamper = getCenterSpringDamper(ctx);
@@ -141,19 +148,26 @@ const getDistanceSpringDamper = (ctx) =>
   ).get();
 
 const distanceUpdate = (ctx) => (newDistance) => {
-  console.log("setCameraDistance", newDistance);
+  // console.log("animating camera distance", newDistance);
   const globalCamera = getGlobalCamera(ctx);
   globalCamera.params.distance = newDistance;
   // zoomedOrthographicCamera.params.distance = newDistance;
 };
 
-const startDistanceSpring = debounce((ctx) => {
-  const globalCamera = getGlobalCamera(ctx);
-  const distanceSpringDamper = getDistanceSpringDamper(ctx);
-  distanceSpringDamper.updateTarget(globalCamera.params.distance);
-  distanceSpringDamper.updateInitialValues(globalCamera.params.distance);
-  distanceSpringDamper.animate(distanceUpdate(ctx));
-}, 100);
+const startDistanceSpring = debounce(
+  (ctx) => {
+    const globalCamera = getGlobalCamera(ctx);
+    const distanceSpringDamper = getDistanceSpringDamper(ctx);
+    distanceSpringDamper.updateTarget(globalCamera.params.distance);
+    distanceSpringDamper.updateInitialValues(globalCamera.params.distance);
+    distanceSpringDamper.animate(distanceUpdate(ctx));
+  },
+  100,
+  {
+    // maxWait: 16,
+    leading: true,
+  },
+);
 
 const setCameraDistance = (ctx, distance, duration = 5000) => {
   console.log("setCameraDistance", distance);
@@ -178,8 +192,11 @@ const getCameraAnimationState = (ctx) =>
 const startPanning = (ctx) => {
   const cameraAnimationState = getCameraAnimationState(ctx);
   cameraAnimationState.panning = true;
-  const centerSpringDamper = getCenterSpringDamper(ctx);
-  centerSpringDamper.stop();
+  console.log("quitting pan");
+  getComponent(ctx).focus = null;
+  getCenterSpringDamper(ctx).stop();
+  // const centerSpringDamper = getCenterSpringDamper(ctx);
+  // centerSpringDamper.stop();
 };
 
 const stopPanning = (ctx) => {
@@ -219,8 +236,9 @@ const getGlobalCameraParams = (ctx) => {
 
 import { mat4, vec4 } from "gl-matrix";
 import SpringDamper from "./spring-damper";
-import { curry, debounce } from "lodash-es";
+import { curry, debounce, throttle } from "lodash-es";
 import { state } from "./state";
+import { getComponent } from "./context";
 
 const computeScreenPosition = (ctx, [x, y, z]) => {
   const { projection, view } = getGlobalCamera(ctx).state;

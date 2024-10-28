@@ -1,7 +1,9 @@
 import GUI from "lil-gui";
 import { state } from "./state";
+import { getComponent } from "./context";
+import moize from "moize";
 
-export const defaultAttributes = {
+export const defaultProperties = {
   globalScale: 1.0,
   nodeScale: 1.0,
   edgeFog: 1.0,
@@ -12,14 +14,20 @@ export const defaultAttributes = {
   edgePulseSpeed: 1.0,
   edgeWaveSpeed: 1.0,
   focus: -1,
+  selected: -1,
   defaultFogVisibility: 0.3,
   defaultFogBoundaryClipZ: 700.0,
 };
 
-export const getAttributes = (ctx) =>
-  state(ctx, "attributes", () =>
-    JSON.parse(JSON.stringify(defaultAttributes)),
-  ).get();
+export const getPropertyKeys = (ctx) =>
+  Object.keys(getComponent(ctx).constructor.properties);
+
+export const getProperties = moize.infinite((ctx) => {
+  const component = getComponent(ctx);
+  return Object.fromEntries(
+    getPropertyKeys(ctx).map((key) => [key, component[key]]),
+  );
+});
 
 const getGui = (ctx) =>
   state(ctx, "gui", () => {
@@ -28,7 +36,7 @@ const getGui = (ctx) =>
     const nodes = gui.addFolder("Nodes");
     const edges = gui.addFolder("Edges");
 
-    const attrs = getAttributes(ctx);
+    const attrs = getProperties(ctx);
     gui.add(attrs, "globalScale", 0.1, 10.0, 0.1);
     gui.add(attrs, "defaultFogVisibility", 0.0, 1.0, 0.1);
     gui.add(attrs, "defaultFogBoundaryClipZ", 0.0, 1000.0, 10.0);

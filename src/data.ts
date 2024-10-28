@@ -306,10 +306,10 @@ export const getLayoutSimulator = moize.infinite(
   },
 );
 
-export const getLatestTargetPositions = moize((ctx) => {
+export const getLatestTargetPositions = (ctx) => {
   const buffers = graphBuffers(ctx);
   return buffers.getNodeProperties("positionTarget", "vec3").value.array;
-});
+};
 
 export const updateNodePositionTargets = async (context) => {
   const data = await getGraphData(context);

@@ -6,9 +6,10 @@ import {
 } from "../interaction";
 import { getSelectedColor, getSelectedIndex } from "../selection";
 import moize from "moize";
-import { getAttributes } from "../attributes";
+import { getProperties } from "../attributes";
 import { getThreeSetup } from "./graph-viz";
 import { Vector2 } from "three/webgpu";
+import { getComponent } from "../context";
 
 export const getUniforms = moize.infinite((ctx) => {
   const uniforms = {
@@ -21,7 +22,8 @@ export const getUniforms = moize.infinite((ctx) => {
     time: uniform(performance.now() / 1000),
   };
 
-  const attrs = getAttributes(ctx);
+  const attrs = getProperties(ctx);
+
   Object.entries(attrs).forEach(([key, value]) => {
     uniforms[key] = uniform(value);
   });
@@ -42,7 +44,7 @@ export const updateUniforms = (ctx) => {
   uniforms.time.value = performance.now() / 1000;
   uniforms.viewport.value = viewport.toArray();
 
-  const attrs = getAttributes(ctx);
+  const attrs = getProperties(ctx);
   Object.entries(attrs).forEach(([key, value]) => {
     uniforms[key].value = value;
   });

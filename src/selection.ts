@@ -19,6 +19,7 @@ import {
   selectedZoom,
   setCameraCenter,
   setCameraDistance,
+  startCameraAnimation,
 } from "./interaction";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
@@ -194,16 +195,28 @@ export const selectNodeAndDownstreamDependents = async (
         ),
         // proxy(() => {console.log('upstream query done')})
       );
-      console.log(nodePosition, "setting camera center");
-      zoom && setCameraCenter(ctx, nodePosition);
-      zoom && setCameraDistance(ctx, selectedZoom || 500);
+      // console.log(nodePosition, "setting camera center");
+      // zoom && setCameraCenter(ctx, nodePosition);
+      // zoom && setCameraDistance(ctx, selectedZoom || 500);
     });
   } else {
     console.log("no selection, setting disatnce to", deselectedZoom || 1500);
-    zoom && setCameraDistance(ctx, deselectedZoom || 1500);
-    zoom && setCameraCenter(ctx, [0, 0, 0], 4000);
+    // zoom && setCameraDistance(ctx, deselectedZoom || 1500);
+    // zoom && setCameraCenter(ctx, [0, 0, 0], 4000);
     applyVisuals(ctx);
     setSelectedIndex(ctx, -1);
+  }
+};
+
+export const doFocus = async (ctx) => {
+  const { nodesByNavId } = await getGraphData(ctx);
+  const component = getComponent(ctx);
+  const focused = component.focus;
+  const node = nodesByNavId[focused];
+  if (node) {
+    const nodePosition = getNodePosition(ctx, node);
+    setCameraCenter(ctx, nodePosition);
+    // console.log("setting camera center", nodePosition);
   }
 };
 
@@ -239,6 +252,7 @@ import { graphBufferState, state } from "./state";
 import { getComponent } from "./context";
 import { graphDb } from "./get-workers";
 import { Vector4 } from "three";
+import { startPanning } from "./camera-animation";
 
 extend([namesPlugin]);
 

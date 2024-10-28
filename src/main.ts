@@ -8,8 +8,14 @@ import {
 import { getGraphData, randomGraphData, setGraphData } from "./data";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
+import { LitElement } from "lit-element";
 
-import { defaultAttributes, getAttributes } from "./attributes";
+import {
+  defaultProperties,
+  defaultProperties,
+  defaultProperties,
+  getProperties,
+} from "./attributes";
 
 import {
   // getEdgeIndexBuffer,
@@ -31,15 +37,37 @@ import { startCameraAnimation } from "./camera-animation";
 
 export { randomGraphData, makeNavId } from "./data";
 
-class WebscapeWanderer extends HTMLElement {
-  static observedAttributes = Object.keys(defaultAttributes).map(kebabCase);
+class WebscapeWanderer extends LitElement {
+  // static observedAttributes = Object.keys(defaultProperties).map(kebabCase);
   private context;
   private canvas;
   private resizeObserver;
   private onTapHandler: (node: any) => void;
 
+  static get properties() {
+    return {
+      globalScale: { type: Number },
+      nodeScale: { type: Number },
+      edgeFog: { type: Number },
+      nodeFog: { type: Number },
+      edgeScale: { type: Number },
+      edgeOvershoot: { type: Number },
+      edgeFrequency: { type: Number },
+      edgePulseSpeed: { type: Number },
+      edgeWaveSpeed: { type: Number },
+      selected: { type: String },
+      // focus: { type: String },
+      defaultFogVisibility: { type: Number },
+      defaultFogBoundaryClipZ: { type: Number },
+    };
+  }
+
   constructor() {
     super();
+    for (const [key, value] of Object.entries(defaultProperties)) {
+      this[key] = defaultProperties[key];
+    }
+
     this.context = Symbol();
     setComponent(this.context, this);
     if (getComponent(this.context) !== this) {
@@ -53,7 +81,8 @@ class WebscapeWanderer extends HTMLElement {
 
     // Default onTap handler
     this.onTapHandler = (evt) => {
-      this.setAttribute("focus", evt.detail?.info?.navId);
+      this.setAttribute("selected", evt.detail?.info?.navId);
+      this.focus = evt.detail?.info?.navId;
     };
   }
 
@@ -133,18 +162,19 @@ class WebscapeWanderer extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    const ctx = this.context;
-    const attrs = getAttributes(this.context);
-    attrs[camelCase(name)] = parseFloat(
-      newValue || defaultAttributes[camelCase(name)],
-    );
+    // const ctx = this.context;
+    // const attrs = getProperties(this.context);
+    // attrs[camelCase(name)] = parseFloat(
+    //   newValue || defaultProperties[camelCase(name)],
+    // );
 
-    if (name == "focus") {
-      getGraphData(ctx).then(({ nodesByNavId }) => {
+    if (name == "selected") {
+      getGraphData(this.context).then(({ nodesByNavId }) => {
         const node = nodesByNavId[newValue];
-        selectNodeAndDownstreamDependents(ctx, node, true);
+        selectNodeAndDownstreamDependents(this.context, node, true);
       });
     }
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private getNodeFromEvent(event: MouseEvent): any {

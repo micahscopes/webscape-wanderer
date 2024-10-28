@@ -57,3 +57,50 @@ export const interpolate = (ctx, layers) => {
   //   // target.needsUpdate = true;
   // });
 };
+
+export const doInterpolation = (ctx) => {
+  const buffers = graphBuffers(ctx);
+  interpolate(ctx, [
+    {
+      current: buffers.getNodeProperties("positionInitial"),
+      target: buffers.getNodeProperties("positionTarget"),
+    },
+    {
+      current: buffers.getNodeProperties("sizeInitial"),
+      target: buffers.getNodeProperties("sizeTarget"),
+    },
+  ]);
+
+  interpolate(ctx, [
+    {
+      current: buffers.getEdgePairs("positionInitial").source,
+      target: buffers.getEdgePairs("positionTarget").source,
+    },
+    {
+      current: buffers.getEdgePairs("positionInitial").target,
+      target: buffers.getEdgePairs("positionTarget").target,
+    },
+  ]);
+
+  interpolate(ctx, [
+    {
+      current: buffers.getEdgePairs("sizeInitial").source,
+      target: buffers.getEdgePairs("sizeTarget").source,
+    },
+    {
+      current: buffers.getEdgePairs("sizeInitial").target,
+      target: buffers.getEdgePairs("sizeTarget").target,
+    },
+  ]);
+
+  interpolate(ctx, [
+    {
+      current: buffers.getEdgePairs("colorInitial").source,
+      target: buffers.getEdgePairs("colorTarget").source,
+    },
+    {
+      current: buffers.getEdgePairs("colorInitial").target,
+      target: buffers.getEdgePairs("colorTarget").target,
+    },
+  ]);
+};

@@ -75,7 +75,7 @@ export const deviceHasMouse = moize.infinite(() => {
 
 export let selectedZoom: number;
 export let deselectedZoom: number;
-const maxSelectedZoom = 500;
+const maxSelectedZoom = 250;
 const minUnselectedZoom = maxSelectedZoom;
 
 const zoomingStopped = async (ctx) => {
@@ -84,10 +84,10 @@ const zoomingStopped = async (ctx) => {
   const distance = (await getGlobalCameraParams(ctx)).distance;
   if (selected > -1) {
     selectedZoom = Math.min(distance, maxSelectedZoom);
-    // console.log('setting selected zoom', selectedZoom)
+    console.log("setting selected zoom", selectedZoom);
   } else {
     deselectedZoom = Math.max(distance, minUnselectedZoom);
-    // console.log('setting deselected zoom', deselectedZoom)
+    console.log("setting deselected zoom", deselectedZoom);
   }
 };
 
@@ -272,9 +272,9 @@ export const setupSelection = moize.infinite((component) => {
 
   canvas.addEventListener("selected", (ev) => {
     //@ts-ignore
-    const node = ev.detail.info;
-    console.log("preparing to navigate:", node, this);
-    component.setAttribute("focus", node?.navId);
+    // const node = ev.detail.info;
+    // console.log("preparing to navigate:", node, this);
+    // component.setAttribute("focus", node?.navId);
   });
 
   canvas.addEventListener("hover", async (ev) => {
