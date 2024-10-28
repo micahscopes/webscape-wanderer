@@ -75,6 +75,8 @@
         <script type="module">
             import {
                 randomGraphData,
+                addRandomNodes,
+                addRandomEdges,
                 startWebscapeWanderer,
             } from "/src/main.ts";
             window.addEventListener("DOMContentLoaded", () => {
@@ -83,16 +85,26 @@
                 for (let wanderer of document.querySelectorAll(
                     "webscape-wanderer",
                 )) {
-                    wanderer.graphData = randomGraphData(50, 50);
-                    // setInterval(() => {
+                    const graphData = randomGraphData(2, 2);
+                    setInterval(() => {
+                        console.log("changing graph data");
+                        addRandomNodes(1, graphData);
+                        addRandomEdges(2, graphData);
+                        wanderer.graphData = graphData;
+                    }, 4000);
+                    // setTimeout(() => {
                     //     console.log("changing graph data");
-                    //     wanderer.graphData = randomGraphData(100, 100);
-                    // }, 100000);
+                    //     wanderer.graphData = randomGraphData(400, 400);
+                    // }, 2000);
                 }
             });
         </script>
         <div id="selection-info" class="overlay"></div>
         <div id="controls"></div>
-        <webscape-wanderer edge-scale="5"></webscape-wanderer>
+        <webscape-wanderer
+            edge-scale="10"
+            focus="node-2"
+            selected="node-2"
+        ></webscape-wanderer>
     </body>
 </html>

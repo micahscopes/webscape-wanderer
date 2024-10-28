@@ -35,7 +35,12 @@ import { startCameraAnimation } from "./camera-animation";
 
 // import "./parameters";
 
-export { randomGraphData, makeNavId } from "./data";
+export {
+  randomGraphData,
+  addRandomNodes,
+  addRandomEdges,
+  makeNavId,
+} from "./data";
 
 class WebscapeWanderer extends LitElement {
   // static observedAttributes = Object.keys(defaultProperties).map(kebabCase);

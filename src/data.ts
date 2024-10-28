@@ -159,39 +159,60 @@ export const getGraphData = async (context) => {
   return asyncState(context, "graphData").get();
 };
 
-export const randomGraphData = (numNodes, numEdges) => {
-  const nodes = [...Array(numNodes).keys()].map((index) => ({
-    index,
-    id: `node://${index}`,
-    size: 1,
-    color: [...colorHash.rgb(String(index)).map((x) => x / 255), 1],
-    navId: makeNavId(`node-${index}`),
-  }));
+export const randomNode = (index) => ({
+  index,
+  id: `node://${index}`,
+  size: 1,
+  color: [...colorHash.rgb(String(index)).map((x) => x / 255), 1],
+  navId: makeNavId(`node-${index}`),
+});
 
-  const links = [...Array(numEdges).keys()].map(() => {
-    const sourceIndex = Math.floor(Math.random() * numNodes);
-    const targetIndex = Math.floor(Math.random() * numNodes);
-    return {
-      sourceIndex,
-      targetIndex,
-      source: nodes[sourceIndex],
-      target: nodes[targetIndex],
-    };
-  });
+export const randomEdge = (nodes) => () => {
+  const sourceIndex = Math.floor(Math.random() * nodes.length);
+  const targetIndex = Math.floor(Math.random() * nodes.length);
+  return {
+    sourceIndex,
+    targetIndex,
+    source: nodes[sourceIndex],
+    target: nodes[targetIndex],
+  };
+};
+
+export const randomGraphData = (numNodes, numEdges, startingIndex = 0) => {
+  const nodes = [...Array(numNodes).keys()]
+    .map((index) => index + startingIndex)
+    .map(randomNode);
+
+  const links = [...Array(numEdges).keys()].map(randomEdge(nodes));
 
   const linkIndexPairs = links.map(({ sourceIndex, targetIndex }) => [
     sourceIndex,
     targetIndex,
   ]);
 
-  // const nodeFromIndex = fromPairs(nodes.map(node => [node.index, node]))
-  // const nodesByProject = fromPairs(nodes.map(node => [node.project, node]))
-  // const nodesByProjectName = fromPairs(nodes.map(node => [node.data?.name, node]))
   const nodesByNavId = fromPairs(nodes.map((node) => [node.navId, node]));
   const nodesById = fromPairs(nodes.map((node) => [node.id, node]));
   return { nodes, links, linkIndexPairs, nodesByNavId, nodesById };
 };
 
+export const addRandomNodes = (n, { nodes }) => {
+  const startIndex = nodes.length;
+  const newNodes = [...Array(n).keys()]
+    .map((index) => index + startIndex)
+    .map(randomNode);
+  nodes.push(...newNodes);
+};
+
+export const addRandomEdges = (n, { nodes, links, linkIndexPairs }) => {
+  const newEdges = [...Array(n).keys()].map(randomEdge(nodes));
+  links.push(...newEdges);
+  linkIndexPairs.push(
+    ...newEdges.map(({ sourceIndex, targetIndex }) => [
+      sourceIndex,
+      targetIndex,
+    ]),
+  );
+};
 // TODO: provide RDF data interfaces
 export const dataFromGraph = ({ nodes: simpleNodes, links: simpleLinks }) => {
   const nodes = simpleNodes.map(({ id }, index) => ({
