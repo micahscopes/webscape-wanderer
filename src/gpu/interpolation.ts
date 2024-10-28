@@ -16,10 +16,10 @@ import { graphBuffers } from "../data";
 
 export const interpolator = moize.infinite(
   (ctx, ...layers) => {
-    console.log("executing interpolation setup for layers", layers);
+    // console.log("executing interpolation setup for layers", layers);
     const interpolatorFn = Fn(() => {
       for (const { current, target } of layers) {
-        console.log("setting up interpolatoin for", current, target);
+        // console.log("setting up interpolatoin for", current, target);
         let currentElement = current.element(instanceIndex);
         let targetElement = target.element(instanceIndex);
         currentElement.addAssign(

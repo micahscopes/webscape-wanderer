@@ -47,7 +47,7 @@ class GraphLayoutSim implements GraphLayoutSimulator {
 }
 
 class D3ForceLayout extends GraphLayoutSim {
-  layoutEngine: any;
+  private layoutEngine: any;
 
   constructor(graphData) {
     super(graphData);
@@ -55,6 +55,10 @@ class D3ForceLayout extends GraphLayoutSim {
   }
 
   private initializeLayoutEngine() {
+    if (this.layoutEngine) {
+      this.layoutEngine.stop();
+    }
+
     this.layoutEngine = forceSimulation(this.graphData.nodes, 3)
       .force(
         "charge",
@@ -81,14 +85,14 @@ class D3ForceLayout extends GraphLayoutSim {
   }
 
   stop() {
-    this.layoutEngine.stop();
+    if (this.layoutEngine) {
+      this.layoutEngine.stop();
+    }
   }
 
   setData(graphData: any) {
     super.setData(graphData);
-    this.layoutEngine.nodes(this.graphData.nodes);
-    this.layoutEngine.force("link").links(this.graphData.links);
-    this.layoutEngine.alpha(1).restart();
+    this.initializeLayoutEngine();
   }
 }
 
