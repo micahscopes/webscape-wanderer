@@ -249,9 +249,19 @@ export const graphEdgeMaterialDebug = (ctx) => {
   // edgeIndices = edgeIndices.toVar("edgeIndices");
   const sourceIndex = edgeIndices.x;
   const targetIndex = edgeIndices.y;
-  const selected = equal(selectedIndex, sourceIndex)
-    .or(equal(selectedIndex, targetIndex))
-    .toInt();
+
+  const sourceSelected = equal(selectedIndex, sourceIndex).toFloat();
+  const targetSelected = equal(selectedIndex, targetIndex).toFloat();
+
+  const selected = sourceSelected
+    .mul(isSource)
+    .add(targetSelected.mul(isTarget));
+
+  const eitherSelected = max(sourceSelected, targetSelected).toFloat();
+
+  // const selected = equal(selectedIndex, sourceIndex)
+  //   .or(equal(selectedIndex, targetIndex))
+  //   .toInt();
   // const selected = float(1);
   // let selected =
   // .toFloat()
@@ -277,20 +287,22 @@ export const graphEdgeMaterialDebug = (ctx) => {
 
   const emphasis = max(sourceEmphasis, targetEmphasis).toVar("emphasis");
 
-  const vertSelected = selected;
+  const vSelected = selected;
 
   // Desaturate color based on emphasis
-  let rgb = desaturate(edgeColor.xyz, mix(1.0, 0.2, emphasis));
-  let alpha = edgeColor.w.mul(mix(0.2, 1.0, mix(1.0, emphasis, isAnySelected)));
-  alpha = alpha.mul(mix(0.4, 1.0, mix(1.0, vertSelected, isAnySelected)));
+  let rgb = edgeColor.xyz;
+  // let rgb = desaturate(
+  //   edgeColor.xyz,
+  //   mix(1.0, oneMinus(eitherSelected), emphasis),
+  // );
+  let alpha = edgeColor.w.mul(
+    mix(0.2, 1.0, mix(1.0, oneMinus(eitherSelected), isAnySelected)),
+  );
+  alpha = alpha.mul(mix(0.4, 1.0, mix(1.0, vSelected, isAnySelected)));
 
   // Dim edges for larger distances
   alpha = alpha.mul(
-    mix(
-      1.0,
-      mix(0.3, 1.0, vertSelected),
-      smoothstep(400.0, 1200.0, camDistance),
-    ),
+    mix(1.0, mix(0.3, 1.0, vSelected), smoothstep(400.0, 1200.0, camDistance)),
   );
 
   edgeColor = vec4(rgb, alpha);
