@@ -15,7 +15,7 @@ import { getThreeSetup } from "./graph-viz";
 import { graphBuffers } from "../data";
 
 export const interpolator = moize.infinite(
-  (...layers) => {
+  (ctx, ...layers) => {
     console.log("executing interpolation setup for layers", layers);
     const interpolatorFn = Fn(() => {
       for (const { current, target } of layers) {
@@ -33,16 +33,18 @@ export const interpolator = moize.infinite(
     return interpolatorFn().compute(size);
   },
   {
-    transformArgs: (args = []) => {
+    transformArgs: ([ctx, ...layers]) => {
       // args.map((layer) => layer.target.value.count);
-      let newArgs = args;
-      newArgs = args.flatMap((x) => [
-        x?.target?.value?.count,
+      let newArgs = layers;
+      const buffers = graphBuffers(ctx);
+      newArgs = layers.flatMap((x) => [
+        buffers.getNodeCount(),
         x?.target?.uuid,
-        x?.current?.value?.count,
+        buffers.getEdgeCount(),
         x?.current?.uuid,
       ]);
-      // console.log("transforming key", args, newArgs);
+      // console.log("transforming key", newArgs);
+      // const newArgs = [buffers.getNodeCount(), buffers.getEdgeCount()];
       return newArgs;
     },
   },
@@ -50,7 +52,7 @@ export const interpolator = moize.infinite(
 
 export const interpolate = (ctx, layers) => {
   const { renderer } = getThreeSetup(ctx);
-  renderer.compute(interpolator(...layers));
+  renderer.compute(interpolator(ctx, ...layers));
   // layers.forEach(({ current, target }) => {
   //   // console.log("attempting to interpolate", current, target);
   //   // current.needsUpdate = true;

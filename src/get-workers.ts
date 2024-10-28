@@ -6,7 +6,7 @@ import { detect } from "detect-browser";
 import moize from "moize";
 
 const agent = detect(navigator.userAgent);
-const useWorkers = agent?.name !== "safari" && agent?.os !== "iOS";
+const useWorkers = agent?.name !== "safari" && agent?.os !== "iOS" && false;
 
 if (useWorkers) {
   console.log("Using workers");

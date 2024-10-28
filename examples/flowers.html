@@ -86,6 +86,7 @@
                     "webscape-wanderer",
                 )) {
                     const graphData = randomGraphData(2, 2);
+                    wanderer.graphData = graphData;
                     setInterval(() => {
                         console.log("changing graph data");
                         addRandomNodes(1, graphData);

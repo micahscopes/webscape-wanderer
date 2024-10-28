@@ -26,20 +26,16 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { hue, normal } from "color-blend/unit";
 
 const defaultColorMap = ({ color }) => color;
-export const getDefaultColors = moize.infinite(
-  async (graphData, fn = identity) => {
-    const { nodes, links } = graphData;
-    return new Float32Array(nodes.map(defaultColorMap).flatMap(fn));
-  },
-);
+export const getDefaultColors = (graphData, fn = identity) => {
+  const { nodes, links } = graphData;
+  return new Float32Array(nodes.map(defaultColorMap).flatMap(fn));
+};
 
 const defaultSizeMap = ({ size }) => size;
-export const getDefaultSizes = moize.infinite(
-  async (graphData, fn = identity) => {
-    const { nodes, links } = graphData;
-    return new Float32Array(nodes.map(defaultSizeMap).map(fn));
-  },
-);
+export const getDefaultSizes = (graphData, fn = identity) => {
+  const { nodes, links } = graphData;
+  return new Float32Array(nodes.map(defaultSizeMap).map(fn));
+};
 
 export const applyVisuals = async (
   ctx,
@@ -49,6 +45,7 @@ export const applyVisuals = async (
   // const colors = getColorBuffers();
   // const sizes = getRadiusBuffers();
   // const emphasis = getEmphasisBuffers();
+  const graphData = await getGraphData(ctx);
   const colorData = await getDefaultColors(await getGraphData(ctx), colorMap);
   const sizeData = await getDefaultSizes(await getGraphData(ctx), sizeMap);
 
@@ -76,6 +73,7 @@ export const applyVisuals = async (
 export const applyVisualsToNode = async (
   ctx,
   node,
+
   {
     colorMap = identity,
     sizeMap = identity,
@@ -209,7 +207,8 @@ export const selectNodeAndDownstreamDependents = async (
 };
 
 export const doFocus = async (ctx) => {
-  const { nodesByNavId } = await getGraphData(ctx);
+  const graphData = await getGraphData(ctx);
+  const { nodesByNavId } = graphData;
   const component = getComponent(ctx);
   const focused = component.focus;
   const node = nodesByNavId[focused];

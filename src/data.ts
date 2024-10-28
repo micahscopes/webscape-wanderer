@@ -107,13 +107,13 @@ export const graphBuffers = moize.infinite((ctx) => {
 export const setGraphData = async (ctx, data) => {
   const { set: setter } = asyncState(ctx, "graphData");
   setter(data);
+  const layoutSimulator = await getLayoutSimulator(ctx, data);
+  layoutSimulator.setData(data);
 
   const { nodes, linkIndexPairs } = data;
   const bufferState = graphBuffers(ctx);
-
   // Set node count
   bufferState.setNodeCount(nodes.length);
-
   // Set edges
   bufferState.setEdges(linkIndexPairs);
 
@@ -156,7 +156,7 @@ export const setGraphData = async (ctx, data) => {
 };
 
 export const getGraphData = async (context) => {
-  return asyncState(context, "graphData").get();
+  return await asyncState(context, "graphData").get();
 };
 
 export const randomNode = (index) => ({
@@ -195,12 +195,18 @@ export const randomGraphData = (numNodes, numEdges, startingIndex = 0) => {
   return { nodes, links, linkIndexPairs, nodesByNavId, nodesById };
 };
 
-export const addRandomNodes = (n, { nodes }) => {
+export const addRandomNodes = (n, { nodes, nodesByNavId, nodesById }) => {
   const startIndex = nodes.length;
   const newNodes = [...Array(n).keys()]
     .map((index) => index + startIndex)
     .map(randomNode);
   nodes.push(...newNodes);
+
+  // Update nodesByNavId and nodesById
+  newNodes.forEach((node) => {
+    nodesByNavId[node.navId] = node;
+    nodesById[node.id] = node;
+  });
 };
 
 export const addRandomEdges = (n, { nodes, links, linkIndexPairs }) => {
@@ -249,38 +255,47 @@ export const dataFromGraph = ({ nodes: simpleNodes, links: simpleLinks }) => {
 };
 
 export const randomTreesData = (
-  trunks,
-  numLevels,
-  minChildren,
-  maxChildren,
-  maxNodes,
+  trunks: number,
+  numLevels: number,
+  minChildren: number,
+  maxChildren: number,
+  maxNodes: number,
 ) => {
-  const nodes = [];
-  const links = [];
-  const linkIndexPairs = [];
+  const nodes: any[] = [];
+  const links: any[] = [];
+  const linkIndexPairs: number[][] = [];
+  const nodesByNavId: { [key: string]: any } = {};
+  const nodesById: { [key: string]: any } = {};
 
-  const addNode = (parentIndex, level, offset = [0, 0, 0]) => {
+  const addNode = (
+    parentIndex: number | undefined,
+    level: number,
+    offset: number[] = [0, 0, 0],
+  ) => {
     const index = nodes.length;
     const size = 1;
     const [x, y, z] = [Math.random(), Math.random(), Math.random()]
       .map((x) => x / 3)
       .map((x, i) => x + offset[i]);
-    nodes.push({
+    const newNode = {
       index,
       size,
       x,
       y,
       z,
-      color: [...colorHash.rgb(String(index)).map((x) => x / 255), 1],
+      color: [...colorHash.rgb(String(index)).map((x: number) => x / 255), 1],
       id: `node://${index}.xyz`,
       navId: makeNavId(`node://${index}.xyz`),
-    });
+    };
+    nodes.push(newNode);
+    nodesByNavId[newNode.navId] = newNode;
+    nodesById[newNode.id] = newNode;
     if (parentIndex !== undefined) {
       links.push({
         sourceIndex: parentIndex,
         targetIndex: index,
         source: nodes[parentIndex],
-        target: nodes[index],
+        target: newNode,
       });
       linkIndexPairs.push([parentIndex, index]);
     }
@@ -301,8 +316,6 @@ export const randomTreesData = (
     );
   }
 
-  const nodesByNavId = fromPairs(nodes.map((node) => [node.navId, node]));
-  const nodesById = fromPairs(nodes.map((node) => [node.id, node]));
   return { nodes, links, linkIndexPairs, nodesByNavId, nodesById };
 };
 
@@ -324,6 +337,11 @@ export const getLayoutSimulator = moize.infinite(
     onExpire: () => {
       engine.stop();
     },
+    transformArgs: ([context, graphData]) => [
+      context,
+      // graphData.nodes.length,
+      // graphData.links.length,
+    ],
   },
 );
 

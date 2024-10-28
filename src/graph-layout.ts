@@ -13,6 +13,7 @@ export interface GraphLayoutSimulator {
   start: () => void;
   stop: () => void;
   getPositions: (callback: (positions: Float32Array) => void) => void;
+  setData: (graphData: any) => void;
 }
 
 class GraphLayoutSim implements GraphLayoutSimulator {
@@ -39,6 +40,10 @@ class GraphLayoutSim implements GraphLayoutSimulator {
     const positions = this.positionsBuffer;
     callback(positions);
   }
+
+  setData(graphData: any) {
+    this.graphData = graphData;
+  }
 }
 
 class D3ForceLayout extends GraphLayoutSim {
@@ -46,7 +51,11 @@ class D3ForceLayout extends GraphLayoutSim {
 
   constructor(graphData) {
     super(graphData);
-    this.layoutEngine = forceSimulation(graphData.nodes, 3)
+    this.initializeLayoutEngine();
+  }
+
+  private initializeLayoutEngine() {
+    this.layoutEngine = forceSimulation(this.graphData.nodes, 3)
       .force(
         "charge",
         forceManyBody(),
@@ -54,14 +63,14 @@ class D3ForceLayout extends GraphLayoutSim {
       )
       .force(
         "link",
-        forceLink(graphData.links).id((d) => d.id),
+        forceLink(this.graphData.links).id((d) => d.id),
         // .distance(10)
       )
       .force("center", forceCenter());
 
     this.layoutEngine.on("tick", () => {
       const newPositions = this.graphData.nodes.flatMap(({ x, y, z }) =>
-        [x, y, z].map((co) => co),
+        [x, y, z].map((co) => (isNaN(co) || !isFinite(co) ? 0 : co)),
       );
       this.positions = new Float32Array(newPositions);
     });
@@ -73,6 +82,13 @@ class D3ForceLayout extends GraphLayoutSim {
 
   stop() {
     this.layoutEngine.stop();
+  }
+
+  setData(graphData: any) {
+    super.setData(graphData);
+    this.layoutEngine.nodes(this.graphData.nodes);
+    this.layoutEngine.force("link").links(this.graphData.links);
+    this.layoutEngine.alpha(1).restart();
   }
 }
 

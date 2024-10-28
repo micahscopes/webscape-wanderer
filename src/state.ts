@@ -103,6 +103,8 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
   };
   const updateSet = new Set<string>();
 
+  const BUFFER_SIZE = 10000; // Large buffer size
+
   const createBuffer = (
     key: string,
     data: Float32Array | Int32Array,
@@ -110,7 +112,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
   ) => {
     const { itemSize } = getTypeInfo(type);
     const attribute = new StorageInstancedBufferAttribute(data, itemSize);
-    return storage(attribute, type, Math.max(data.length / itemSize, 1));
+    return storage(attribute, type, BUFFER_SIZE);
   };
 
   const updateOrCreateBuffer = (
@@ -118,42 +120,27 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     data: Float32Array | Int32Array,
     type: PropertyType,
   ) => {
-    const isEdgeBuffer =
-      key.startsWith("edgeSource_") ||
-      key.startsWith("edgeTarget_") ||
-      key === "edgeIndices";
-    const count = Math.max(
-      isEdgeBuffer ? bufferState.edges?.length || 1 : nodeCount,
-      1,
-    );
-
     if (bufferState.buffers[key]) {
       // Update existing StorageBufferNode with new data
       const existingBuffer = bufferState.buffers[key];
-      existingBuffer.value.array = data;
-      existingBuffer.value.count = count;
+      existingBuffer.value.array.set(data);
       updateSet.add(key);
     } else {
       // Create new StorageBufferNode if it doesn't exist
       const { itemSize } = getTypeInfo(type);
-      const attribute = new StorageInstancedBufferAttribute(data, itemSize);
-      bufferState.buffers[key] = storage(
-        attribute,
-        type,
-        Math.max(data.length / itemSize, count),
-      );
+      const fullData = new (data.constructor as any)(BUFFER_SIZE * itemSize);
+      fullData.set(data);
+      const attribute = new StorageInstancedBufferAttribute(fullData, itemSize);
+      bufferState.buffers[key] = storage(attribute, type, BUFFER_SIZE);
     }
+    return bufferState.buffers[key];
   };
 
   const initializeBuffer = (key: string, type: PropertyType) => {
     const { itemSize, arrayType } = getTypeInfo(type);
-    const emptyData = new arrayType(itemSize * Math.max(1000, nodeCount)); // Ensure at least 1000 or nodeCount, whichever is larger
+    const emptyData = new arrayType(BUFFER_SIZE * itemSize);
     const attribute = new StorageInstancedBufferAttribute(emptyData, itemSize);
-    bufferState.buffers[key] = storage(
-      attribute,
-      type,
-      Math.max(1000, nodeCount),
-    );
+    bufferState.buffers[key] = storage(attribute, type, BUFFER_SIZE);
   };
 
   const getBuffer = moize.maxSize(Infinity)(
@@ -197,15 +184,11 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       const propData = bufferState.nodeProps[propertyKey];
       const { type, data } = propData;
       const { itemSize, arrayType } = getTypeInfo(type);
-      const sourceResult = new arrayType(
-        Math.max(bufferState.edges!.length, 1) * itemSize,
-      );
-      const targetResult = new arrayType(
-        Math.max(bufferState.edges!.length, 1) * itemSize,
-      );
+      const sourceResult = new arrayType(BUFFER_SIZE * itemSize);
+      const targetResult = new arrayType(BUFFER_SIZE * itemSize);
 
-      for (let i = 0; i < Math.max(bufferState.edges!.length, 1); i++) {
-        const [fromIdx, toIdx] = bufferState.edges![i] || [0, 0];
+      for (let i = 0; i < bufferState.edges!.length; i++) {
+        const [fromIdx, toIdx] = bufferState.edges![i];
         sourceResult.set(
           data.subarray(fromIdx * itemSize, (fromIdx + 1) * itemSize),
           i * itemSize,
@@ -235,17 +218,17 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     setNodeCount: (count: number) => {
       nodeCount = Math.max(count, 1);
     },
+    getEdgeCount: () => bufferState.edges?.length || 0,
+    getNodeCount: () => nodeCount,
 
     setEdges: (edges: number[][]) => {
       bufferState.edges = edges.length > 0 ? edges : [[0, 0]]; // Ensure at least one edge
       edgesVersion++;
-      updateOrCreateBuffer(
-        "edgeIndices",
-        new Int32Array(bufferState.edges.flat()),
-        "ivec2",
-      );
+      const edgeIndices = new Int32Array(BUFFER_SIZE * 2);
+      edgeIndices.set(bufferState.edges.flat());
+      updateOrCreateBuffer("edgeIndices", edgeIndices, "ivec2");
 
-      console.log("set edges", getBuffer("edgeIndices"));
+      // console.log("set edges", getBuffer("edgeIndices"));
       updateEdgePairBuffers();
       debouncedUpdateBuffers();
     },
@@ -256,15 +239,11 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       data: Float32Array | Int32Array,
     ) => {
       const { itemSize, arrayType } = getTypeInfo(type);
-      if (data.length < nodeCount * itemSize) {
-        // Pad the data if it's smaller than required
-        const paddedData = new arrayType(nodeCount * itemSize);
-        paddedData.set(data);
-        data = paddedData;
-      }
-      bufferState.nodeProps[key] = { type, data: data.slice() };
+      const fullData = new arrayType(BUFFER_SIZE * itemSize);
+      fullData.set(data);
+      bufferState.nodeProps[key] = { type, data: fullData };
       propVersions[key] = (propVersions[key] || 0) + 1;
-      updateOrCreateBuffer(`nodeProps_${key}`, data, type);
+      updateOrCreateBuffer(`nodeProps_${key}`, fullData, type);
       updateEdgePairBuffers([key]);
       debouncedUpdateBuffers();
     },
@@ -282,14 +261,6 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
         );
       }
       const dataIndex = index * itemSize;
-      if (dataIndex + itemSize > propData.data.length) {
-        // Expand the buffer if necessary
-        const newData = new (propData.data.constructor as any)(
-          Math.max(propData.data.length * 2, dataIndex + itemSize),
-        );
-        newData.set(propData.data);
-        propData.data = newData;
-      }
       propData.data.set(valueArray, dataIndex);
       propVersions[key] = (propVersions[key] || 0) + 1;
       updateOrCreateBuffer(`nodeProps_${key}`, propData.data, propData.type);
