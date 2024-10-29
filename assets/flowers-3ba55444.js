@@ -1,0 +1,2 @@
+import{s as r,r as t,a as d,b as n}from"./main-67966ae2.js";import"./worker-b8ee51b7.js";window.addEventListener("DOMContentLoaded",()=>{r();for(let e of document.querySelectorAll("webscape-wanderer")){const a=t(30,30);e.graphData=a,setTimeout(()=>{d(100,a),n(100,a),e.graphData=a,console.log("changing graph data",a.nodes.length,a.links.length)},3e3)}});
+//# sourceMappingURL=flowers-3ba55444.js.map
