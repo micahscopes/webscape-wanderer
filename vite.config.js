@@ -26,6 +26,7 @@ function workerChunkPlugin() {
         const referenceId = this.emitFile({
           type: "chunk",
           id: id.slice(1).split("?")[0],
+          preserveSignature: "strict",
         });
         return `
           export default function WorkerWrapper() {
@@ -36,6 +37,13 @@ function workerChunkPlugin() {
           }
         `;
       }
+    },
+    outputOptions(options) {
+      return {
+        ...options,
+        sourcemap: true,
+        inlineDynamicImports: false,
+      };
     },
   };
 }
@@ -88,7 +96,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      minify: true, // Consider enabling for production
+      minify: false, // Consider enabling for production
       modulePreload: false,
       sourcemap: true,
       target: "module",

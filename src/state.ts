@@ -143,7 +143,9 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
     bufferState.buffers[key] = storage(attribute, type, BUFFER_SIZE);
   };
 
-  const getBuffer = moize.maxSize(Infinity)(
+  const getBuffer =
+    /* */
+    // moize.maxSize(Infinity)(
     (key: string) => {
       if (!bufferState.buffers[key]) {
         // Initialize with an empty buffer if not exists
@@ -161,21 +163,21 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
         }
       }
       return bufferState.buffers[key];
-    },
-    {
-      maxArgs: 2,
-      transformArgs: ([key]) => {
-        if (key === "edgeIndices") return [key, edgesVersion];
-        if (key.startsWith("nodeProps_"))
-          return [key, propVersions[key.slice(10)] || 0];
-        if (key.startsWith("edgeSource_") || key.startsWith("edgeTarget_")) {
-          const propKey = key.slice(11);
-          return [key, edgesVersion, propVersions[propKey] || 0];
-        }
-        return [key, edgesVersion]; // fallback
-      },
-    },
-  );
+    };
+  //   {
+  //     maxArgs: 2,
+  //     transformArgs: ([key]) => {
+  //       if (key === "edgeIndices") return [key, edgesVersion];
+  //       if (key.startsWith("nodeProps_"))
+  //         return [key, propVersions[key.slice(10)] || 0];
+  //       if (key.startsWith("edgeSource_") || key.startsWith("edgeTarget_")) {
+  //         const propKey = key.slice(11);
+  //         return [key, edgesVersion, propVersions[propKey] || 0];
+  //       }
+  //       return [key, edgesVersion]; // fallback
+  //     },
+  //   },
+  // );
 
   const updateEdgePairBuffers = (forKeys = null) => {
     if (!bufferState.edges) return;
@@ -272,22 +274,24 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       return getBuffer(`nodeProps_${key}`);
     },
 
-    getEdgePairs: moize.maxSize(Infinity)(
+    getEdgePairs:
+      // moize.maxSize(Infinity)(
+
       (propertyKey: string) => {
         return {
           source: getBuffer(`edgeSource_${propertyKey}`),
           target: getBuffer(`edgeTarget_${propertyKey}`),
         };
       },
-      {
-        maxArgs: 3,
-        transformArgs: ([propertyKey]) => [
-          propertyKey,
-          edgesVersion,
-          propVersions[propertyKey] || 0,
-        ],
-      },
-    ),
+    // {
+    //   maxArgs: 3,
+    //   transformArgs: ([propertyKey]) => [
+    //     propertyKey,
+    //     edgesVersion,
+    //     propVersions[propertyKey] || 0,
+    //   ],
+    // },
+    // ),
     getEdgeIndices: () => getBuffer("edgeIndices"),
     getBuffer,
 

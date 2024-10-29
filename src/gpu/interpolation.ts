@@ -14,12 +14,13 @@ import {
 } from "three/webgpu";
 import { getNodeVisualizerMesh, getThreeSetup } from "./graph-viz";
 import { graphBuffers } from "../data";
+import fastMemoize from "fast-memoize";
 
-export const interpolator = moize(
-  (ctx, ...layers) => {
+export const interpolator = fastMemoize(
+  (ctx, layers) => {
     // console.debug("executing interpolation setup for layers", layers);
-    const interpolatorFn = Fn((layers) => {
-      let result = float(0);
+    const interpolatorFn = Fn(() => {
+      // let result = float(0);
       for (const { current, target } of layers) {
         // console.debug("setting up interpolatoin for", current, target);
         let currentElement = current.element(instanceIndex);
@@ -29,47 +30,47 @@ export const interpolator = moize(
           currentElement.add(targetElement.sub(currentElement).mul(0.05)),
         );
 
-        result = result
-          .mul(currentElement.length())
-          .mul(targetElement.length());
+        // result = result
+        //   .mul(currentElement.length())
+        //   .mul(targetElement.length());
       }
-      return result;
+      // return result;
     });
 
     const size = layers[0]?.target.value.count;
-    return interpolatorFn(layers).compute(size);
+    return interpolatorFn().compute(size);
   },
   {
-    maxSize: 50,
-    transformArgs: ([ctx, ...layers]) => {
+    // isShallowEqual: true,
+    // maxSize: 50,
+    // maxAge: 1000,
+    serializer: ([ctx, layers]) => {
       // args.map((layer) => layer.target.value.count);
       let newArgs = layers;
       const buffers = graphBuffers(ctx);
-      newArgs = layers.flatMap((x) => [
-        buffers.getNodeCount(),
-        x?.target?.uuid,
-        buffers.getEdgeCount(),
-        x?.current?.uuid,
-      ]);
+      newArgs = JSON.stringify(
+        layers.flatMap((x) => [
+          buffers.getNodeCount(),
+          x?.target?.uuid,
+          buffers.getEdgeCount(),
+          x?.current?.uuid,
+        ]),
+      );
       // console.debug("transforming key", newArgs);
       // const newArgs = [buffers.getNodeCount(), buffers.getEdgeCount()];
       return newArgs;
-    },
-    dispose: () => {
-      const { renderer } = getThreeSetup(ctx);
-      renderer.dispose();
     },
   },
 );
 
 export const interpolate = (ctx, layers) => {
   const { renderer } = getThreeSetup(ctx);
-  const interp = interpolator(ctx, ...layers);
+  const interp = interpolator(ctx, layers);
   // interp.needsUpdate = true;
   const { edgeVisualizerMesh, nodeVisualizerMesh, nodePickerMesh } =
     getThreeSetup(ctx);
 
-  return renderer.compute(interp);
+  renderer.compute(interp);
   //   .then((output) => {
   //   nodeVisualizerMesh.material.vertexNode.needsUpdate = true;
   //   nodePickerMesh.material.vertexNode.needsUpdate = true;
