@@ -96,7 +96,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      minify: false, // Consider enabling for production
+      minify: true, // Consider enabling for production
       modulePreload: false,
       sourcemap: true,
       target: "module",

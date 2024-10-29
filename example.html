@@ -12,10 +12,8 @@
                 display: flex;
                 margin: 0;
                 padding: 0;
-                background-color: rgb(27, 27, 27);
-                /* background-color: rgb(1,1,1); */
+                background-color: darkslateblue;
                 color: white;
-                font-family: sans-serif;
                 /* overflow: hidden; */
             }
             webscape-wanderer {
@@ -38,6 +36,7 @@
                 startWebscapeWanderer,
             } from "/dist/webscape-wanderer.js";
             window.addEventListener("DOMContentLoaded", () => {
+                // boot up the web component for all webscape-wanderer elements
                 startWebscapeWanderer();
 
                 for (let wanderer of document.querySelectorAll(

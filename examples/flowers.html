@@ -88,8 +88,8 @@
                     const graphData = randomGraphData(30, 30);
                     wanderer.graphData = graphData;
                     setTimeout(() => {
-                        addRandomNodes(8000, graphData);
-                        addRandomEdges(8000, graphData);
+                        addRandomNodes(100, graphData);
+                        addRandomEdges(100, graphData);
                         wanderer.graphData = graphData;
                         console.log(
                             "changing graph data",
@@ -104,6 +104,7 @@
         <div id="controls"></div>
         <webscape-wanderer
             edge-scale="1"
+            node-scale="1"
             focus="node-2"
             selected="node-2"
         ></webscape-wanderer>
