@@ -154,6 +154,9 @@ export const animateGraph = (ctx) => {
     edgeVisualizerMesh,
   } = getThreeSetup(ctx);
 
+  doFocus(ctx);
+  doInterpolation(ctx);
+  // .then(() => {
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
 
@@ -161,11 +164,8 @@ export const animateGraph = (ctx) => {
   renderer.render(nodePickerMesh, camera);
 
   if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
-
-  const buffers = graphBuffers(ctx);
-
-  doInterpolation(ctx);
-  doFocus(ctx);
-
   requestAnimationFrame(() => animateGraph(ctx));
+  // });
+
+  // const buffers = graphBuffers(ctx);
 };

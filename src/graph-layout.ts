@@ -46,19 +46,20 @@ class GraphLayoutSim implements GraphLayoutSimulator {
   }
 }
 
+import { debounce } from "lodash-es";
+
 class D3ForceLayout extends GraphLayoutSim {
-  private layoutEngine: any;
+  layoutEngine: any;
 
   constructor(graphData) {
     super(graphData);
     this.initializeLayoutEngine();
+    this.debouncedUpdate = debounce(this.updatePositions.bind(this), 20, {
+      maxWait: 150,
+    }); // 100ms debounce
   }
 
   private initializeLayoutEngine() {
-    if (this.layoutEngine) {
-      this.layoutEngine.stop();
-    }
-
     this.layoutEngine = forceSimulation(this.graphData.nodes, 3)
       .force(
         "charge",
@@ -73,11 +74,20 @@ class D3ForceLayout extends GraphLayoutSim {
       .force("center", forceCenter());
 
     this.layoutEngine.on("tick", () => {
-      const newPositions = this.graphData.nodes.flatMap(({ x, y, z }) =>
-        [x, y, z].map((co) => (isNaN(co) || !isFinite(co) ? 0 : co)),
-      );
-      this.positions = new Float32Array(newPositions);
+      if (this.layoutEngine.alpha() > 0.01) {
+        // Adjust this threshold as needed
+        this.debouncedUpdate();
+      } else {
+        this.updatePositions();
+      }
     });
+  }
+
+  private updatePositions() {
+    const newPositions = this.graphData.nodes.flatMap(({ x, y, z }) =>
+      [x, y, z].map((co) => (isNaN(co) || !isFinite(co) ? 0 : co)),
+    );
+    this.positions = new Float32Array(newPositions);
   }
 
   start() {
@@ -85,15 +95,28 @@ class D3ForceLayout extends GraphLayoutSim {
   }
 
   stop() {
-    if (this.layoutEngine) {
-      this.layoutEngine.stop();
-    }
+    this.layoutEngine.stop();
   }
 
   setData(graphData: any) {
     super.setData(graphData);
-    this.initializeLayoutEngine();
+    this.layoutEngine.nodes(this.graphData.nodes);
+    this.layoutEngine.force("link").links(this.graphData.links);
+    // this.layoutEngine.alpha(0.4).restart();
+    this.layoutEngine
+      // .alpha(0.5)
+      .alphaMin(0.2)
+      .alphaDecay(0.03)
+      .alpha(Math.min(0.2, this.layoutEngine.alpha() + 0.2))
+      .restart();
   }
+
+  // getPositions(callback) {
+  //   if (this.layoutEngine.alpha() < 0.5) {
+  //     const positions = this.positions;
+  //     callback(positions);
+  //   }
+  // }
 }
 
 // class NgraphForceLayout extends GraphLayoutSim {

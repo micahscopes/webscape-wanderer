@@ -104,7 +104,7 @@ export const graphBuffers = moize.infinite((ctx) => {
   return bufferState;
 });
 
-export const setGraphData = async (ctx, data) => {
+export const setGraphData = async (ctx, data, conserveProperties = true) => {
   const { set: setter } = asyncState(ctx, "graphData");
   setter(data);
   const layoutSimulator = await getLayoutSimulator(ctx, data);
@@ -112,6 +112,9 @@ export const setGraphData = async (ctx, data) => {
 
   const { nodes, linkIndexPairs } = data;
   const bufferState = graphBuffers(ctx);
+  const existingNodeCount = conserveProperties ? bufferState.getNodeCount() : 0;
+  const existingEdgeCount = conserveProperties ? bufferState.getEdgeCount() : 0;
+
   // Set node count
   bufferState.setNodeCount(nodes.length);
   // Set edges
@@ -124,29 +127,76 @@ export const setGraphData = async (ctx, data) => {
     Math.random() * scale - scale / 2,
     Math.random() * scale - scale / 2,
   ];
-  const initialPositions = new Float32Array(nodes.flatMap(randomPoint));
+  const initialPositions = new Float32Array(nodes.length * 3);
+  if (conserveProperties) {
+    const existingPositions = bufferState.getNodeProperties(
+      "positionTarget",
+      "vec3",
+    ).value.array;
+    initialPositions.set(existingPositions.subarray(0, existingNodeCount * 3));
+    for (let i = existingNodeCount; i < nodes.length; i++) {
+      const randomPos = randomPoint();
+      initialPositions.set(randomPos, i * 3);
+    }
+  } else {
+    for (let i = 0; i < nodes.length; i++) {
+      const randomPos = randomPoint();
+      initialPositions.set(randomPos, i * 3);
+    }
+  }
   bufferState.setNodeProperties("positionInitial", "vec3", initialPositions);
   bufferState.setNodeProperties("positionTarget", "vec3", initialPositions);
 
   // Set colors
-  const colors = new Float32Array(nodes.flatMap(({ color }) => color));
+  const colors = new Float32Array(nodes.length * 4);
+  if (conserveProperties) {
+    const existingColors = bufferState.getNodeProperties("colorTarget", "vec4")
+      .value.array;
+    colors.set(existingColors.subarray(0, existingNodeCount * 4));
+    for (let i = existingNodeCount; i < nodes.length; i++) {
+      colors.set(nodes[i].color, i * 4);
+    }
+  } else {
+    for (let i = 0; i < nodes.length; i++) {
+      colors.set(nodes[i].color, i * 4);
+    }
+  }
   bufferState.setNodeProperties("colorInitial", "vec4", colors);
   bufferState.setNodeProperties("colorTarget", "vec4", colors);
 
   // Set sizes
-  const sizes = new Float32Array(nodes.map((node) => node.size));
+  const sizes = new Float32Array(nodes.length);
+  if (conserveProperties) {
+    const existingSizes = bufferState.getNodeProperties("sizeTarget", "float")
+      .value.array;
+    sizes.set(existingSizes.subarray(0, existingNodeCount));
+    for (let i = existingNodeCount; i < nodes.length; i++) {
+      sizes[i] = nodes[i].size;
+    }
+  } else {
+    for (let i = 0; i < nodes.length; i++) {
+      sizes[i] = nodes[i].size;
+    }
+  }
   bufferState.setNodeProperties("sizeInitial", "float", sizes);
   bufferState.setNodeProperties("sizeTarget", "float", sizes);
 
-  // Set initial emphasis (all zero)
-  const emphasis = new Float32Array(nodes.length).fill(0);
-  bufferState.setNodeProperties("emphasisInitial", "float", emphasis);
+  // Set emphasis
+  const emphasis = new Float32Array(nodes.length);
+  if (conserveProperties) {
+    const existingEmphasis = bufferState.getNodeProperties(
+      "emphasisTarget",
+      "float",
+    ).value.array;
+    emphasis.set(existingEmphasis.subarray(0, existingNodeCount));
+    emphasis.fill(0, existingNodeCount);
+  } else {
+    emphasis.fill(0);
+  }
+  // bufferState.setNodeProperties("emphasisInitial", "float", emphasis);
   bufferState.setNodeProperties("emphasisTarget", "float", emphasis);
 
   // Load vertex arrays (if still needed)
-  // loadEdgeVertexArray(ctx, 10000);
-  // loadNodeVertexArray(ctx, nodes.length);
-  // loadEdgeVertexArray(ctx);
   loadNodeVertexArray(ctx, nodes.length);
 
   getEdgeVisualizerMesh(ctx).geometry.instanceCount = linkIndexPairs.length;

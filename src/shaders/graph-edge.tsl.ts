@@ -78,11 +78,11 @@ const getEdgeAttributes = (ctx) => {
       .sub(sizesTarget.target.element(id).mul(0))
       .mul(scaleAdjustment)
       .toVar("tgtSize"),
-    sourceEmphasis: emphasesInitial.source
+    sourceEmphasis: emphasesTarget.source
       .element(id)
       // .sub(emphasesTarget.source.element(id).mul(0))
       .x.toVar("srcEmphasis"),
-    targetEmphasis: emphasesInitial.target
+    targetEmphasis: emphasesTarget.target
       .element(id)
       // .sub(emphasesTarget.target.element(id).mul(0))
       .y.toVar("tgtEmphasis"),
@@ -138,7 +138,7 @@ const nodeClipPosition = ({ nodePosition, globalView, globalProjection }) => {
     .mul(globalView.toVar("view"))
     .mul(vec4(nodePosition, 1.0));
 };
-export const graphEdgeMaterialDebug = (ctx) => {
+export const graphEdgeMaterial = (ctx) => {
   const {
     globalProjection,
     globalView,
@@ -295,14 +295,15 @@ export const graphEdgeMaterialDebug = (ctx) => {
   //   edgeColor.xyz,
   //   mix(1.0, oneMinus(eitherSelected), emphasis),
   // );
-  let alpha = edgeColor.w.mul(
-    mix(0.2, 1.0, mix(1.0, oneMinus(eitherSelected), isAnySelected)),
-  );
-  alpha = alpha.mul(mix(0.4, 1.0, mix(1.0, vSelected, isAnySelected)));
+  let alpha = float(1);
+  // alpha = edgeColor.w.mul(
+  //   mix(0.2, 1.0, mix(1.0, oneMinus(emphasis), isAnySelected)),
+  // );
+  alpha = alpha.mul(mix(0.4, 1.0, mix(1.0, emphasis, isAnySelected)));
 
   // Dim edges for larger distances
   alpha = alpha.mul(
-    mix(1.0, mix(0.3, 1.0, vSelected), smoothstep(400.0, 1200.0, camDistance)),
+    mix(1.0, mix(0.3, 1.0, emphasis), smoothstep(400.0, 1200.0, camDistance)),
   );
 
   edgeColor = vec4(rgb, alpha);
@@ -391,14 +392,16 @@ export const graphEdgeMaterialDebug = (ctx) => {
         vV,
         1.0,
         pulse
-          .mul(mix(0.2, 0.4, selected))
+          .mul(mix(0.2, 0.4, emphasis))
           .mul(wave(u_3D, highFrequency))
           .add(0.6),
       ),
     );
 
     // Emphasize selected edges
-    alpha = alpha.mul(mix(0.4, 1.0, selected));
+    // alpha = alpha.mul(mix(0.4, 1.0, selected));
+    // alpha = mix(alpha.mul(0.2), 1.0, vEmphasis);
+    alpha = alpha.mul(mix(0.4, 1.0, vSelected));
 
     // Fade ends of edges
     alpha = alpha.mul(bump(u_3D.sub(0.5), 2.0, edgeOvershoot));

@@ -150,11 +150,7 @@ export const loadEdgeVertexArray = (ctx, size) => {
 };
 
 import { graphNodeMaterials } from "../shaders/graph-node.tsl";
-
-import {
-  graphEdgeMaterial,
-  graphEdgeMaterialDebug as graphEdgeMaterial,
-} from "../shaders/graph-edge.tsl";
+import { graphEdgeMaterial } from "../shaders/graph-edge.tsl";
 // Initialize Three.js scene, camera and renderer
 export const getThreeSetup = moize.infinite((ctx) => {
   const { canvas, gl } = getCanvasAndGLContext(ctx);

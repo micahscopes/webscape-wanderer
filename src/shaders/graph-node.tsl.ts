@@ -81,13 +81,16 @@ export const graphNodeMaterials = (ctx) => {
   const emphasisCurrent = emphasesInitial
     .element(id)
     .sub(emphasesTarget.element(id).mul(0));
+  const anythingSelected = selectedIndex.greaterThan(-1);
+
+  const emphasis = anythingSelected
+    .not()
+    .cond(oneMinus(emphasisCurrent), emphasisCurrent);
 
   const colors = buffers.getNodeProperties("colorTarget");
-  const emphases = buffers.getNodeProperties("emphasisTarget");
 
   const isSelected = id.equal(selectedIndex);
-  const anythingSelected = selectedIndex.greaterThan(-1);
-  const scale = sizeCurrent.mul(scaleAdjustment);
+  const scale = sizeCurrent.mul(scaleAdjustment).mul(mix(0.5, 1, emphasis));
   const scalePicker = max(scale, 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {
@@ -114,12 +117,15 @@ export const graphNodeMaterials = (ctx) => {
     }),
     oneMinus(isSelected.toFloat()),
   );
-  fog = min(fog, oneMinus(emphases.element(id)));
+  fog = min(fog, oneMinus(emphasis));
   fog = mix(0.0, fog, nodeFog);
 
+  let alpha = color.w;
+  alpha = mix(0.1, 1.0, emphasis);
   let newRgb = color.xyz.mul(mix(1.0, 0.5, fog));
-  newRgb = desaturate(newRgb, oneMinus(0.2).mul(fog));
-  color = vec4(newRgb, color.w);
+  newRgb = desaturate(newRgb, max(oneMinus(0.2).mul(fog), oneMinus(emphasis)));
+
+  color = vec4(newRgb, alpha);
 
   const colorNode = mix(color, selectedColor, isSelected.toFloat());
 
@@ -127,6 +133,8 @@ export const graphNodeMaterials = (ctx) => {
     graphNodeMaterial: new MeshMatcapNodeMaterial({
       vertexNode: geo.orthographicClipPosition,
       colorNode: colorNode,
+      transparent: true,
+      // depthTest: false,
     }),
     graphNodePickerMaterial: new MeshBasicNodeMaterial({
       vertexNode: geoPicker.orthographicClipPosition,
