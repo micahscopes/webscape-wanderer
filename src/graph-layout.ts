@@ -104,10 +104,10 @@ class D3ForceLayout extends GraphLayoutSim {
     this.layoutEngine.force("link").links(this.graphData.links);
     // this.layoutEngine.alpha(0.4).restart();
     this.layoutEngine
-      // .alpha(0.5)
-      .alphaMin(0.2)
-      .alphaDecay(0.03)
-      .alpha(Math.min(0.2, this.layoutEngine.alpha() + 0.2))
+      .alpha(0.5)
+      // .alphaMin(0.1)
+      // .alphaDecay(0.03)
+      // .alpha(Math.min(0.2, this.layoutEngine.alpha() + 0.2))
       .restart();
   }
 

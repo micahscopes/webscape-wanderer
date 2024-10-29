@@ -182,6 +182,11 @@ export const getCurrentlyHoveringIndex = (ctx) => {
 export const getCurrentlyHoveringNode = async (ctx) => {
   const { nodes } = await getGraphData(ctx);
   const currentlyHoveringIndex = getCurrentlyHoveringIndex(ctx);
+  console.log(
+    "getCurrentlyHoveringNode",
+    currentlyHoveringIndex,
+    nodes[currentlyHoveringIndex],
+  );
   return nodes[currentlyHoveringIndex];
 };
 

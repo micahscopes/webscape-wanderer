@@ -156,7 +156,7 @@ export const animateGraph = (ctx) => {
 
   doFocus(ctx);
   doInterpolation(ctx);
-  // .then(() => {
+
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
 
@@ -165,7 +165,5 @@ export const animateGraph = (ctx) => {
 
   if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
   requestAnimationFrame(() => animateGraph(ctx));
-  // });
-
   // const buffers = graphBuffers(ctx);
 };

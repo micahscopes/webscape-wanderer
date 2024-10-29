@@ -51,19 +51,24 @@ class WebscapeWanderer extends LitElement {
 
   static get properties() {
     return {
-      globalScale: { type: Number },
-      nodeScale: { type: Number },
-      edgeFog: { type: Number },
-      nodeFog: { type: Number },
-      edgeScale: { type: Number },
-      edgeOvershoot: { type: Number },
-      edgeFrequency: { type: Number },
-      edgePulseSpeed: { type: Number },
-      edgeWaveSpeed: { type: Number },
+      globalScale: { type: Number, attribute: "global-scale" },
+      nodeScale: { type: Number, attribute: "node-scale" },
+      edgeFog: { type: Number, attribute: "edge-fog" },
+      nodeFog: { type: Number, attribute: "node-fog" },
+      edgeScale: { type: Number, attribute: "edge-scale" },
+      edgeOvershoot: { type: Number, attribute: "edge-overshoot" },
+      edgeFrequency: { type: Number, attribute: "edge-frequency" },
+      edgePulseSpeed: { type: Number, attribute: "edge-pulse-speed" },
+      edgeWaveSpeed: { type: Number, attribute: "edge-wave-speed" },
       selected: { type: String },
-      // focus: { type: String },
-      defaultFogVisibility: { type: Number },
-      defaultFogBoundaryClipZ: { type: Number },
+      defaultFogVisibility: {
+        type: Number,
+        attribute: "default-fog-visibility",
+      },
+      defaultFogBoundaryClipZ: {
+        type: Number,
+        attribute: "default-fog-boundary-clip-z",
+      },
     };
   }
 

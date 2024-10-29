@@ -22,7 +22,10 @@ import {
   MeshMatcapNodeMaterial,
   Fn,
   float,
+  texture,
+  TextureLoader,
 } from "three/webgpu";
+import matcapUrl from "../../data/vibes-512px.png";
 import moize from "moize";
 import { getCamerasUniforms } from "../gpu/camera";
 import { getUniforms } from "../gpu/uniforms";
@@ -129,9 +132,12 @@ export const graphNodeMaterials = (ctx) => {
 
   const colorNode = mix(color, selectedColor, isSelected.toFloat());
 
+  const matcap = new TextureLoader().load(matcapUrl);
+
   return {
     graphNodeMaterial: new MeshMatcapNodeMaterial({
       vertexNode: geo.orthographicClipPosition,
+      matcap,
       colorNode: colorNode,
       transparent: true,
       // depthTest: false,

@@ -15,6 +15,10 @@ import {
   BufferGeometry,
   Color,
   IcosahedronGeometry,
+  Sphere,
+  Vector3,
+  SphereGeometry,
+  ConeGeometry,
 } from "three/webgpu";
 
 // import nodeVs from "../shaders/node-vert.tsl";
@@ -29,76 +33,81 @@ import {
 import { getCanvasAndGLContext } from "./rendering";
 import moize from "moize";
 import { OBJLoader } from "../../lib/OBJLoader";
-import heartObjString from "../../data/heart.obj?raw";
-// import dandelion from "../../data/dandelion3.obj?raw";
+// import heartObjString from "../../data/heart.obj?raw";
+import heartUrl from "../../data/heart.obj";
+import dandelionUrl from "../../data/dandelion3.obj";
 
-export const getNodeVisualizerMesh = moize.infinite(
-  (ctx, shape = "icosohedron") => {
-    let geo;
-    if (shape == "icosohedron") {
-      geo = new IcosahedronGeometry(1, 0);
-    } else if (shape === "box") {
-      geo = new BoxGeometry(1, 1, 1);
-    } else if (shape === "heart") {
-      const objLoader = new OBJLoader();
-      const heart = objLoader.parse(heartObjString);
-      const heartGeometry = heart.children[0].geometry;
-      if (!heartGeometry.index) {
-        const indices = [];
-        const position = heartGeometry.attributes.position;
-        for (let i = 0; i < position.count; i += 3) {
-          indices.push(i, i + 1, i + 2);
-        }
-        heartGeometry.setIndex(indices);
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "cone") => {
+  let geo;
+  if (shape == "sphere") {
+    geo = new SphereGeometry(1, 32, 32);
+  } else if (shape == "cone") {
+    geo = new ConeGeometry(1, 2, 128);
+  } else if (shape == "icosohedron") {
+    geo = new IcosahedronGeometry(1, 0);
+  } else if (shape === "box") {
+    geo = new BoxGeometry(1, 1, 1);
+  } else if (shape === "heart") {
+    const objLoader = new OBJLoader();
+    const heart = objLoader.load(heartUrl);
+    const heartGeometry = heart.children[0].geometry;
+    if (!heartGeometry.index) {
+      const indices = [];
+      const position = heartGeometry.attributes.position;
+      for (let i = 0; i < position.count; i += 3) {
+        indices.push(i, i + 1, i + 2);
       }
-      let scaleFactor = 1;
-      heartGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
-      console.log(heartGeometry);
-      geo = heartGeometry;
-      // const positions = heartGeometry.attributes.position.array;
-      // for (let i = 0; i < positions.length; i++) {
-      //   positions[i] *= 1.0; // Scale down by a factor of 10
-      // }
-      // heartGeometry.attributes.position.needsUpdate = true;
-      // heartGeometry.computeBoundingSphere();
-
-      let forComparison = new TorusKnotGeometry(1, 0.3, 128, 64, 3, 5);
-      console.log(forComparison);
-      // geo = forComparison;
-    } else if (shape === "brain") {
-      geo = new TorusKnotGeometry(1, 0.3, 128, 64, 3, 5);
+      heartGeometry.setIndex(indices);
     }
+    let scaleFactor = 1;
+    heartGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
+    console.log(heartGeometry);
+    geo = heartGeometry;
+    // const positions = heartGeometry.attributes.position.array;
+    // for (let i = 0; i < positions.length; i++) {
+    //   positions[i] *= 1.0; // Scale down by a factor of 10
+    // }
+    // heartGeometry.attributes.position.needsUpdate = true;
+    // heartGeometry.computeBoundingSphere();
 
-    // let geo = heart.children[0].
+    let forComparison = new TorusKnotGeometry(1, 0.3, 128, 64, 3, 5);
+    console.log(forComparison);
+    // geo = forComparison;
+  } else if (shape === "brain") {
+    geo = new TorusKnotGeometry(1, 0.3, 128, 64, 2, 3);
+  }
 
-    // geo = new TorusKnotGeometry(1, 0.3, 128, 64, 2, 4);
-    // geo = new TorusGeometry();
-    // console.log(geo)
+  geo.computeVertexNormals();
 
-    const geometry = new InstancedBufferGeometry();
+  // let geo = heart.children[0].
 
-    geometry.setAttribute("position", geo.attributes.position);
-    geometry.setAttribute("normal", geo.attributes.normal);
+  // geo = new TorusKnotGeometry(1, 0.3, 128, 64, 2, 4);
+  // geo = new TorusGeometry();
+  // console.log(geo)
 
-    geometry.setIndex(geo.index);
-    geometry.setAttribute(
-      "index",
-      new InstancedBufferAttribute(new Int32Array([]), 1),
-    );
+  const geometry = new InstancedBufferGeometry();
 
-    geometry.setAttribute(
-      "index",
-      new InstancedBufferAttribute(new Int32Array([1, 2, 3, 4]), 1),
-    );
+  geometry.setAttribute("position", geo.attributes.position);
+  geometry.setAttribute("normal", geo.attributes.normal);
 
-    const { graphNodeMaterial, graphNodePickerMaterial } =
-      graphNodeMaterials(ctx);
+  geometry.setIndex(geo.index);
+  geometry.setAttribute(
+    "index",
+    new InstancedBufferAttribute(new Int32Array([]), 1),
+  );
 
-    const mesh = new Mesh(geometry, graphNodeMaterial);
-    const pickerMesh = new Mesh(geometry, graphNodePickerMaterial);
-    return { mesh, pickerMesh };
-  },
-);
+  geometry.setAttribute(
+    "index",
+    new InstancedBufferAttribute(new Int32Array([1, 2, 3, 4]), 1),
+  );
+
+  const { graphNodeMaterial, graphNodePickerMaterial } =
+    graphNodeMaterials(ctx);
+
+  const mesh = new Mesh(geometry, graphNodeMaterial);
+  const pickerMesh = new Mesh(geometry, graphNodePickerMaterial);
+  return { mesh, pickerMesh };
+});
 
 export const getNodeIndexArray = moize.infinite((ctx, size) => {
   const nodeIndices = new Int32Array(size);
