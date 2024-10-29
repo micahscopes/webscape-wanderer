@@ -93,7 +93,9 @@ export const graphNodeMaterials = (ctx) => {
   const colors = buffers.getNodeProperties("colorTarget");
 
   const isSelected = id.equal(selectedIndex);
-  const scale = sizeCurrent.mul(scaleAdjustment).mul(mix(0.5, 1, emphasis));
+  const scale = sizeCurrent
+    .mul(scaleAdjustment)
+    .mul(mix(0.5, 1, emphasisCurrent));
   const scalePicker = max(scale, 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {

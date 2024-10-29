@@ -8,7 +8,7 @@ import {
 import { getGraphData, randomGraphData, setGraphData } from "./data";
 import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
-import { LitElement } from "lit-element";
+import { LitElement, PropertyValues } from "lit-element";
 
 import {
   defaultProperties,
@@ -171,6 +171,18 @@ class WebscapeWanderer extends LitElement {
 
   adoptedCallback() {
     // console.debug("Custom element moved to new page.");
+  }
+
+  protected firstUpdated(changedProperties: PropertyValues): void {
+    for (const [key, oldvalue] of changedProperties) {
+      if (key == "selected") {
+        const value = this[key];
+        getGraphData(this.context).then(({ nodesByNavId }) => {
+          const node = nodesByNavId[value];
+          selectNodeAndDownstreamDependents(this.context, node, true);
+        });
+      }
+    }
   }
 
   protected updated(changedProperties: PropertyValues): void {

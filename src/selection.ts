@@ -4,7 +4,12 @@ import {
   getEmphasisBuffers,
   getRadiusBuffers,
 } from "./gpu/animation";
-import { getGraphData, getNodePosition, graphBuffers } from "./data";
+import {
+  getGraphData,
+  getNodePosition,
+  graphBuffers,
+  graphDBPrepared,
+} from "./data";
 import { identity, debounce } from "lodash-es";
 import { html, render } from "lit-html";
 import {
@@ -133,6 +138,7 @@ export const selectNodeAndDownstreamDependents = async (
   zoom = true,
 ) => {
   // @ts-ignore
+  await graphDBPrepared(ctx).get();
   if (node) {
     setSelectedIndex(ctx, node.index);
     const nodePosition = getNodePosition(ctx, node);

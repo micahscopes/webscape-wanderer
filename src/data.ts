@@ -369,9 +369,14 @@ export const randomTreesData = (
   return { nodes, links, linkIndexPairs, nodesByNavId, nodesById };
 };
 
+export const graphDBPrepared = (ctx) => asyncState(ctx, "graphDbPrepared");
+
 export const prepareGraphDBWorker = async (ctx, data) => {
-  // const data = await datEcosystemData()
-  return await graphDb(ctx).buildGraph(data);
+  const { set } = asyncState(ctx, "graphDbPrepared");
+  const result = await graphDb(ctx).buildGraph(data);
+  set(true);
+
+  return result;
 };
 
 let engine: GraphLayoutSimulator;
