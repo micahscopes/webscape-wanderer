@@ -70,7 +70,7 @@ const getEdgeAttributes = (ctx) => {
       .toVar("tgtColor"),
     sourceSize: sizesInitial.source
       .element(id)
-      .sub(sizesInitial.source.element(id).mul(0))
+      .sub(sizesTarget.source.element(id).mul(0))
       .mul(scaleAdjustment)
       .toVar("srcSize"),
     targetSize: sizesInitial.target
