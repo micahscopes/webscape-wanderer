@@ -48,8 +48,8 @@ const updateCameras = (ctx, setCameraUniformBuffers, width, height) => {
     fovY: Math.PI / 3,
     ...clippingDistances,
   });
-  // console.log(globalCamera.params.distance, globalCamera.state.view[0]+globalCamera.state.view[5])
-  // console.log(globalCamera.params)
+  // console.debug(globalCamera.params.distance, globalCamera.state.view[0]+globalCamera.state.view[5])
+  // console.debug(globalCamera.params)
 
   const orthoCameraZoomed = getOrthographicCamera(ctx, "zoomed");
   orthoCameraZoomed.params.distance = globalCamera.params.distance;
@@ -116,7 +116,7 @@ const centerUpdate = curry((ctx, newCenter) => {
 
 const startCenterSpring = debounce(
   (ctx) => {
-    console.debug("starting center spring for", ctx);
+    // console.debug("starting center spring for", ctx);
     // centerSpringDamper.updateTarget(globalCamera.params.center)
     const globalCamera = getGlobalCamera(ctx);
     const centerSpringDamper = getCenterSpringDamper(ctx);
@@ -130,14 +130,20 @@ const startCenterSpring = debounce(
   },
 );
 
-const setCameraCenter = (ctx, newCenter) => {
-  console.debug("setCameraCenter, updating target", [...newCenter]);
-  const globalCamera = getGlobalCamera(ctx);
-  const centerSpringDamper = getCenterSpringDamper(ctx);
-  globalCamera.params.rotationCenter = newCenter;
-  centerSpringDamper.updateTarget(newCenter);
-  startCenterSpring(ctx);
-};
+const setCameraCenter = debounce(
+  (ctx, newCenter) => {
+    // console.debug("setCameraCenter, updating target", [...newCenter]);
+    const globalCamera = getGlobalCamera(ctx);
+    const centerSpringDamper = getCenterSpringDamper(ctx);
+    globalCamera.params.rotationCenter = newCenter;
+    centerSpringDamper.updateTarget(newCenter);
+    startCenterSpring(ctx);
+  },
+  7,
+  {
+    maxWait: 16,
+  },
+);
 
 // const distanceSpringDamper = new SpringDamper(globalCamera.params.distance);
 const getDistanceSpringDamper = (ctx) =>
@@ -148,7 +154,7 @@ const getDistanceSpringDamper = (ctx) =>
   ).get();
 
 const distanceUpdate = (ctx) => (newDistance) => {
-  // console.log("animating camera distance", newDistance);
+  // console.debug("animating camera distance", newDistance);
   const globalCamera = getGlobalCamera(ctx);
   globalCamera.params.distance = newDistance;
   // zoomedOrthographicCamera.params.distance = newDistance;
@@ -170,7 +176,7 @@ const startDistanceSpring = debounce(
 );
 
 const setCameraDistance = (ctx, distance, duration = 5000) => {
-  console.log("setCameraDistance", distance);
+  console.debug("setCameraDistance", distance);
   const distanceSpringDamper = getDistanceSpringDamper(ctx);
   distanceSpringDamper.updateTarget(distance);
 };
@@ -192,7 +198,7 @@ const getCameraAnimationState = (ctx) =>
 const startPanning = (ctx) => {
   const cameraAnimationState = getCameraAnimationState(ctx);
   cameraAnimationState.panning = true;
-  console.log("quitting pan");
+  console.debug("quitting pan");
   getComponent(ctx).focus = null;
   getCenterSpringDamper(ctx).stop();
   // const centerSpringDamper = getCenterSpringDamper(ctx);

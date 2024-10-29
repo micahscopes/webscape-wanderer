@@ -27,7 +27,7 @@ export const getUniforms = moize.infinite((ctx) => {
   Object.entries(attrs).forEach(([key, value]) => {
     uniforms[key] = uniform(value);
   });
-  console.log("initialized uniforms", uniforms);
+  console.debug("initialized uniforms", uniforms);
   return uniforms;
 });
 

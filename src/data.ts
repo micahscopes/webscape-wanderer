@@ -5,7 +5,7 @@ import { fromPairs } from "lodash-es";
 import ColorHash from "color-hash";
 import { GraphLayoutSimulator } from "./graph-layout-simulator";
 
-// console.log(graphLayout, 'graphLayout???')
+// console.debug(graphLayout, 'graphLayout???')
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.6 });
 

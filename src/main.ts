@@ -109,9 +109,11 @@ class WebscapeWanderer extends LitElement {
   }
 
   connectedCallback() {
+    super.connectedCallback();
     const ctx = this.context;
-    // console.log("Custom element added to page.");
-    const shadow = this.attachShadow({ mode: "open" });
+
+    // console.debug("Custom element added to page.");
+    const shadow = this.shadowRoot!;
     const style = document.createElement("style");
     style.textContent = `
       :host {
@@ -126,28 +128,28 @@ class WebscapeWanderer extends LitElement {
     const canvas: HTMLCanvasElement = document.createElement("canvas");
     shadow.appendChild(canvas);
     setCanvas(ctx, canvas);
-    console.log("Canvas created and set");
+    console.debug("Canvas created and set");
 
     initializeRenderer(ctx);
-    console.log("Renderer initialized");
+    console.debug("Renderer initialized");
     getThreeSetup(ctx);
-    console.log("Three.js setup complete");
+    console.debug("Three.js setup complete");
     setupCameraInteraction(ctx);
-    console.log("Camera interaction set up");
+    console.debug("Camera interaction set up");
     setupSelection(this);
-    console.log("Selection setup complete");
+    console.debug("Selection setup complete");
 
     document.querySelector("html")?.classList.add("loading");
-    console.log("Added loading class to HTML");
+    console.debug("Added loading class to HTML");
 
     getGraphData(this.context).then((data) => {
-      console.log("Graph data retrieved", data);
+      console.debug("Graph data retrieved", data);
       document.querySelector("html")!.classList.remove("loading");
-      console.log("Removed loading class from HTML");
+      console.debug("Removed loading class from HTML");
       animateGraph(this.context);
-      console.log("Graph animation started");
+      console.debug("Graph animation started");
       navigation.start();
-      console.log("Navigation started");
+      console.debug("Navigation started");
     });
 
     startCameraAnimation(this.context);
@@ -164,27 +166,23 @@ class WebscapeWanderer extends LitElement {
 
   disconnectedCallback() {
     this.resizeObserver.unobserve(this);
-    // console.log("Custom element removed from page.");
+    // console.debug("Custom element removed from page.");
   }
 
   adoptedCallback() {
-    // console.log("Custom element moved to new page.");
+    // console.debug("Custom element moved to new page.");
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
-    // const ctx = this.context;
-    // const attrs = getProperties(this.context);
-    // attrs[camelCase(name)] = parseFloat(
-    //   newValue || defaultProperties[camelCase(name)],
-    // );
-
-    if (name == "selected") {
-      getGraphData(this.context).then(({ nodesByNavId }) => {
-        const node = nodesByNavId[newValue];
-        selectNodeAndDownstreamDependents(this.context, node, true);
-      });
+  protected updated(changedProperties: PropertyValues): void {
+    for (const [key, oldvalue] of changedProperties) {
+      if (key == "selected") {
+        const value = this[key];
+        getGraphData(this.context).then(({ nodesByNavId }) => {
+          const node = nodesByNavId[value];
+          selectNodeAndDownstreamDependents(this.context, node, true);
+        });
+      }
     }
-    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private getNodeFromEvent(event: MouseEvent): any {

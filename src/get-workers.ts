@@ -9,7 +9,7 @@ const agent = detect(navigator.userAgent);
 const useWorkers = agent?.name !== "safari" && agent?.os !== "iOS";
 
 if (useWorkers) {
-  console.log("Using workers");
+  console.debug("Using workers");
 } else {
   console.warn(
     "Not using workers due to an awful memory leak that makes WebKit crash if you use workers",

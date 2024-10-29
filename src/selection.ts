@@ -108,7 +108,7 @@ export const initializationVisualMaps = {
 };
 
 export const initializeSelectionVisuals = async (ctx, immediate = false) => {
-  // console.log('initializeSelectionVisuals')
+  // console.debug('initializeSelectionVisuals')
   try {
     await applyVisuals(ctx, {
       ...initializationVisualMaps,
@@ -140,14 +140,14 @@ export const selectNodeAndDownstreamDependents = async (
     // const upstreamQuery = upstreamDependentsDependenciesQuery(node.project);
     const downstreamQuery = directDownstreamQuery(node.id);
     const upstreamQuery = directUpstreamQuery(node.id);
-    // console.log("selected node:", node);
+    // console.debug("selected node:", node);
     const { nodesById, links } = await getGraphData(ctx);
     const resultHandler =
       ({ sizeMap = identity, emphasis = 1, colorMap = identity }) =>
       (data, get) => {
         // if (node !== selectedNode) return;
         get(["upstream", "downstream"]).then(({ upstream, downstream }) => {
-          // console.log("query result:", upstream, downstream);
+          // console.debug("query result:", upstream, downstream);
           const nodeId = upstream?.value || downstream?.value;
           const node = nodesById[nodeId];
           applyVisualsToNode(ctx, node, {
@@ -172,7 +172,7 @@ export const selectNodeAndDownstreamDependents = async (
             },
           }),
         ),
-        // proxy(() => {console.log('downstream query done')})
+        // proxy(() => {console.debug('downstream query done')})
       );
       applyVisualsToNode(ctx, node, {
         sizeMap: (size) => size * 2,
@@ -191,14 +191,14 @@ export const selectNodeAndDownstreamDependents = async (
             },
           }),
         ),
-        // proxy(() => {console.log('upstream query done')})
+        // proxy(() => {console.debug('upstream query done')})
       );
-      // console.log(nodePosition, "setting camera center");
+      // console.debug(nodePosition, "setting camera center");
       // zoom && setCameraCenter(ctx, nodePosition);
       // zoom && setCameraDistance(ctx, selectedZoom || 500);
     });
   } else {
-    console.log("no selection, setting disatnce to", deselectedZoom || 1500);
+    console.debug("no selection, setting disatnce to", deselectedZoom || 1500);
     // zoom && setCameraDistance(ctx, deselectedZoom || 1500);
     // zoom && setCameraCenter(ctx, [0, 0, 0], 4000);
     applyVisuals(ctx);
@@ -215,7 +215,9 @@ export const doFocus = async (ctx) => {
   if (node) {
     const nodePosition = getNodePosition(ctx, node);
     setCameraCenter(ctx, nodePosition);
-    // console.log("setting camera center", nodePosition);
+    // setCameraDistance(ctx, selectedZoom || 500);
+  } else {
+    // setCameraDistance(ctx, deselectedZoom || 1500);
   }
 };
 
@@ -265,8 +267,8 @@ export const getSelectedColor = (ctx) => {
   // const host = document.documentElement.shadowRoot?.host!;
 
   // const color = colord(getComputedStyle(host).getPropertyValue('--selected-color')).toRgb();
-  // console.log('selected color:', color)
+  // console.debug('selected color:', color)
   const color = state(ctx, "selectedColor", initSelectedColor).get();
-  // console.log("setting selected color to", color);
+  // console.debug("setting selected color to", color);
   return [color.r / 255.0, color.g / 255.0, color.b / 255.0, 1.0];
 };

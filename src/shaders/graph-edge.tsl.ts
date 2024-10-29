@@ -369,7 +369,7 @@ export const graphEdgeMaterial = (ctx) => {
     const highFrequency = edgeLength.div(4.0).mul(edgeFrequency);
     const pulseSpeed = float(20.0).div(edgeLength).mul(edgePulseSpeed);
     const pulse = clamp(
-      pow(wave(u_2D.sub(time.mul(pulseSpeed)), 1.0), edgeLength2D.div(5.0)),
+      pow(wave(u_2D.sub(time.mul(pulseSpeed)), 1.0), edgeLength2D.div(2.0)),
       0.0,
       1.0,
     );

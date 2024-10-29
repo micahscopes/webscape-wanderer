@@ -84,10 +84,10 @@ const zoomingStopped = async (ctx) => {
   const distance = (await getGlobalCameraParams(ctx)).distance;
   if (selected > -1) {
     selectedZoom = Math.min(distance, maxSelectedZoom);
-    console.log("setting selected zoom", selectedZoom);
+    console.debug("setting selected zoom", selectedZoom);
   } else {
     deselectedZoom = Math.max(distance, minUnselectedZoom);
-    console.log("setting deselected zoom", deselectedZoom);
+    console.debug("setting deselected zoom", deselectedZoom);
   }
 };
 
@@ -170,7 +170,7 @@ const collectPointerPositionInfo = curry((ctx, { x, y }) => {
     pointerPositionInfo.canvasY / deviceRatio,
   );
 
-  // console.log('collectPointerPositionInfo', x,y,
+  // console.debug('collectPointerPositionInfo', x,y,
   // "canvas", pointerPositionInfo.canvasX, pointerPositionInfo.canvasY,
   // "picker", pointerPositionInfo.pickerX, pointerPositionInfo.pickerY)
 });
@@ -182,11 +182,11 @@ export const getCurrentlyHoveringIndex = (ctx) => {
 export const getCurrentlyHoveringNode = async (ctx) => {
   const { nodes } = await getGraphData(ctx);
   const currentlyHoveringIndex = getCurrentlyHoveringIndex(ctx);
-  console.log(
-    "getCurrentlyHoveringNode",
-    currentlyHoveringIndex,
-    nodes[currentlyHoveringIndex],
-  );
+  // console.debug(
+  //   "getCurrentlyHoveringNode",
+  //   currentlyHoveringIndex,
+  //   nodes[currentlyHoveringIndex],
+  // );
   return nodes[currentlyHoveringIndex];
 };
 
@@ -209,11 +209,11 @@ export const setupSelection = moize.infinite((component) => {
     .on("mousemove", incrementDragEvents);
 
   canvas.addEventListener("pointerdown", async (ev) => {
-    console.log("pointer down");
+    console.debug("pointer down");
     const clickHandler = async ([pointerUpResult, hoverUpdateResult]) => {
-      console.log("pointer clickHandler", pointerUpResult, hoverUpdateResult);
+      console.debug("pointer clickHandler", pointerUpResult, hoverUpdateResult);
       const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
-      console.log(
+      console.debug(
         "was drag",
         wasDrag,
         cumulativeDragDistance,
@@ -225,7 +225,7 @@ export const setupSelection = moize.infinite((component) => {
         const tappedIndex = getCurrentlyHoveringIndex(ctx);
         notifyTapped(ctx, tappedIndex)
           // .then(() => {
-          //   console.log("Tapped notification completed");
+          //   console.debug("Tapped notification completed");
           // })
           .catch((error) => {
             console.error("Error in notifyTapped:", error);
@@ -236,7 +236,7 @@ export const setupSelection = moize.infinite((component) => {
         //   }),
         // );
         // setSelectedIndex(ctx, tappedIndex);
-        // console.log("selected index set to", tappedIndex);
+        // console.debug("selected index set to", tappedIndex);
 
         // getSelectedInfo(ctx).then((info) => {
         //   getComponent(ctx).dispatchEvent(
@@ -265,7 +265,7 @@ export const setupSelection = moize.infinite((component) => {
 
     Promise.all([pointerUp, getNextHoverOnUpdate(ctx)])
       .then(clickHandler)
-      .catch((e) => console.log(e));
+      .catch((e) => console.debug(e));
     setTimeout(() => {
       const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
       if (!wasDrag) {
@@ -278,12 +278,12 @@ export const setupSelection = moize.infinite((component) => {
   canvas.addEventListener("selected", (ev) => {
     //@ts-ignore
     // const node = ev.detail.info;
-    // console.log("preparing to navigate:", node, this);
+    // console.debug("preparing to navigate:", node, this);
     // component.setAttribute("focus", node?.navId);
   });
 
   canvas.addEventListener("hover", async (ev) => {
-    // console.log("got a hover!");
+    // console.debug("got a hover!");
     const { nodes } = await getGraphData(ctx);
     //@ts-ignore
     const wasHoveredIndex = ev.detail.wasHoveredIndex;
@@ -319,7 +319,7 @@ export const setupCameraInteraction = (ctx) => {
         Math.exp((ev.deltaY / canvas.clientHeight) * 2) - 1.0;
       const scrollDirection = Math.sign(scrollVector);
 
-      // console.log(scrollVector, scrollDirection, 'zooming')
+      // console.debug(scrollVector, scrollDirection, 'zooming')
       startZooming(ctx);
       zoomGlobalCamera(
         ctx,
@@ -428,7 +428,7 @@ export const checkPickerSync = (ctx) => {
 
 export const updatePickerColor = moize.infinite((ctx) => () => {
   // return;
-  // console.log("updating picker color");
+  // console.debug("updating picker color");
   // return
   const p = pickerState(ctx);
   const pickerReady = checkPickerSync(ctx);
@@ -444,7 +444,7 @@ export const updatePickerColor = moize.infinite((ctx) => () => {
     p.pickerFailures += 1;
   } else {
     p.pickerFailures = 0;
-    // console.log("reading pixel");
+    // console.debug("reading pixel");
     const { renderer } = getThreeSetup(ctx);
     const pointerPosition = getPointerPositionPicker(ctx);
 
@@ -507,11 +507,11 @@ export const updatePickerColorDebounced = (ctx) =>
 
 export const getNextHoverOnUpdate = async (ctx) => {
   // wait for the next 'hover' event
-  console.log("waiting for hover event");
+  console.debug("waiting for hover event");
   return new Promise((resolve) => {
     const canvas = getCanvasAndGLContext(ctx).canvas!;
     const listener = (ev: CustomEvent) => {
-      console.log("got hover event", ev.detail);
+      console.debug("got hover event", ev.detail);
       resolve(ev.detail);
     };
     canvas.addEventListener("hover", listener, { once: true });

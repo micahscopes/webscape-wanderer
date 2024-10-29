@@ -228,7 +228,7 @@ export const graphBufferState = moize.maxArgs(2)((ctx, graphId?) => {
       edgeIndices.set(bufferState.edges.flat());
       updateOrCreateBuffer("edgeIndices", edgeIndices, "ivec2");
 
-      // console.log("set edges", getBuffer("edgeIndices"));
+      // console.debug("set edges", getBuffer("edgeIndices"));
       updateEdgePairBuffers();
       debouncedUpdateBuffers();
     },

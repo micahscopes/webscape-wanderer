@@ -88,7 +88,7 @@ export const getCanvasAndGLContext = moize.infinite((ctx) => {
   const gl = canvas.getContext("webgl2", {
     powerPreference: "high-performance",
   });
-  if (gl) console.log("WebGL2 initialized");
+  if (gl) console.debug("WebGL2 initialized");
   else console.error("WebGL2 failed to initialize");
 
   return { canvas, gl };

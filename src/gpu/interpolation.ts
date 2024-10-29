@@ -17,11 +17,11 @@ import { graphBuffers } from "../data";
 
 export const interpolator = moize.infinite(
   (ctx, ...layers) => {
-    // console.log("executing interpolation setup for layers", layers);
+    // console.debug("executing interpolation setup for layers", layers);
     const interpolatorFn = Fn((layers) => {
       let result = float(0);
       for (const { current, target } of layers) {
-        // console.log("setting up interpolatoin for", current, target);
+        // console.debug("setting up interpolatoin for", current, target);
         let currentElement = current.element(instanceIndex);
         let targetElement = target.element(instanceIndex);
         currentElement.assign(
@@ -50,7 +50,7 @@ export const interpolator = moize.infinite(
         buffers.getEdgeCount(),
         x?.current?.uuid,
       ]);
-      // console.log("transforming key", newArgs);
+      // console.debug("transforming key", newArgs);
       // const newArgs = [buffers.getNodeCount(), buffers.getEdgeCount()];
       return newArgs;
     },

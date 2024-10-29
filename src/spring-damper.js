@@ -115,12 +115,12 @@ export default class SpringDamper {
   }
 
   animate(onUpdate) {
-    // console.log('animating...', this.target, this)
+    // console.debug('animating...', this.target, this)
     const stepDuration = 1 / 60; // 60 FPS
 
     const loop = () => {
       if (this.logging) {
-        console.log("looping spring...", this.target, this);
+        console.debug("looping spring...", this.target, this);
       }
       const interpolatedValues = this.step(stepDuration);
       onUpdate(interpolatedValues);

@@ -8,12 +8,12 @@ import {
 export default navigation;
 
 navigation.route("#-", () => {
-  console.log("navigating to nothing");
+  console.debug("navigating to nothing");
   // selectNothingAndZoomOut()
 });
 
 navigation.route("#node/:id", async (params, { trigger }) => {
-  // console.log('navigating to', params, action, 'project')
+  // console.debug('navigating to', params, action, 'project')
   // const { nodesByNavId } = await getGraphData();
   // const node = nodesByNavId[params.id];
   // selectNodeAndDownstreamDependents(node, trigger !== "init");

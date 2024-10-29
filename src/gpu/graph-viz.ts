@@ -61,7 +61,7 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "cone") => {
     }
     let scaleFactor = 1;
     heartGeometry.scale(scaleFactor, scaleFactor, scaleFactor);
-    console.log(heartGeometry);
+    console.debug(heartGeometry);
     geo = heartGeometry;
     // const positions = heartGeometry.attributes.position.array;
     // for (let i = 0; i < positions.length; i++) {
@@ -71,7 +71,7 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "cone") => {
     // heartGeometry.computeBoundingSphere();
 
     let forComparison = new TorusKnotGeometry(1, 0.3, 128, 64, 3, 5);
-    console.log(forComparison);
+    console.debug(forComparison);
     // geo = forComparison;
   } else if (shape === "brain") {
     geo = new TorusKnotGeometry(1, 0.3, 128, 64, 2, 3);
@@ -83,7 +83,7 @@ export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "cone") => {
 
   // geo = new TorusKnotGeometry(1, 0.3, 128, 64, 2, 4);
   // geo = new TorusGeometry();
-  // console.log(geo)
+  // console.debug(geo)
 
   const geometry = new InstancedBufferGeometry();
 
@@ -118,7 +118,7 @@ export const getNodeIndexArray = moize.infinite((ctx, size) => {
 });
 
 export const loadNodeVertexArray = (ctx, size) => {
-  console.log("loading node vertex array", size);
+  console.debug("loading node vertex array", size);
   const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
   // mesh.count = size;
   mesh.geometry.instanceCount = size;
