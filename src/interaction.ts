@@ -73,21 +73,22 @@ export const deviceHasMouse = moize.infinite(() => {
   return window.matchMedia("(pointer:fine)").matches;
 });
 
-export let selectedZoom: number;
-export let deselectedZoom: number;
-const maxSelectedZoom = 250;
-const minUnselectedZoom = maxSelectedZoom;
+// export let selectedZoom: number;
+// export let deselectedZoom: number;
+// const maxSelectedZoom = 250;
+// const minUnselectedZoom = maxSelectedZoom;
 
 const zoomingStopped = async (ctx) => {
+  const component = getComponent(ctx);
   stopZooming(ctx);
   const selected = getSelectedIndex(ctx);
   const distance = (await getGlobalCameraParams(ctx)).distance;
   if (selected > -1) {
-    selectedZoom = Math.min(distance, maxSelectedZoom);
-    console.debug("setting selected zoom", selectedZoom);
+    component.focusedZoom = Math.min(distance, component.zoomBoundary);
+    console.debug("setting selected zoom", component.focusedZoom);
   } else {
-    deselectedZoom = Math.max(distance, minUnselectedZoom);
-    console.debug("setting deselected zoom", deselectedZoom);
+    component.unfocusedZoom = Math.max(distance, component.zoomBoundary);
+    console.debug("setting deselected zoom", component.unfocusedZoom);
   }
 };
 

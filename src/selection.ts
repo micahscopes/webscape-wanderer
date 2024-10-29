@@ -20,8 +20,6 @@ import {
 } from "./query-helpers";
 import { proxy } from "comlink";
 import {
-  deselectedZoom,
-  selectedZoom,
   setCameraCenter,
   setCameraDistance,
   startCameraAnimation,
@@ -197,16 +195,9 @@ export const selectNodeAndDownstreamDependents = async (
             },
           }),
         ),
-        // proxy(() => {console.debug('upstream query done')})
       );
-      // console.debug(nodePosition, "setting camera center");
-      // zoom && setCameraCenter(ctx, nodePosition);
-      // zoom && setCameraDistance(ctx, selectedZoom || 500);
     });
   } else {
-    console.debug("no selection, setting disatnce to", deselectedZoom || 1500);
-    // zoom && setCameraDistance(ctx, deselectedZoom || 1500);
-    // zoom && setCameraCenter(ctx, [0, 0, 0], 4000);
     applyVisuals(ctx);
     setSelectedIndex(ctx, -1);
   }
@@ -220,10 +211,24 @@ export const doFocus = async (ctx) => {
   const node = nodesByNavId[focused];
   if (node) {
     const nodePosition = getNodePosition(ctx, node);
-    setCameraCenter(ctx, nodePosition);
-    // setCameraDistance(ctx, selectedZoom || 500);
+    setCameraCenter(ctx, nodePosition, false);
   } else {
     // setCameraDistance(ctx, deselectedZoom || 1500);
+  }
+};
+
+export const startFocus = async (ctx) => {
+  const graphData = await getGraphData(ctx);
+  const { nodesByNavId } = graphData;
+  const component = getComponent(ctx);
+  const focused = component.focus;
+  const node = nodesByNavId[focused];
+  if (node) {
+    const nodePosition = getNodePosition(ctx, node);
+    setCameraCenter(ctx, nodePosition);
+    setCameraDistance(ctx, component.focusedZoom || 500);
+  } else {
+    setCameraDistance(ctx, component.unfocusedZoom || 1500);
   }
 };
 

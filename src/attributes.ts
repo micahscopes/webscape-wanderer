@@ -17,6 +17,9 @@ export const defaultProperties = {
   selected: -1,
   defaultFogVisibility: 0.3,
   defaultFogBoundaryClipZ: 700.0,
+  focusedZoom: 100,
+  unfocusedZoom: 500,
+  zoomBoundary: 200,
 };
 
 export const getPropertyKeys = (ctx) =>

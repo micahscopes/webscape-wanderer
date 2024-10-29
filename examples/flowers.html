@@ -87,16 +87,16 @@
                 )) {
                     const graphData = randomGraphData(30, 30);
                     wanderer.graphData = graphData;
-                    setInterval(() => {
-                        addRandomNodes(2, graphData);
-                        addRandomEdges(4, graphData);
+                    setTimeout(() => {
+                        addRandomNodes(100, graphData);
+                        addRandomEdges(100, graphData);
                         wanderer.graphData = graphData;
                         console.log(
                             "changing graph data",
                             graphData.nodes.length,
                             graphData.links.length,
                         );
-                    }, 10000);
+                    }, 3000);
                 }
             });
         </script>

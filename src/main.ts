@@ -30,7 +30,7 @@ import {
 } from "./gpu/graph-viz";
 import { camelCase, kebabCase, snakeCase } from "lodash-es";
 import { getComponent, setComponent } from "./context";
-import { selectNodeAndDownstreamDependents } from "./selection";
+import { selectNodeAndDownstreamDependents, startFocus } from "./selection";
 import { startCameraAnimation } from "./camera-animation";
 
 // import "./parameters";
@@ -61,6 +61,10 @@ class WebscapeWanderer extends LitElement {
       edgePulseSpeed: { type: Number, attribute: "edge-pulse-speed" },
       edgeWaveSpeed: { type: Number, attribute: "edge-wave-speed" },
       selected: { type: String },
+      focus: { type: String, attribute: false },
+      focusedZoom: { type: Number },
+      unfocusedZoom: { type: Number },
+      zoomBoundary: { type: Number },
       defaultFogVisibility: {
         type: Number,
         attribute: "default-fog-visibility",
@@ -155,6 +159,7 @@ class WebscapeWanderer extends LitElement {
     startCameraAnimation(this.context);
 
     this.resizeObserver.observe(this);
+    startFocus(this.context);
 
     // Setup tap event listener
     this.addEventListener("tap", (event) => {
@@ -181,6 +186,8 @@ class WebscapeWanderer extends LitElement {
           const node = nodesByNavId[value];
           selectNodeAndDownstreamDependents(this.context, node, true);
         });
+      } else if (key == "focus") {
+        startFocus(this.context);
       }
     }
   }
@@ -193,6 +200,8 @@ class WebscapeWanderer extends LitElement {
           const node = nodesByNavId[value];
           selectNodeAndDownstreamDependents(this.context, node, true);
         });
+      } else if (key == "focus") {
+        startFocus(this.context);
       }
     }
   }

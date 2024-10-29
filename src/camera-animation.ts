@@ -130,20 +130,24 @@ const startCenterSpring = debounce(
   },
 );
 
-const setCameraCenter = debounce(
-  (ctx, newCenter) => {
+const setCameraCenter =
+  // debounce(
+  (ctx, newCenter, resetSpring = true) => {
     // console.debug("setCameraCenter, updating target", [...newCenter]);
     const globalCamera = getGlobalCamera(ctx);
     const centerSpringDamper = getCenterSpringDamper(ctx);
     globalCamera.params.rotationCenter = newCenter;
     centerSpringDamper.updateTarget(newCenter);
-    startCenterSpring(ctx);
-  },
-  7,
-  {
-    maxWait: 16,
-  },
-);
+    if (resetSpring) {
+      startCenterSpring(ctx);
+    }
+  };
+//   7,
+//   {
+//     maxWait: 16,
+//     // trailing: true,
+//   },
+// );
 
 // const distanceSpringDamper = new SpringDamper(globalCamera.params.distance);
 const getDistanceSpringDamper = (ctx) =>

@@ -15,7 +15,7 @@ import {
 import { getNodeVisualizerMesh, getThreeSetup } from "./graph-viz";
 import { graphBuffers } from "../data";
 
-export const interpolator = moize.infinite(
+export const interpolator = moize(
   (ctx, ...layers) => {
     // console.debug("executing interpolation setup for layers", layers);
     const interpolatorFn = Fn((layers) => {
@@ -40,6 +40,7 @@ export const interpolator = moize.infinite(
     return interpolatorFn(layers).compute(size);
   },
   {
+    maxSize: 50,
     transformArgs: ([ctx, ...layers]) => {
       // args.map((layer) => layer.target.value.count);
       let newArgs = layers;
@@ -54,13 +55,17 @@ export const interpolator = moize.infinite(
       // const newArgs = [buffers.getNodeCount(), buffers.getEdgeCount()];
       return newArgs;
     },
+    dispose: () => {
+      const { renderer } = getThreeSetup(ctx);
+      renderer.dispose();
+    },
   },
 );
 
 export const interpolate = (ctx, layers) => {
   const { renderer } = getThreeSetup(ctx);
   const interp = interpolator(ctx, ...layers);
-  interp.needsUpdate = true;
+  // interp.needsUpdate = true;
   const { edgeVisualizerMesh, nodeVisualizerMesh, nodePickerMesh } =
     getThreeSetup(ctx);
 

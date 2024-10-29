@@ -37,14 +37,14 @@ import { OBJLoader } from "../../lib/OBJLoader";
 import heartUrl from "../../data/heart.obj";
 import dandelionUrl from "../../data/dandelion3.obj";
 
-export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "cone") => {
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "sphere") => {
   let geo;
   if (shape == "sphere") {
     geo = new SphereGeometry(1, 32, 32);
   } else if (shape == "cone") {
     geo = new ConeGeometry(1, 2, 128);
   } else if (shape == "icosohedron") {
-    geo = new IcosahedronGeometry(1, 0);
+    geo = new IcosahedronGeometry(1.5, 0);
   } else if (shape === "box") {
     geo = new BoxGeometry(1, 1, 1);
   } else if (shape === "heart") {
