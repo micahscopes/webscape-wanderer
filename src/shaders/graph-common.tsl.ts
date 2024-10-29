@@ -22,7 +22,7 @@ import { getUniforms } from "../gpu/uniforms";
 import { bump } from "./bump.tsl";
 // import { getNodeVisualizerUniforms } from "../gpu/graph-viz";
 
-export const scaleAdjustment = float(0.1);
+export const scaleAdjustment = float(0.15);
 /**
  * Computes the geometry bundle for a node.
  *

@@ -37,7 +37,7 @@ import { OBJLoader } from "../../lib/OBJLoader";
 import heartUrl from "../../data/heart.obj";
 import dandelionUrl from "../../data/dandelion3.obj";
 
-export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "sphere") => {
+export const getNodeVisualizerMesh = moize.infinite((ctx, shape = "cone") => {
   let geo;
   if (shape == "sphere") {
     geo = new SphereGeometry(1, 32, 32);

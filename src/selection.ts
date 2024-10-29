@@ -167,7 +167,7 @@ export const selectNodeAndDownstreamDependents = async (
         downstreamQuery,
         proxy(
           resultHandler({
-            sizeMap: (size) => size * 1.5,
+            // sizeMap: (size) => size * 1.25,
             colorMap: (color) => {
               const c = { r: color[0], g: color[1], b: color[2], a: color[3] };
               const green = { r: 57 / 255, g: 179 / 255, b: 83 / 255, a: 0.8 };
@@ -179,14 +179,14 @@ export const selectNodeAndDownstreamDependents = async (
         // proxy(() => {console.debug('downstream query done')})
       );
       applyVisualsToNode(ctx, node, {
-        sizeMap: (size) => size * 2,
+        sizeMap: (size) => size * 1.5,
         emphasis: 1,
       });
       graphDb(ctx).doQuery(
         upstreamQuery,
         proxy(
           resultHandler({
-            sizeMap: (size) => size * 1.5,
+            // sizeMap: (size) => size * 1,
             colorMap: (color) => {
               const c = { r: color[0], g: color[1], b: color[2], a: color[3] };
               const blue = { r: 0, g: 102 / 255, b: 209 / 255, a: 0.8 };
