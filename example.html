@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Webscape Wanderer Example</title>
+        <style>
+            :root {
+                --selected-color: lightcoral;
+            }
+            body {
+                display: flex;
+                margin: 0;
+                padding: 0;
+                background-color: rgb(27, 27, 27);
+                /* background-color: rgb(1,1,1); */
+                color: white;
+                font-family: sans-serif;
+                /* overflow: hidden; */
+            }
+            webscape-wanderer {
+                max-width: 99vw;
+                max-height: 99vh;
+            }
+        </style>
+    </head>
+    <body>
+        <webscape-wanderer
+            edge-scale="1"
+            focus="node-2"
+            selected="node-2"
+        ></webscape-wanderer>
+        <script type="module">
+            import {
+                randomGraphData,
+                addRandomNodes,
+                addRandomEdges,
+                startWebscapeWanderer,
+            } from "/dist/webscape-wanderer.js";
+            window.addEventListener("DOMContentLoaded", () => {
+                startWebscapeWanderer();
+
+                for (let wanderer of document.querySelectorAll(
+                    "webscape-wanderer",
+                )) {
+                    const graphData = randomGraphData(30, 30);
+                    wanderer.graphData = graphData;
+                    setTimeout(() => {
+                        addRandomNodes(100, graphData);
+                        addRandomEdges(100, graphData);
+                        wanderer.graphData = graphData;
+                        console.log(
+                            "changing graph data",
+                            graphData.nodes.length,
+                            graphData.links.length,
+                        );
+                    }, 3000);
+                }
+            });
+        </script>
+    </body>
+</html>
