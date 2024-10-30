@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Webscape Wanderer Example</title>
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                /* margin: 10vw; */
+                padding: 0;
+                margin: 0;
+                background-color: darkslateblue;
+                color: white;
+                /* overflow: hidden; */
+            }
+            webscape-wanderer {
+                margin: 9vw;
+                border: solid white 1px;
+                max-width: 79vw;
+                max-height: 99vh;
+                --selected-color: lightcoral;
+            }
+        </style>
+      <script type="module" crossorigin src="/webscape-wanderer/assets/various-553da46e.js"></script>
+    </head>
+    <body>
+        
+
+        <webscape-wanderer
+            id="small-random"
+            edge-scale="3"
+            node-shape="sphere"
+        ></webscape-wanderer>
+
+        
+
+        <webscape-wanderer
+            id="large-dynamic"
+            edge-scale="1"
+            focus="node-2"
+            selected="node-2"
+            node-shape="box"
+        ></webscape-wanderer>
+
+        
+
+        <webscape-wanderer
+            id="focus-selection-decoupled"
+            edge-scale="1"
+            selected="node-1"
+            node-shape="cone"
+        ></webscape-wanderer>
+
+        
+
+        <webscape-wanderer
+            style="--selected-color: crimson"
+            id="heart-shaped"
+            edge-scale="5"
+            edge-frequency="1.5"
+            node-scale="0.5"
+            node-shape="../data/heart.obj"
+        ></webscape-wanderer>
+
+        
+    </body>
+</html>
