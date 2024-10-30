@@ -127,42 +127,44 @@ export const initializeRenderer = (ctx) => {
 
 // no need to get the picker pixel every frame
 export const animateGraph = (ctx) => {
-  updateUniforms(ctx);
+  if (state(ctx, "visible").get()) {
+    updateUniforms(ctx);
 
-  updateNodePositionTargets(ctx);
-  getSelectedNode(ctx).then((node) => {
-    selectedCursor(ctx).highlightNode(node);
-  });
-
-  deviceHasMouse() &&
-    getCurrentlyHoveringNode(ctx).then((node) => {
-      hoveredTooltip(ctx).highlightNode(node);
-      hoveredCursor(ctx).highlightNode(node);
+    updateNodePositionTargets(ctx);
+    getSelectedNode(ctx).then((node) => {
+      selectedCursor(ctx).highlightNode(node);
     });
 
-  const { width, height } = getWidthAndHeight(ctx);
-  updateCameras(ctx, cameraUniformsGroupUpdater(ctx), width, height);
+    deviceHasMouse() &&
+      getCurrentlyHoveringNode(ctx).then((node) => {
+        hoveredTooltip(ctx).highlightNode(node);
+        hoveredCursor(ctx).highlightNode(node);
+      });
 
-  const { gl } = getCanvasAndGLContext(ctx);
+    const { width, height } = getWidthAndHeight(ctx);
+    updateCameras(ctx, cameraUniformsGroupUpdater(ctx), width, height);
 
-  const {
-    renderer,
-    scene,
-    camera,
-    nodeVisualizerMesh,
-    nodePickerMesh,
-    edgeVisualizerMesh,
-  } = getThreeSetup(ctx);
+    const { gl } = getCanvasAndGLContext(ctx);
 
-  doFocus(ctx);
-  doInterpolation(ctx);
+    const {
+      renderer,
+      scene,
+      camera,
+      nodeVisualizerMesh,
+      nodePickerMesh,
+      edgeVisualizerMesh,
+    } = getThreeSetup(ctx);
 
-  renderer.setRenderTarget(null);
-  renderer.render(scene, camera);
+    doFocus(ctx);
+    doInterpolation(ctx);
 
-  renderer.setRenderTarget(getPickerRenderTarget(ctx));
-  renderer.render(nodePickerMesh, camera);
+    renderer.setRenderTarget(null);
+    renderer.render(scene, camera);
 
-  if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
+    renderer.setRenderTarget(getPickerRenderTarget(ctx));
+    renderer.render(nodePickerMesh, camera);
+
+    if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
+  }
   requestAnimationFrame(() => animateGraph(ctx));
 };

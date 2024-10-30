@@ -22,6 +22,7 @@ import { getComponent, setComponent } from "./context";
 import { selectNodeAndDownstreamDependents, startFocus } from "./selection";
 import { startCameraAnimation } from "./camera-animation";
 import { OBJLoader } from "../lib/OBJLoader";
+import { state } from "./state";
 
 // import "./parameters";
 
@@ -93,6 +94,25 @@ class WebscapeWanderer extends LitElement {
       getWidthAndHeight.clear(this.context);
       fillCanvasToWindow(this.context);
     });
+
+    this.intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        const { set, get } = state(this.context, "visible");
+        if (entry.isIntersecting) {
+          set(true);
+        } else {
+          set(false);
+        }
+
+        console.log("Intersection observer", get());
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.3,
+      },
+    );
 
     // Default onTap handler
     this.onTapHandler = (evt) => {
@@ -167,6 +187,7 @@ class WebscapeWanderer extends LitElement {
     startCameraAnimation(this.context);
 
     this.resizeObserver.observe(this);
+    this.intersectionObserver.observe(this);
     // startFocus(this.context);
 
     // Setup tap event listener
@@ -177,8 +198,13 @@ class WebscapeWanderer extends LitElement {
     });
   }
 
+  get visible() {
+    return state(this.context, "visible").get() && this.isVisible();
+  }
+
   disconnectedCallback() {
     this.resizeObserver.unobserve(this);
+    this.intersectionObserver.unobserve(this);
     // console.debug("Custom element removed from page.");
   }
 
