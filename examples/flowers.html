@@ -3,83 +3,39 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Webscape Wanderer</title>
+        <title>Webscape Wanderer Example</title>
         <style>
-            :root {
-                /* --selected-color: lightcoral; */
-                --selected-color: rgb(204, 135, 187);
-            }
-
             body {
                 display: flex;
-                margin: 0;
+                flex-direction: column;
+                /* margin: 10vw; */
                 padding: 0;
-                background-color: rgb(27, 27, 27);
-                /* background-color: rgb(1,1,1); */
+                margin: 0;
+                background-color: darkslateblue;
                 color: white;
-                font-family: sans-serif;
                 /* overflow: hidden; */
             }
-            .overlay {
-                z-index: 2;
-                position: absolute;
-                margin: 1em;
-            }
-            html,
-            canvas {
-                scroll-behavior: smooth;
-            }
-            #selection-info {
-                bottom: 0;
-                left: 0;
-                margin: 0.5em;
-                max-width: min(100vw, 90ch);
-            }
-            a,
-            a:visited {
-                color: var(--selected-color);
-            }
             webscape-wanderer {
-                width: 99vw;
-                padding: 0;
-                margin: 0;
-                max-width: 99vw;
+                margin: 9vw;
+                border: solid white 1px;
+                max-width: 79vw;
                 max-height: 99vh;
-            }
-        </style>
-        <style>
-            #loading-indicator {
-                /* display: none; */
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                text-align: center;
-                transform: translate(-50%, -50%);
-                z-index: 100;
-                pointer-events: none;
-
-                opacity: 0;
-                transition: opacity 500ms ease-in-out;
-            }
-            html.loading #loading-indicator {
-                /* display: block; */
-                opacity: 1;
+                --selected-color: lightcoral;
             }
         </style>
     </head>
     <body>
-        <div id="loading-indicator">
-            <h1>Loading...</h1>
-        </div>
-        <script type="module" src="/src/main.ts"></script>
+        <webscape-wanderer edge-scale="2"></webscape-wanderer>
         <script type="module">
+            import shapeUrl from "../data/dandelion3.obj";
             import {
                 randomGraphData,
                 addRandomNodes,
                 addRandomEdges,
                 startWebscapeWanderer,
-            } from "/src/main.ts";
+            } from "webscape-wanderer";
             window.addEventListener("DOMContentLoaded", () => {
+                // boot up the web component for all webscape-wanderer elements
                 startWebscapeWanderer();
 
                 for (let wanderer of document.querySelectorAll(
@@ -87,6 +43,7 @@
                 )) {
                     const graphData = randomGraphData(30, 30);
                     wanderer.graphData = graphData;
+                    wanderer.nodeShape = shapeUrl;
                     setTimeout(() => {
                         addRandomNodes(100, graphData);
                         addRandomEdges(100, graphData);
@@ -100,13 +57,5 @@
                 }
             });
         </script>
-        <div id="selection-info" class="overlay"></div>
-        <div id="controls"></div>
-        <webscape-wanderer
-            edge-scale="1"
-            node-scale="1"
-            focus="node-2"
-            selected="node-2"
-        ></webscape-wanderer>
     </body>
 </html>

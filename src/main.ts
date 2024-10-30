@@ -10,28 +10,18 @@ import { setupCameraInteraction, setupSelection } from "./interaction";
 import navigation from "./navigation";
 import { LitElement, PropertyValues } from "lit-element";
 
-import {
-  defaultProperties,
-  defaultProperties,
-  defaultProperties,
-  getProperties,
-} from "./attributes";
+import { defaultProperties } from "./attributes";
 
 import {
-  // getEdgeIndexBuffer,
-  getEdgeVisualizerMesh,
-  // getNodeIndexArray,
   getNodeVisualizerMesh,
+  getShapeGeo,
   getThreeSetup,
-  // initializeEdgeVisualizerUniforms,
-  // initializeNodeVisualizerUniforms,
-  // loadEdgeVertexArray,
-  // loadNodeVertexArray,
+  resetNodeGeometry,
 } from "./gpu/graph-viz";
-import { camelCase, kebabCase, snakeCase } from "lodash-es";
 import { getComponent, setComponent } from "./context";
 import { selectNodeAndDownstreamDependents, startFocus } from "./selection";
 import { startCameraAnimation } from "./camera-animation";
+import { OBJLoader } from "../lib/OBJLoader";
 
 // import "./parameters";
 
@@ -40,6 +30,7 @@ export {
   addRandomNodes,
   addRandomEdges,
   makeNavId,
+  dataFromGraph,
 } from "./data";
 
 class WebscapeWanderer extends LitElement {
@@ -73,6 +64,16 @@ class WebscapeWanderer extends LitElement {
         type: Number,
         attribute: "default-fog-boundary-clip-z",
       },
+      nodeShape: {
+        type: String,
+        attribute: "node-shape",
+      },
+      nodeGeometryBuffer: {
+        attribute: false,
+      },
+      graphData: {
+        attribute: false,
+      },
     };
   }
 
@@ -100,13 +101,13 @@ class WebscapeWanderer extends LitElement {
     };
   }
 
-  set graphData(data) {
-    setGraphData(this.context, data);
-  }
+  // set graphData(data) {
+  //   setGraphData(this.context, data);
+  // }
 
-  get graphData() {
-    return getGraphData(this.context);
-  }
+  // get graphData() {
+  //   return getGraphData(this.context);
+  // }
 
   onTap(handler: (event: CustomEvent) => void) {
     this.onTapHandler = handler;
@@ -122,9 +123,14 @@ class WebscapeWanderer extends LitElement {
     style.textContent = `
       :host {
         display: block;
-        min-width: 100%;
-        min-height: 99vh;
-        max-height: 100vh;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      canvas {
+        max-width: 100%;
+        max-height: fit-content;
+        display: block;
       }
     `;
     shadow.appendChild(style);
@@ -143,6 +149,8 @@ class WebscapeWanderer extends LitElement {
     setupSelection(this);
     console.debug("Selection setup complete");
 
+    // setNodeGeometry(ctx, "icosohedron");
+
     document.querySelector("html")?.classList.add("loading");
     console.debug("Added loading class to HTML");
 
@@ -159,7 +167,7 @@ class WebscapeWanderer extends LitElement {
     startCameraAnimation(this.context);
 
     this.resizeObserver.observe(this);
-    startFocus(this.context);
+    // startFocus(this.context);
 
     // Setup tap event listener
     this.addEventListener("tap", (event) => {
@@ -178,32 +186,51 @@ class WebscapeWanderer extends LitElement {
     // console.debug("Custom element moved to new page.");
   }
 
-  protected firstUpdated(changedProperties: PropertyValues): void {
-    for (const [key, oldvalue] of changedProperties) {
-      if (key == "selected") {
-        const value = this[key];
-        getGraphData(this.context).then(({ nodesByNavId }) => {
-          const node = nodesByNavId[value];
-          selectNodeAndDownstreamDependents(this.context, node, true);
-        });
-      } else if (key == "focus") {
-        startFocus(this.context);
+  private updateCommon(changedProperties: PropertyValues) {
+    for (const [key, oldValue] of changedProperties) {
+      const value = this[key];
+      switch (key) {
+        case "graphData":
+          setGraphData(this.context, value);
+          startFocus(this.context);
+          break;
+        case "selected":
+          getGraphData(this.context).then(({ nodesByNavId }) => {
+            const node = nodesByNavId[value];
+            selectNodeAndDownstreamDependents(this.context, node, true);
+          });
+          break;
+        case "focus":
+          startFocus(this.context);
+          break;
+        case "nodeShape":
+          let geoBuffer = getShapeGeo(this.nodeShape);
+          if (geoBuffer) {
+            this._nodeGeometryBuffer = geoBuffer;
+            resetNodeGeometry(this.context);
+          } else {
+            try {
+              const loader = new OBJLoader();
+              loader.load(this.nodeShape, (geometry) => {
+                this._nodeGeometryBuffer = geometry?.children[0]?.geometry;
+                resetNodeGeometry(this.context);
+              });
+            } catch (e) {
+              console.warn("Failed to load node shape as an obj url", e);
+            }
+          }
+          break;
       }
     }
   }
 
+  protected firstUpdated(changedProperties: PropertyValues): void {
+    this.updateCommon(changedProperties);
+    // startFocus(this.context);
+  }
+
   protected updated(changedProperties: PropertyValues): void {
-    for (const [key, oldvalue] of changedProperties) {
-      if (key == "selected") {
-        const value = this[key];
-        getGraphData(this.context).then(({ nodesByNavId }) => {
-          const node = nodesByNavId[value];
-          selectNodeAndDownstreamDependents(this.context, node, true);
-        });
-      } else if (key == "focus") {
-        startFocus(this.context);
-      }
-    }
+    this.updateCommon(changedProperties);
   }
 
   private getNodeFromEvent(event: MouseEvent): any {

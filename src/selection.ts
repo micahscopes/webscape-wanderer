@@ -213,7 +213,6 @@ export const doFocus = async (ctx) => {
     const nodePosition = getNodePosition(ctx, node);
     setCameraCenter(ctx, nodePosition, false);
   } else {
-    // setCameraDistance(ctx, deselectedZoom || 1500);
   }
 };
 
@@ -225,7 +224,7 @@ export const startFocus = async (ctx) => {
   const node = nodesByNavId[focused];
   if (node) {
     const nodePosition = getNodePosition(ctx, node);
-    setCameraCenter(ctx, nodePosition);
+    setCameraCenter(ctx, nodePosition, true);
     setCameraDistance(ctx, component.focusedZoom || 500);
   } else {
     setCameraDistance(ctx, component.unfocusedZoom || 1500);
@@ -274,12 +273,9 @@ export const setSelectedColor = (ctx, color) => {
 };
 
 export const getSelectedColor = (ctx) => {
-  // get the link color from the document style :root `--selected-color` variable
-  // const host = document.documentElement.shadowRoot?.host!;
-
-  // const color = colord(getComputedStyle(host).getPropertyValue('--selected-color')).toRgb();
-  // console.debug('selected color:', color)
-  const color = state(ctx, "selectedColor", initSelectedColor).get();
-  // console.debug("setting selected color to", color);
+  const component = getComponent(ctx);
+  const color = colord(
+    getComputedStyle(component).getPropertyValue("--selected-color"),
+  ).toRgb();
   return [color.r / 255.0, color.g / 255.0, color.b / 255.0, 1.0];
 };

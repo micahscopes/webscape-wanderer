@@ -69,9 +69,9 @@ export {
   startCameraAnimation,
 };
 
-export const deviceHasMouse = moize.infinite(() => {
+export const deviceHasMouse = () => {
   return window.matchMedia("(pointer:fine)").matches;
-});
+};
 
 // export let selectedZoom: number;
 // export let deselectedZoom: number;
@@ -264,13 +264,18 @@ export const setupSelection = moize.infinite((component) => {
     countLastDragEvents = 0;
     cumulativeDragDistance = 0;
 
-    Promise.all([pointerUp, getNextHoverOnUpdate(ctx)])
+    const waitForClick = [pointerUp, getNextHoverOnUpdate(ctx)];
+    // if (deviceHasMouse()) {
+    //   waitForClick.push(getNextHoverOnUpdate(ctx));
+    // }
+
+    Promise.all(waitForClick)
       .then(clickHandler)
       .catch((e) => console.debug(e));
     setTimeout(() => {
       const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
       if (!wasDrag) {
-        updatePickerColor(ctx);
+        updatePickerColor(ctx)();
       }
     }, 2); // ugh.... but at least it works.
     collectPointerPositionInfo(ctx, normalizedEventCoordinates(ctx, ev));
@@ -507,7 +512,6 @@ export const updatePickerColorDebounced = (ctx) =>
   debounce(updatePickerColor(ctx), 300);
 
 export const getNextHoverOnUpdate = async (ctx) => {
-  // wait for the next 'hover' event
   console.debug("waiting for hover event");
   return new Promise((resolve) => {
     const canvas = getCanvasAndGLContext(ctx).canvas!;

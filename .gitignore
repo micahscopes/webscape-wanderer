@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 notes
 dist
+gh-pages
 dist-ssr
 *.local
 

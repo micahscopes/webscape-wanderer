@@ -18,8 +18,9 @@ export const defaultProperties = {
   defaultFogVisibility: 0.3,
   defaultFogBoundaryClipZ: 700.0,
   focusedZoom: 100,
-  unfocusedZoom: 500,
-  zoomBoundary: 200,
+  unfocusedZoom: 300,
+  zoomBoundary: 150,
+  nodeShape: "box",
 };
 
 export const getPropertyKeys = (ctx) =>

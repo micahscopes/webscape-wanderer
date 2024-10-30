@@ -93,6 +93,7 @@ export default defineConfig(({ mode }) => {
           __dirname,
           "node_modules/three/examples/jsm/loaders/OBJLoader.js",
         ),
+        "webscape-wanderer": path.resolve(__dirname, "src/main.ts"),
       },
     },
     build: {

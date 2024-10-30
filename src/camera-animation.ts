@@ -114,20 +114,20 @@ const centerUpdate = curry((ctx, newCenter) => {
   // zoomedOrthographicCamera.params.center = newCenter;
 });
 
-const startCenterSpring = debounce(
-  (ctx) => {
-    // console.debug("starting center spring for", ctx);
-    // centerSpringDamper.updateTarget(globalCamera.params.center)
-    const globalCamera = getGlobalCamera(ctx);
-    const centerSpringDamper = getCenterSpringDamper(ctx);
-    centerSpringDamper.updateInitialValues(globalCamera.params.center);
-    centerSpringDamper.animate(centerUpdate(ctx));
-  },
-  2,
-  {
-    maxWait: 2,
-    trailing: true,
-  },
+const startCenterSpring = moize.infinite((ctx) =>
+  debounce(
+    () => {
+      const globalCamera = getGlobalCamera(ctx);
+      const centerSpringDamper = getCenterSpringDamper(ctx);
+      centerSpringDamper.updateInitialValues(globalCamera.params.center);
+      centerSpringDamper.animate(centerUpdate(ctx));
+    },
+    2,
+    {
+      maxWait: 2,
+      trailing: true,
+    },
+  ),
 );
 
 const setCameraCenter =
@@ -139,7 +139,7 @@ const setCameraCenter =
     globalCamera.params.rotationCenter = newCenter;
     centerSpringDamper.updateTarget(newCenter);
     if (resetSpring) {
-      startCenterSpring(ctx);
+      startCenterSpring(ctx)();
     }
   };
 //   7,
@@ -164,19 +164,21 @@ const distanceUpdate = (ctx) => (newDistance) => {
   // zoomedOrthographicCamera.params.distance = newDistance;
 };
 
-const startDistanceSpring = debounce(
-  (ctx) => {
-    const globalCamera = getGlobalCamera(ctx);
-    const distanceSpringDamper = getDistanceSpringDamper(ctx);
-    distanceSpringDamper.updateTarget(globalCamera.params.distance);
-    distanceSpringDamper.updateInitialValues(globalCamera.params.distance);
-    distanceSpringDamper.animate(distanceUpdate(ctx));
-  },
-  100,
-  {
-    // maxWait: 16,
-    leading: true,
-  },
+const startDistanceSpring = moize.infinite((ctx) =>
+  debounce(
+    () => {
+      const globalCamera = getGlobalCamera(ctx);
+      const distanceSpringDamper = getDistanceSpringDamper(ctx);
+      distanceSpringDamper.updateTarget(globalCamera.params.distance);
+      distanceSpringDamper.updateInitialValues(globalCamera.params.distance);
+      distanceSpringDamper.animate(distanceUpdate(ctx));
+    },
+    100,
+    {
+      // maxWait: 16,
+      leading: true,
+    },
+  ),
 );
 
 const setCameraDistance = (ctx, distance, duration = 5000) => {
@@ -186,8 +188,8 @@ const setCameraDistance = (ctx, distance, duration = 5000) => {
 };
 
 const startCameraAnimation = (ctx) => {
-  startCenterSpring(ctx);
-  startDistanceSpring(ctx);
+  startCenterSpring(ctx)();
+  startDistanceSpring(ctx)();
 };
 
 // let panning = false;
@@ -224,7 +226,7 @@ const startZooming = (ctx) => {
 const stopZooming = (ctx) => {
   const cameraAnimationState = getCameraAnimationState(ctx);
   cameraAnimationState.zooming = false;
-  startDistanceSpring(ctx);
+  startDistanceSpring(ctx)();
 };
 
 const zoomGlobalCamera = (ctx, x, y, delta) => {

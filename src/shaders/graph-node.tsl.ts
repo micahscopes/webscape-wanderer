@@ -69,7 +69,7 @@ export const graphNodeMaterials = (ctx) => {
 
   const colorsInitial = buffers.getNodeProperties("colorInitial");
   const colorsTarget = buffers.getNodeProperties("colorTarget");
-  const colorCurrent = colorsInitial
+  const colorCurrent = colorsTarget
     .element(id)
     .sub(colorsTarget.element(id).mul(0));
 

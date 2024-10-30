@@ -20,6 +20,7 @@ import {
   getNodeDepthRenderTarget,
   getPickerRenderTarget,
   getThreeSetup,
+  resetNodeGeometry,
 } from "./graph-viz";
 import { graphBuffers, updateNodePositionTargets } from "../data";
 import { state } from "../state";
@@ -102,8 +103,9 @@ export const fillCanvasToWindow = (ctx) => {
 
   renderer.setSize(clientWidth, clientHeight);
   camera.aspect = clientWidth / clientHeight;
-  getPickerRenderTarget(ctx).setSize(clientWidth, clientHeight);
-  getNodeDepthRenderTarget(ctx).setSize(width, height);
+  const pickerTarget = getPickerRenderTarget(ctx);
+  pickerTarget.setSize(clientWidth, clientHeight);
+  getNodeDepthRenderTarget(ctx).setSize(clientWidth, clientHeight);
   globalCamera(ctx).resize(width / height);
 };
 
@@ -126,8 +128,6 @@ export const initializeRenderer = (ctx) => {
 // no need to get the picker pixel every frame
 export const animateGraph = (ctx) => {
   updateUniforms(ctx);
-
-  // getWidthAndHeight.remove(ctx);
 
   updateNodePositionTargets(ctx);
   getSelectedNode(ctx).then((node) => {
@@ -165,5 +165,4 @@ export const animateGraph = (ctx) => {
 
   if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
   requestAnimationFrame(() => animateGraph(ctx));
-  // const buffers = graphBuffers(ctx);
 };
