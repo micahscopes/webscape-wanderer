@@ -2450,7 +2450,7 @@ const da = (t) => {
   c.getNodeProperties("colorInitial");
   const d = c.getNodeProperties("colorTarget");
   d.element(e).sub(d.element(e).mul(0));
-  const y = c.getNodeProperties("sizeInitial"), p = c.getNodeProperties("sizeTarget"), b = y.element(e).sub(p.element(e).mul(0)), m = c.getNodeProperties("emphasisInitial"), h = c.getNodeProperties("emphasisTarget"), g = m.element(e).sub(h.element(e).mul(0)), x = o.greaterThan(-1).not().select(ge(g), g), w = c.getNodeProperties("colorTarget"), C = e.equal(o), S = b.mul(Jr).mul(j(0.5, 1, g)), G = tn(S, 0.05), ee = ts(t, {
+  const y = c.getNodeProperties("sizeInitial"), p = c.getNodeProperties("sizeTarget"), b = y.element(e).sub(p.element(e).mul(0)), m = c.getNodeProperties("emphasisInitial"), h = c.getNodeProperties("emphasisTarget"), g = m.element(e).sub(h.element(e).mul(0)), x = o.greaterThan(-1).not().select(ge(g), g), w = c.getNodeProperties("colorTarget"), C = e.equal(o), S = b.mul(Jr).mul(j(0.5, 1, g)), G = tn(S.mul(1.2), 0.05), ee = ts(t, {
     nodePosition: v,
     scale: S
     // scale: float(1),

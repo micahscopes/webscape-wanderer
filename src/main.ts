@@ -16,7 +16,7 @@ import {
   getNodeVisualizerMesh,
   getShapeGeo,
   getThreeSetup,
-  resetNodeGeometry,
+  initializeNodeGeometry,
 } from "./gpu/graph-viz";
 import { getComponent, setComponent } from "./context";
 import { selectNodeAndDownstreamDependents, startFocus } from "./selection";
@@ -169,7 +169,7 @@ class WebscapeWanderer extends LitElement {
     setupSelection(this);
     console.debug("Selection setup complete");
 
-    // setNodeGeometry(ctx, "icosohedron");
+    // setNodeGeometry(ctx, "icosahedron");
 
     document.querySelector("html")?.classList.add("loading");
     console.debug("Added loading class to HTML");
@@ -233,13 +233,13 @@ class WebscapeWanderer extends LitElement {
           let geoBuffer = getShapeGeo(this.nodeShape);
           if (geoBuffer) {
             this._nodeGeometryBuffer = geoBuffer;
-            resetNodeGeometry(this.context);
+            initializeNodeGeometry.delete(this.context);
           } else {
             try {
               const loader = new OBJLoader();
               loader.load(this.nodeShape, (geometry) => {
                 this._nodeGeometryBuffer = geometry?.children[0]?.geometry;
-                resetNodeGeometry(this.context);
+                initializeNodeGeometry.delete(this.context);
               });
             } catch (e) {
               console.warn("Failed to load node shape as an obj url", e);

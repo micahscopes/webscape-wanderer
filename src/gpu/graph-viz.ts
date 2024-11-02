@@ -82,7 +82,7 @@ export const getShapeGeo = (shape) => {
       geo = new SphereGeometry(1, 32, 32);
     } else if (shape == "cone") {
       geo = new ConeGeometry(1, 2, 128);
-    } else if (shape == "icosohedron") {
+    } else if (shape == "icosahedron") {
       geo = new IcosahedronGeometry(1.5, 0);
     } else if (shape === "box") {
       geo = new BoxGeometry(1, 1, 1);
@@ -90,6 +90,7 @@ export const getShapeGeo = (shape) => {
       geo = new TorusKnotGeometry(1, 0.3, 128, 64, 2, 3);
     }
     geo.computeVertexNormals();
+    geo.computeBoundingSphere();
     return geo;
   } catch (error) {
     console.warn("Error setting node geometry:", error);
@@ -132,25 +133,65 @@ export const loadEdgeVertexArray = (ctx, size) => {
   edgeVisualizerMesh.geometry.instanceCount = size;
 };
 
-export const resetNodeGeometry = async (ctx) => {
+const getBiggestPickerMesh = (
+  nodeMeshes: Set<Mesh>,
+): IcosahedronGeometry | undefined => {
+  const largestRadius = Array.from(nodeMeshes).reduce((maxRadius, mesh) => {
+    const boundingSphere = mesh.geometry.boundingSphere;
+    if (boundingSphere && boundingSphere.radius > maxRadius) {
+      return boundingSphere.radius;
+    }
+    return maxRadius;
+  }, 0);
+
+  if (largestRadius > 0) {
+    return new IcosahedronGeometry(largestRadius, 0);
+  }
+};
+
+export const initializeNodeGeometry = memoize(async (ctx) => {
+  // node update
   const { nodes } = await getGraphData(ctx);
-  const { scene } = getThreeSetup(ctx);
+  const { scene, pickerScene, renderer, camera } = getThreeSetup(ctx);
+  const { graphNodeMaterial, graphNodePickerMaterial } =
+    graphNodeMaterials(ctx);
 
   // Get existing node mesh and remove it
   // TODO: manage multiple layers
-  const existingMesh = scene.nodeMeshes.values().next().value;
-  if (existingMesh) {
-    scene.nodeMeshes.delete(existingMesh);
-    scene.remove(existingMesh);
-  }
   const geo = getComponent(ctx)._nodeGeometryBuffer || getShapeGeo("box");
-  const mesh = getNodeMesh(geo, graphNodeMaterials(ctx).graphNodeMaterial);
+  const mesh = getNodeMesh(geo, graphNodeMaterial);
   updateNodeMeshVertexArray(nodes.length, mesh);
   mesh.material.needsUpdate = true;
-  scene.add(mesh);
+  const previousMeshes = Array.from(scene.nodeMeshes);
+  await renderer.compileAsync(scene, camera, mesh);
   scene.nodeMeshes.add(mesh);
-  scene.compile();
-};
+  scene.add(mesh);
+  previousMeshes.forEach((prevMesh) => {
+    scene.remove(prevMesh);
+    scene.nodeMeshes.delete(prevMesh);
+  });
+
+  // picker update
+  while (pickerScene.children.length > 0) {
+    pickerScene.remove(pickerScene.children[0]);
+  }
+  mesh.geometry.computeBoundingSphere();
+  const pickerGeo = new IcosahedronGeometry(
+    mesh.geometry.boundingSphere.radius,
+    1,
+  );
+  const pickerMesh = new Mesh(
+    new InstancedBufferGeometry(),
+    graphNodePickerMaterial,
+  );
+  setNodeGeometry(pickerGeo, pickerMesh);
+  pickerMesh.material.needsUpdate = true;
+  updateNodeMeshVertexArray(nodes.length, pickerMesh);
+  await renderer.compileAsync(pickerMesh, camera);
+  await pickerScene.add(pickerMesh);
+
+  // graphPickerMaterial.compile();
+});
 
 import { graphNodeMaterials } from "../shaders/graph-node.tsl";
 import { graphEdgeMaterial } from "../shaders/graph-edge.tsl";
@@ -235,6 +276,10 @@ export const getThreeSetup = memoize(
     // },
   },
 );
+
+export const refreshNodeGeometry = (ctx) => {
+  initializeNodeGeometry.delete(ctx);
+};
 
 export const getPickerRenderTarget = moize.infinite((ctx) => {
   const { canvas } = getCanvasAndGLContext(ctx);

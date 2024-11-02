@@ -63,14 +63,14 @@ export const interpolator = fastMemoize(
   },
 );
 
-export const interpolate = (ctx, layers) => {
+export const interpolate = async (ctx, layers) => {
   const { renderer } = getThreeSetup(ctx);
   const interp = interpolator(ctx, layers);
   // interp.needsUpdate = true;
   const { edgeVisualizerMesh, nodeVisualizerMesh, nodePickerMesh } =
     getThreeSetup(ctx);
 
-  renderer.compute(interp);
+  await renderer.computeAsync(interp);
   //   .then((output) => {
   //   nodeVisualizerMesh.material.vertexNode.needsUpdate = true;
   //   nodePickerMesh.material.vertexNode.needsUpdate = true;
@@ -87,68 +87,70 @@ export const interpolate = (ctx, layers) => {
   // });
 };
 
-export const doInterpolation = (ctx) => {
+export const doInterpolation = async (ctx) => {
   const buffers = graphBuffers(ctx);
-  interpolate(ctx, [
-    {
-      current: buffers.getNodeProperties("positionInitial"),
-      target: buffers.getNodeProperties("positionTarget"),
-    },
-    {
-      current: buffers.getNodeProperties("sizeInitial"),
-      target: buffers.getNodeProperties("sizeTarget"),
-    },
-  ]);
-  interpolate(ctx, [
-    {
-      current: buffers.getNodeProperties("emphasisInitial"),
-      target: buffers.getNodeProperties("emphasisTarget"),
-    },
-  ]);
-  interpolate(ctx, [
-    {
-      current: buffers.getNodeProperties("colorInitial"),
-      target: buffers.getNodeProperties("colorTarget"),
-    },
-  ]);
-  interpolate(ctx, [
-    {
-      current: buffers.getEdgePairs("positionInitial").source,
-      target: buffers.getEdgePairs("positionTarget").source,
-    },
-    {
-      current: buffers.getEdgePairs("positionInitial").target,
-      target: buffers.getEdgePairs("positionTarget").target,
-    },
-  ]);
-  interpolate(ctx, [
-    {
-      current: buffers.getEdgePairs("sizeInitial").source,
-      target: buffers.getEdgePairs("sizeTarget").source,
-    },
-    {
-      current: buffers.getEdgePairs("sizeInitial").target,
-      target: buffers.getEdgePairs("sizeTarget").target,
-    },
-  ]);
-  interpolate(ctx, [
-    {
-      current: buffers.getEdgePairs("colorInitial").source,
-      target: buffers.getEdgePairs("colorTarget").source,
-    },
-    {
-      current: buffers.getEdgePairs("colorInitial").target,
-      target: buffers.getEdgePairs("colorTarget").target,
-    },
-  ]);
-  interpolate(ctx, [
-    {
-      current: buffers.getEdgePairs("emphasisInitial").source,
-      target: buffers.getEdgePairs("emphasisTarget").source,
-    },
-    {
-      current: buffers.getEdgePairs("emphasisInitial").target,
-      target: buffers.getEdgePairs("emphasisTarget").target,
-    },
+  Promise.all([
+    interpolate(ctx, [
+      {
+        current: buffers.getNodeProperties("positionInitial"),
+        target: buffers.getNodeProperties("positionTarget"),
+      },
+      {
+        current: buffers.getNodeProperties("sizeInitial"),
+        target: buffers.getNodeProperties("sizeTarget"),
+      },
+    ]),
+    interpolate(ctx, [
+      {
+        current: buffers.getNodeProperties("emphasisInitial"),
+        target: buffers.getNodeProperties("emphasisTarget"),
+      },
+    ]),
+    interpolate(ctx, [
+      {
+        current: buffers.getNodeProperties("colorInitial"),
+        target: buffers.getNodeProperties("colorTarget"),
+      },
+    ]),
+    interpolate(ctx, [
+      {
+        current: buffers.getEdgePairs("positionInitial").source,
+        target: buffers.getEdgePairs("positionTarget").source,
+      },
+      {
+        current: buffers.getEdgePairs("positionInitial").target,
+        target: buffers.getEdgePairs("positionTarget").target,
+      },
+    ]),
+    interpolate(ctx, [
+      {
+        current: buffers.getEdgePairs("sizeInitial").source,
+        target: buffers.getEdgePairs("sizeTarget").source,
+      },
+      {
+        current: buffers.getEdgePairs("sizeInitial").target,
+        target: buffers.getEdgePairs("sizeTarget").target,
+      },
+    ]),
+    interpolate(ctx, [
+      {
+        current: buffers.getEdgePairs("colorInitial").source,
+        target: buffers.getEdgePairs("colorTarget").source,
+      },
+      {
+        current: buffers.getEdgePairs("colorInitial").target,
+        target: buffers.getEdgePairs("colorTarget").target,
+      },
+    ]),
+    interpolate(ctx, [
+      {
+        current: buffers.getEdgePairs("emphasisInitial").source,
+        target: buffers.getEdgePairs("emphasisTarget").source,
+      },
+      {
+        current: buffers.getEdgePairs("emphasisInitial").target,
+        target: buffers.getEdgePairs("emphasisTarget").target,
+      },
+    ]),
   ]);
 };

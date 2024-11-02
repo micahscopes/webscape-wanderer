@@ -20,7 +20,7 @@ import {
   getNodeDepthRenderTarget,
   getPickerRenderTarget,
   getThreeSetup,
-  resetNodeGeometry,
+  initializeNodeGeometry,
 } from "./graph-viz";
 import { graphBuffers, updateNodePositionTargets } from "../data";
 import { state } from "../state";
@@ -126,7 +126,7 @@ export const initializeRenderer = (ctx) => {
 };
 
 // no need to get the picker pixel every frame
-export const animateGraph = (ctx) => {
+export const animateGraph = async (ctx) => {
   if (state(ctx, "visible").get()) {
     updateUniforms(ctx);
 
@@ -160,12 +160,15 @@ export const animateGraph = (ctx) => {
     doInterpolation(ctx);
 
     renderer.setRenderTarget(null);
-    renderer.render(scene, camera);
+    // renderer.render(pickerScene, camera);
+    renderer.renderAsync(scene, camera);
 
     renderer.setRenderTarget(getPickerRenderTarget(ctx));
-    renderer.render(pickerScene, camera);
+    renderer.renderAsync(pickerScene, camera);
 
-    if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
+    initializeNodeGeometry(ctx);
+
+    if (deviceHasMouse()) await updatePickerColorThrottled(ctx)().then();
   }
   requestAnimationFrame(() => animateGraph(ctx));
 };

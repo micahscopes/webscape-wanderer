@@ -432,7 +432,7 @@ export const checkPickerSync = (ctx) => {
   }
 };
 
-export const updatePickerColor = moize.infinite((ctx) => () => {
+export const updatePickerColor = moize.infinite((ctx) => async () => {
   // return;
   // console.debug("updating picker color");
   // return
@@ -461,7 +461,7 @@ export const updatePickerColor = moize.infinite((ctx) => () => {
       pointerPosition[1] >= 0 &&
       pointerPosition[1] < pickerRenderTarget.height
     ) {
-      renderer
+      await renderer
         .readRenderTargetPixelsAsync(
           pickerRenderTarget,
           ...pointerPosition,
