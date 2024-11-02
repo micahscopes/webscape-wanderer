@@ -150,25 +150,26 @@ export const animateGraph = async (ctx) => {
       renderer,
       scene,
       camera,
-      nodeVisualizerMesh,
-      nodePickerMesh,
+      // nodeVisualizerMesh,
+      // nodePickerMesh,
       pickerScene,
-      edgeVisualizerMesh,
+      // edgeVisualizerMesh,
+      debugPickerScene,
     } = getThreeSetup(ctx);
 
     doFocus(ctx);
     doInterpolation(ctx);
 
     renderer.setRenderTarget(null);
-    // renderer.render(pickerScene, camera);
-    renderer.renderAsync(scene, camera);
+    renderer.render(scene, camera);
+    // renderer.render(debugPickerScene, camera);
 
     renderer.setRenderTarget(getPickerRenderTarget(ctx));
-    renderer.renderAsync(pickerScene, camera);
+    renderer.render(pickerScene, camera);
 
     initializeNodeGeometry(ctx);
 
-    if (deviceHasMouse()) await updatePickerColorThrottled(ctx)().then();
+    if (deviceHasMouse()) await updatePickerColorThrottled(ctx)();
   }
   requestAnimationFrame(() => animateGraph(ctx));
 };

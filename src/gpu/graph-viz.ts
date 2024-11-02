@@ -217,6 +217,9 @@ export const getThreeSetup = memoize(
     const scene = new Scene();
     const depthScene = new Scene();
     const pickerScene = new Scene();
+    const debugPickerScene = new Scene();
+    debugPickerScene.add(pickerScene);
+    debugPickerScene.add(scene);
     const camera = new PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -251,6 +254,7 @@ export const getThreeSetup = memoize(
       nodeVisualizerMesh,
       edgeVisualizerMesh,
       nodePickerMesh,
+      debugPickerScene,
     };
   },
   {

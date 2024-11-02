@@ -96,7 +96,7 @@ export const graphNodeMaterials = (ctx) => {
   const scale = sizeCurrent
     .mul(scaleAdjustment)
     .mul(mix(0.5, 1, emphasisCurrent));
-  const scalePicker = max(scale.mul(1.2), 0.05);
+  const scalePicker = max(scale, 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {
     nodePosition: positionCurrent,
@@ -108,6 +108,12 @@ export const graphNodeMaterials = (ctx) => {
     nodePosition: positionCurrent,
     scale: scalePicker,
   });
+
+  const pickerOrthographicClipPosition = vec4(
+    geoPicker.orthographicClipPosition.xyz,
+    geoPicker.orthographicClipPosition.w.mul(1.01),
+  );
+
   let normal = fixedView.mul(fixedProjection).mul(normalLocal).normalize();
 
   let color = colors.element(id);
