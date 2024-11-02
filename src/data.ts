@@ -53,7 +53,8 @@ const cleanData = ({ valueNetworkData, projectsData, organizationsData }) => {
 import {
   getEdgeVisualizerMesh,
   loadEdgeVertexArray,
-  loadNodeVertexArray,
+  updateAllNodeMeshVertexArrays,
+  updateNodeMeshVertexArray,
 } from "./gpu/graph-viz";
 import { asyncState, state } from "./state";
 
@@ -197,7 +198,7 @@ export const setGraphData = async (ctx, data, conserveProperties = true) => {
   bufferState.setNodeProperties("emphasisTarget", "float", emphasis);
 
   // Load vertex arrays (if still needed)
-  loadNodeVertexArray(ctx, nodes.length);
+  updateAllNodeMeshVertexArrays(ctx, nodes.length);
 
   getEdgeVisualizerMesh(ctx).geometry.instanceCount = linkIndexPairs.length;
 

@@ -32,28 +32,48 @@ import {
 
 import { getCanvasAndGLContext } from "./rendering";
 import moize from "moize";
+import memoize from "memoizee";
 import { OBJLoader } from "../../lib/OBJLoader";
 // import heartObjString from "../../data/heart.obj?raw";
 import heartUrl from "../../data/heart.obj";
 import dandelionUrl from "../../data/dandelion3.obj";
 
-export const getNodeVisualizerMesh = moize.infinite((ctx) => {
-  const { graphNodeMaterial, graphNodePickerMaterial } =
-    graphNodeMaterials(ctx);
-
+export const getNodeMesh = memoize((meshGeoBuffer, graphNodeMaterial) => {
   const meshGeometry = new InstancedBufferGeometry();
   const mesh = new Mesh(meshGeometry, graphNodeMaterial);
-  const meshGeoBuffer =
-    getComponent(ctx)._nodeGeometryBuffer || getShapeGeo("box");
-  setNodeGeometry(ctx, meshGeoBuffer, mesh);
-
-  // const pickerGeometry = new InstancedBufferGeometry();
-  const pickerMesh = new Mesh(meshGeometry, graphNodePickerMaterial);
-  // const pickerGeoBuffer = getShapeGeo("box");
-  // setNodeGeometry(ctx, pickerGeoBuffer, pickerMesh);
-
-  return { mesh, pickerMesh };
+  setNodeGeometry(meshGeoBuffer, mesh);
+  return mesh;
 });
+
+export const getNodeVisualizerMesh = memoize(
+  (ctx) => {
+    const { graphNodeMaterial, graphNodePickerMaterial } =
+      graphNodeMaterials(ctx);
+
+    const meshGeometry = new InstancedBufferGeometry();
+    const mesh = new Mesh(meshGeometry, graphNodeMaterial);
+    const meshGeoBuffer =
+      getComponent(ctx)._nodeGeometryBuffer || getShapeGeo("box");
+    setNodeGeometry(meshGeoBuffer, mesh);
+
+    // const pickerGeometry = new InstancedBufferGeometry();
+    const pickerMesh = new Mesh(meshGeometry, graphNodePickerMaterial);
+    // const pickerGeoBuffer = getShapeGeo("box");
+    // setNodeGeometry(ctx, pickerGeoBuffer, pickerMesh);
+
+    return { mesh, pickerMesh };
+  },
+  {
+    dispose: function (x, y, z) {
+      console.log("dispose node visualizer mesh", x);
+      const { mesh, pickerMesh } = x;
+      // requestAnimationFrame(() => {
+      //   mesh.material.dispose();
+      //   pickerMesh.material.dispose();
+      // });
+    },
+  },
+);
 
 export const getShapeGeo = (shape) => {
   let geo;
@@ -77,18 +97,23 @@ export const getShapeGeo = (shape) => {
   }
 };
 
-const setNodeGeometry = (ctx, geo, mesh) => {
+const setNodeGeometry = (geo, mesh) => {
   mesh.geometry.setAttribute("position", geo.attributes.position);
   mesh.geometry.setAttribute("normal", geo.attributes.normal);
   mesh.geometry.setIndex(geo.index);
   mesh.material.needsUpdate = true;
 };
 
-export const loadNodeVertexArray = (ctx, size) => {
-  console.debug("loading node vertex array", size);
-  const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
+export const updateAllNodeMeshVertexArrays = (ctx, size) => {
+  const { scene, nodePickerMesh } = getThreeSetup(ctx);
+  scene.nodeMeshes.forEach((mesh) => {
+    updateNodeMeshVertexArray(size, mesh);
+  });
+  updateNodeMeshVertexArray(size, nodePickerMesh);
+};
+
+export const updateNodeMeshVertexArray = (size, mesh) => {
   mesh.geometry.instanceCount = size;
-  pickerMesh.geometry.instanceCount = size;
 };
 
 export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
@@ -99,39 +124,32 @@ export const getEdgeVisualizerMesh = moize.infinite((ctx) => {
   geometry.setAttribute("segmentOffset", segmentOffsetGeo.attributes.position);
   geometry.setIndex(segmentOffsetGeo.index);
 
-  // geometry.setAttribute(
-  //   "edgeIndices",
-  //   new InstancedBufferAttribute(new Int32Array([1, 2, 3]), 2),
-  // );
-
   return new Mesh(geometry, graphEdgeMaterial(ctx));
 });
 
-// export const getEdgeIndexBuffer = moize.infinite((ctx, linkIndexPairs) => {
-//   // const edgePairIndices = new Int32Array(linkIndexPairs.flat());
-//   const edgePairIndices = new Int32Array(10000);
-//   edgePairIndices.set(linkIndexPairs.flat());
-//   return new InstancedBufferAttribute(edgePairIndices, 2);
-// });
-
 export const loadEdgeVertexArray = (ctx, size) => {
   const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
-  // maybe this is unnecessary now...
-  // let edgeIndexBuffer = graphBuffers(ctx).getEdgeIndices();
-  // edgeVisualizerMesh.geometry.setAttribute("edgeIndices", edgeIndexBuffer);
   edgeVisualizerMesh.geometry.instanceCount = size;
 };
 
 export const resetNodeGeometry = async (ctx) => {
-  const { nodes, linkIndexPairs } = await getGraphData(ctx);
+  const { nodes } = await getGraphData(ctx);
+  const { scene } = getThreeSetup(ctx);
 
-  getNodeVisualizerMesh.clear();
-  getThreeSetup.clear();
-  const { mesh, pickerMesh } = getNodeVisualizerMesh(ctx);
+  // Get existing node mesh and remove it
+  // TODO: manage multiple layers
+  const existingMesh = scene.nodeMeshes.values().next().value;
+  if (existingMesh) {
+    scene.nodeMeshes.delete(existingMesh);
+    scene.remove(existingMesh);
+  }
+  const geo = getComponent(ctx)._nodeGeometryBuffer || getShapeGeo("box");
+  const mesh = getNodeMesh(geo, graphNodeMaterials(ctx).graphNodeMaterial);
+  updateNodeMeshVertexArray(nodes.length, mesh);
   mesh.material.needsUpdate = true;
-  pickerMesh.material.needsUpdate = true;
-  loadNodeVertexArray(ctx, nodes.length);
-  getEdgeVisualizerMesh(ctx).geometry.instanceCount = linkIndexPairs.length;
+  scene.add(mesh);
+  scene.nodeMeshes.add(mesh);
+  scene.compile();
 };
 
 import { graphNodeMaterials } from "../shaders/graph-node.tsl";
@@ -153,45 +171,70 @@ const getRenderer = moize.infinite((ctx) => {
 });
 
 // Initialize Three.js scene, camera and renderer
-export const getThreeSetup = moize.infinite((ctx) => {
-  const scene = new Scene();
-  const depthScene = new Scene();
-  const pickerScene = new Scene();
-  const camera = new PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.5,
-    1000,
-  );
-  camera.position.z = 10;
-  const light = new DirectionalLight(0xffffff, 2);
-  scene.add(light);
+export const getThreeSetup = memoize(
+  (ctx) => {
+    const scene = new Scene();
+    const depthScene = new Scene();
+    const pickerScene = new Scene();
+    const camera = new PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.5,
+      1000,
+    );
+    camera.position.z = 10;
+    const light = new DirectionalLight(0xffffff, 2);
+    scene.add(light);
 
-  const renderer = getRenderer(ctx);
+    const renderer = getRenderer(ctx);
 
-  // Visible scene
-  const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
-  scene.add(edgeVisualizerMesh);
+    // Visible scene
+    const edgeVisualizerMesh = getEdgeVisualizerMesh(ctx);
+    scene.add(edgeVisualizerMesh);
 
-  const nodeVisualizerMesh = getNodeVisualizerMesh(ctx).mesh;
-  scene.add(nodeVisualizerMesh);
-  // setNodeGeometry(ctx, "sphere");
+    const nodeVisualizerMesh = getNodeVisualizerMesh(ctx).mesh;
+    scene.add(nodeVisualizerMesh);
+    scene.nodeMeshes = new Set([nodeVisualizerMesh]);
+    // setNodeGeometry(ctx, "sphere");
 
-  // Picker scene
-  const nodePickerMesh = getNodeVisualizerMesh(ctx).pickerMesh;
-  pickerScene.add(nodePickerMesh);
+    // Picker scene
+    const nodePickerMesh = getNodeVisualizerMesh(ctx).pickerMesh;
+    pickerScene.add(nodePickerMesh);
 
-  return {
-    scene,
-    depthScene,
-    pickerScene,
-    camera,
-    renderer,
-    nodeVisualizerMesh,
-    edgeVisualizerMesh,
-    nodePickerMesh,
-  };
-});
+    return {
+      scene,
+      depthScene,
+      pickerScene,
+      camera,
+      renderer,
+      nodeVisualizerMesh,
+      edgeVisualizerMesh,
+      nodePickerMesh,
+    };
+  },
+  {
+    // dispose: (x) => {
+    //   console.log("Disposing Three.js setup");
+    //   x.scene.traverse((object) => {
+    //     if (object instanceof Mesh) {
+    //       object.geometry.dispose();
+    //       object.material.dispose();
+    //     }
+    //   });
+    //   x.renderer.dispose();
+    //   x.scene.clear();
+    //   x.depthScene.clear();
+    //   x.pickerScene.clear();
+    //   if (x.nodeVisualizerMesh) x.nodeVisualizerMesh.geometry.dispose();
+    //   if (x.edgeVisualizerMesh) x.edgeVisualizerMesh.geometry.dispose();
+    //   if (x.nodePickerMesh) x.nodePickerMesh.geometry.dispose();
+    //   requestAnimationFrame(() => {
+    //     x.renderer.forceContextLoss();
+    //     x.renderer.domElement.remove();
+    //   });
+    // },
+  },
+);
 
 export const getPickerRenderTarget = moize.infinite((ctx) => {
   const { canvas } = getCanvasAndGLContext(ctx);

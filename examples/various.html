@@ -52,6 +52,16 @@
                     document.getElementById("small-random");
                 const graphData = randomGraphData(7, 9); // 7 nodes, 9 edges
                 smallRandomWanderer.graphData = graphData;
+
+                const shapes = ["sphere", "cone", "box"];
+                let currentShapeIndex = 0;
+                setInterval(() => {
+                    currentShapeIndex = (currentShapeIndex + 1) % shapes.length;
+                    smallRandomWanderer.setAttribute(
+                        "node-shape",
+                        shapes[currentShapeIndex],
+                    );
+                }, 1000);
             });
         </script>
 

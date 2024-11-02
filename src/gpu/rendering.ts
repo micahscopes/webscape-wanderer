@@ -152,6 +152,7 @@ export const animateGraph = (ctx) => {
       camera,
       nodeVisualizerMesh,
       nodePickerMesh,
+      pickerScene,
       edgeVisualizerMesh,
     } = getThreeSetup(ctx);
 
@@ -162,7 +163,7 @@ export const animateGraph = (ctx) => {
     renderer.render(scene, camera);
 
     renderer.setRenderTarget(getPickerRenderTarget(ctx));
-    renderer.render(nodePickerMesh, camera);
+    renderer.render(pickerScene, camera);
 
     if (deviceHasMouse()) updatePickerColorThrottled(ctx)();
   }

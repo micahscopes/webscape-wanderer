@@ -88,7 +88,7 @@ export const graphNodeMaterials = (ctx) => {
 
   const emphasis = anythingSelected
     .not()
-    .cond(oneMinus(emphasisCurrent), emphasisCurrent);
+    .select(oneMinus(emphasisCurrent), emphasisCurrent);
 
   const colors = buffers.getNodeProperties("colorTarget");
 
@@ -141,6 +141,7 @@ export const graphNodeMaterials = (ctx) => {
       vertexNode: geo.orthographicClipPosition,
       matcap,
       colorNode: colorNode,
+      // colorNode: vec4(1, 1, 0, 1),
       transparent: true,
       // depthTest: false,
     }),
