@@ -5,6 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Webscape Wanderer Example</title>
         <style>
+            html {
+                scroll-snap-type: y mandatory;
+            }
             body {
                 display: flex;
                 flex-direction: column;
@@ -16,14 +19,16 @@
                 /* overflow: hidden; */
             }
             webscape-wanderer {
-                margin: 9vw;
-                border: solid white 1px;
+                margin: 5vh 9vw;
+                border: dotted #aaa 1px;
                 max-width: 79vw;
-                max-height: 99vh;
+                max-height: 90vh;
                 --selected-color: lightcoral;
+                scroll-snap-align: center;
+                height: 100vh;
             }
         </style>
-      <script type="module" crossorigin src="/webscape-wanderer/assets/various-553da46e.js"></script>
+      <script type="module" crossorigin src="/webscape-wanderer/assets/various-90c68564.js"></script>
     </head>
     <body>
         
@@ -31,8 +36,7 @@
         <webscape-wanderer
             id="small-random"
             edge-scale="3"
-            node-shape="box"
-            node-scale="2"
+            node-shape="sphere"
         ></webscape-wanderer>
 
         
@@ -51,16 +55,14 @@
             id="focus-selection-decoupled"
             edge-scale="1"
             selected="node-1"
-            node-shape="box"
+            node-shape="cone"
         ></webscape-wanderer>
 
         
 
         <webscape-wanderer
-            style="--selected-color: crimson"
             id="heart-shaped"
             edge-scale="5"
-            edge-frequency="1.5"
             node-scale="0.5"
             node-shape="../data/heart.obj"
         ></webscape-wanderer>
