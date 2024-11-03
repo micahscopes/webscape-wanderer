@@ -243,10 +243,11 @@ export const setupSelection = moize.infinite((component) => {
     countLastDragEvents = 0;
     cumulativeDragDistance = 0;
 
-    const waitForClick = [pointerUp, getNextHoverOnUpdate(ctx)];
-    // if (deviceHasMouse()) {
-    //   waitForClick.push(getNextHoverOnUpdate(ctx));
-    // }
+    const waitForClick = [pointerUp];
+    // , getNextHoverOnUpdate(ctx)];
+    if (deviceHasMouse()) {
+      waitForClick.push(getNextHoverOnUpdate(ctx));
+    }
 
     Promise.all(waitForClick)
       .then(clickHandler)
@@ -505,7 +506,7 @@ export const getNextHoverOnUpdate = async (ctx) => {
       console.debug("got hover event", ev.detail);
       resolve(ev.detail);
     };
-    canvas.addEventListener("hoveron", listener, { once: true });
+    canvas.addEventListener("hover", listener, { once: true });
   });
 };
 

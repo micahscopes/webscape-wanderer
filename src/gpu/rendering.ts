@@ -176,6 +176,7 @@ export const animateGraph = async (ctx) => {
     initializeNodeGeometry(ctx);
 
     if (deviceHasMouse()) await updatePickerColorThrottled(ctx)();
+    // await updatePickerColorThrottled(ctx)();
   }
   requestAnimationFrame(() => animateGraph(ctx));
 };
