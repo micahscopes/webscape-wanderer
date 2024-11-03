@@ -23,6 +23,7 @@ import { selectNodeAndDownstreamDependents, startFocus } from "./selection";
 import { startCameraAnimation } from "./camera-animation";
 import { OBJLoader } from "../lib/OBJLoader";
 import { state } from "./state";
+import { enablePickerDebug } from "./debug";
 
 // import "./parameters";
 
@@ -196,6 +197,8 @@ class WebscapeWanderer extends LitElement {
         this.onTapHandler(event);
       }
     });
+
+    enablePickerDebug(ctx);
   }
 
   get visible() {

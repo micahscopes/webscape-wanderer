@@ -9,6 +9,7 @@ import { getPickerRenderTarget, getThreeSetup } from "./gpu/graph-viz";
 import { graphCameraAnimation } from "./get-workers";
 import { state } from "./state";
 import { getComponent } from "./context";
+import memoizee from "memoizee";
 // convert event coordinates to normalized coordinates
 const normalizedEventCoordinates = (ctx, ev: any) => {
   const { canvas } = getCanvasAndGLContext(ctx);
@@ -110,8 +111,6 @@ const getPointerPositionInfo: (ctx) => {
   })).get();
 
 const pickedColor = new Uint8Array(4).fill(0);
-let lastOverIndex = -1;
-export const getLastOverIndex = () => lastOverIndex;
 let dragging = false;
 let lastMouseMoveTime = 0;
 const activelyWanderingMouse = () => {
@@ -201,7 +200,7 @@ export const setupSelection = moize.infinite((component) => {
 
   interactionEvents(canvas).on("mousemove", () => {
     // console.debug("preparing to callupdatePickerColorDebounced");
-    !dragging && updatePickerColorDebounced(ctx)();
+    // !dragging && updatePickerColorDebounced(ctx)();
   });
 
   interactionEvents(canvas)
@@ -272,12 +271,14 @@ export const setupSelection = moize.infinite((component) => {
     Promise.all(waitForClick)
       .then(clickHandler)
       .catch((e) => console.debug(e));
+
     setTimeout(() => {
       const wasDrag = cumulativeDragDistance > 0.03 || countLastDragEvents > 5;
       if (!wasDrag) {
         updatePickerColor(ctx)();
       }
-    }, 2); // ugh.... but at least it works.
+    }, 5); // ugh.... but at least it works.
+
     collectPointerPositionInfo(ctx, normalizedEventCoordinates(ctx, ev));
   });
 
@@ -475,32 +476,37 @@ export const updatePickerColor = moize.infinite((ctx) => async () => {
           }
           const overIndex = getNodeIndexFromPickerColor(pickedColor);
           // if (lastOverIndex !== overIndex) {
-          setTimeout(() => {
+
+          // }
+          p.lastOverIndex = overIndex;
+          return overIndex;
+        })
+        .then((overIndex) => {
+          // setTimeout(() => {
+          canvas.dispatchEvent(
+            new CustomEvent("hover", {
+              detail: {
+                wasHoveredIndex: p.lastOverIndex,
+                nowHoveredIndex: overIndex,
+              },
+            }),
+          );
+          console.info("hover", overIndex, p.lastOverIndex);
+          // }, 1);
+
+          if (overIndex > -1) {
+            // setTimeout(() => {
             canvas.dispatchEvent(
-              new CustomEvent("hover", {
+              new CustomEvent("hoveron", {
                 detail: {
-                  wasHoveredIndex: lastOverIndex,
+                  wasHoveredIndex: p.lastOverIndex,
                   nowHoveredIndex: overIndex,
                 },
               }),
             );
-          }, 1);
-
-          if (overIndex > -1) {
-            setTimeout(() => {
-              canvas.dispatchEvent(
-                new CustomEvent("hoveron", {
-                  detail: {
-                    wasHoveredIndex: lastOverIndex,
-                    nowHoveredIndex: overIndex,
-                  },
-                }),
-              );
-            }, 10);
+            console.info("hoveron", overIndex, p.lastOverIndex);
+            // }, 10);
           }
-
-          // }
-          lastOverIndex = overIndex;
         });
     }
   }
@@ -519,7 +525,7 @@ export const getNextHoverOnUpdate = async (ctx) => {
       console.debug("got hover event", ev.detail);
       resolve(ev.detail);
     };
-    canvas.addEventListener("hover", listener, { once: true });
+    canvas.addEventListener("hoveron", listener, { once: true });
   });
 };
 

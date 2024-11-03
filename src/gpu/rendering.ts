@@ -27,6 +27,7 @@ import { state } from "../state";
 import { getComponent } from "../context";
 import { getUniforms, updateUniforms } from "./uniforms";
 import { doInterpolation, interpolate } from "./interpolation";
+import { togglePickerDebug } from "../debug";
 
 let drawEdges = true;
 let drawNodes = true;
@@ -160,9 +161,14 @@ export const animateGraph = async (ctx) => {
     doFocus(ctx);
     doInterpolation(ctx);
 
+    const debugPicker = togglePickerDebug(ctx).get();
     renderer.setRenderTarget(null);
-    renderer.render(scene, camera);
-    // renderer.render(debugPickerScene, camera);
+
+    if (debugPicker) {
+      renderer.render(debugPickerScene, camera);
+    } else {
+      renderer.render(scene, camera);
+    }
 
     renderer.setRenderTarget(getPickerRenderTarget(ctx));
     renderer.render(pickerScene, camera);
