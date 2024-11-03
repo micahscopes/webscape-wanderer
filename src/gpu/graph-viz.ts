@@ -106,11 +106,12 @@ const setNodeGeometry = (geo, mesh) => {
 };
 
 export const updateAllNodeMeshVertexArrays = (ctx, size) => {
-  const { scene, nodePickerMesh } = getThreeSetup(ctx);
+  const { scene } = getThreeSetup(ctx);
   scene.nodeMeshes.forEach((mesh) => {
     updateNodeMeshVertexArray(size, mesh);
   });
-  updateNodeMeshVertexArray(size, nodePickerMesh);
+  const currentPickerMesh = getCurrentPickerMesh(ctx);
+  updateNodeMeshVertexArray(size, currentPickerMesh);
 };
 
 export const updateNodeMeshVertexArray = (size, mesh) => {
@@ -147,6 +148,11 @@ const getBiggestPickerMesh = (
   if (largestRadius > 0) {
     return new IcosahedronGeometry(largestRadius, 0);
   }
+};
+
+export const getCurrentPickerMesh = (ctx) => {
+  const { pickerScene } = getThreeSetup(ctx);
+  return pickerScene.children[0];
 };
 
 export const initializeNodeGeometry = memoize(async (ctx) => {

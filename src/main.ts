@@ -198,7 +198,7 @@ class WebscapeWanderer extends LitElement {
       }
     });
 
-    enablePickerDebug(ctx);
+    // enablePickerDebug(ctx);
   }
 
   get visible() {
