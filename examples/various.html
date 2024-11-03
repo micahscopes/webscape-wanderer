@@ -27,6 +27,9 @@
                 scroll-snap-align: center;
                 height: 100vh;
             }
+            webscape-wanderer::first() {
+                scroll-snap-align: top;
+            }
         </style>
     </head>
     <body>
@@ -69,6 +72,10 @@
                     document.querySelector("#dynamic-shape");
                 const graphData = randomGraphData(15, 20); // 15 nodes, 20 edges
                 dynamicShapeWanderer.graphData = graphData;
+                dynamicShapeWanderer.onTap(function (evt) {
+                    this.setAttribute("selected", evt.detail?.info?.navId);
+                    // this.focus = evt.detail?.info?.navId;
+                });
 
                 const shapes = ["sphere", "cone", "box", "icosahedron"];
                 let currentShapeIndex = 0;

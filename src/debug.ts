@@ -9,6 +9,11 @@ export const enablePickerDebug = (ctx) => {
       set(get() ? false : true);
     }
   });
+
+  setInterval(() => {
+    const { get, set } = togglePickerDebug(ctx);
+    set(get() ? false : true);
+  }, 1000);
 };
 // import queuedThrottle from "throttled-queue";
 // import { controls } from "./attributes";

@@ -96,7 +96,7 @@ export const graphNodeMaterials = (ctx) => {
   const scale = sizeCurrent
     .mul(scaleAdjustment)
     .mul(mix(0.5, 1, emphasisCurrent));
-  const scalePicker = max(scale, 0.05);
+  const scalePicker = max(scale.mul(1.1), 0.05);
 
   const geo = graphNodeGeometryComputerFn(ctx, {
     nodePosition: positionCurrent,
