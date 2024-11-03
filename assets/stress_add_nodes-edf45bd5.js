@@ -1,0 +1,2 @@
+import{s as r,r as o,a as s,b as l}from"./main-877abd05.js";import"./worker-9ad80e94.js";window.addEventListener("DOMContentLoaded",()=>{r();for(let a of document.querySelectorAll("webscape-wanderer")){const e=o(30,30);a.graphData=e;let t=0;const d=20;setInterval(()=>{t+=d,!(t>1e3*2)&&(s(10,e),l(20,e),a.graphData=e,console.log("changing graph data",e.nodes.length,e.links.length))},d);let n=0;setInterval(()=>{a.focus=`node-${n}`,a.selected=`node-${n}`,n=(n+1)%e.nodes.length},10)}});
+//# sourceMappingURL=stress_add_nodes-edf45bd5.js.map

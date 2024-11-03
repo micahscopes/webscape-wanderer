@@ -1,0 +1,2 @@
+import{s as n,r as d,a as o,b as r}from"./main-cf4b7a2f.js";import"./worker-9ad80e94.js";const t="/webscape-wanderer/assets/dandelion3-6f779234.obj";window.addEventListener("DOMContentLoaded",()=>{n();for(let e of document.querySelectorAll("webscape-wanderer")){const a=d(30,30);e.graphData=a,e.nodeShape=t,setTimeout(()=>{o(100,a),r(100,a),e.graphData=a,console.log("changing graph data",a.nodes.length,a.links.length)},3e3)}});
+//# sourceMappingURL=flowers-dd80f0a4.js.map

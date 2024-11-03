@@ -27,14 +27,25 @@
                 scroll-snap-align: center;
                 height: 100vh;
             }
+            webscape-wanderer::first() {
+                scroll-snap-align: top;
+            }
         </style>
-      <script type="module" crossorigin src="/webscape-wanderer/assets/various-90c68564.js"></script>
+      <script type="module" crossorigin src="/webscape-wanderer/assets/various-9a187afa.js"></script>
     </head>
     <body>
         
 
         <webscape-wanderer
             id="small-random"
+            edge-scale="3"
+            node-shape="sphere"
+        ></webscape-wanderer>
+
+        
+
+        <webscape-wanderer
+            id="dynamic-shape"
             edge-scale="3"
             node-shape="sphere"
         ></webscape-wanderer>
