@@ -65,7 +65,7 @@ export const getNodeVisualizerMesh = memoize(
   },
   {
     dispose: function (x, y, z) {
-      console.log("dispose node visualizer mesh", x);
+      console.debug("dispose node visualizer mesh", x);
       const { mesh, pickerMesh } = x;
       // requestAnimationFrame(() => {
       //   mesh.material.dispose();

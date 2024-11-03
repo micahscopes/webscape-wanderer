@@ -230,26 +230,6 @@ export const setupSelection = moize.infinite((component) => {
           .catch((error) => {
             console.error("Error in notifyTapped:", error);
           });
-        // getComponent(ctx).dispatchEvent(
-        //   new CustomEvent("tapped", {
-        //     detail: { tappedIndex: tappedIndex, info },
-        //   }),
-        // );
-        // setSelectedIndex(ctx, tappedIndex);
-        // console.debug("selected index set to", tappedIndex);
-
-        // getSelectedInfo(ctx).then((info) => {
-        //   getComponent(ctx).dispatchEvent(
-        //     new CustomEvent("selected", {
-        //       detail: { selectedIndex: tappedIndex, info },
-        //     }),
-        //   );
-        // });
-        // getComponent(ctx).dispatchEvent(
-        //   new CustomEvent("tap", { detail: { selectedIndex: tappedIndex } }),
-        // );
-        // }
-        // , 150);
       }
     };
 
@@ -385,7 +365,7 @@ export const setupCameraInteraction = (ctx) => {
       zoomGlobalCamera(ctx, 0, 0, 1 - ev.zoomx);
       panGlobalCamera(ctx, ev.dx, ev.dy);
     })
-    .on("touchstart", (ev) => ev.originalEvent.preventDefault())
+    // .on("touchstart", (ev) => ev.originalEvent.preventDefault())
     .on("pinchstart", (ev) => ev.originalEvent.preventDefault())
     .on("pinchend", () => {
       stopPanning(ctx);
@@ -491,7 +471,7 @@ export const updatePickerColor = moize.infinite((ctx) => async () => {
               },
             }),
           );
-          console.info("hover", overIndex, p.lastOverIndex);
+          console.debug("hover", overIndex, p.lastOverIndex);
           // }, 1);
 
           if (overIndex > -1) {
@@ -504,7 +484,7 @@ export const updatePickerColor = moize.infinite((ctx) => async () => {
                 },
               }),
             );
-            console.info("hoveron", overIndex, p.lastOverIndex);
+            console.debug("hoveron", overIndex, p.lastOverIndex);
             // }, 10);
           }
         });

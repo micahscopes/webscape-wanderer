@@ -152,6 +152,7 @@ class WebscapeWanderer extends LitElement {
         max-width: 100%;
         max-height: fit-content;
         display: block;
+        touch-action: none;
       }
     `;
     shadow.appendChild(style);
